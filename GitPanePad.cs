@@ -87,19 +87,19 @@ namespace GitPane
             stagedGroupBox = new GroupBox();
             stagedGroupBox.Text = "Staged Files (0)";
             stagedGroupBox.Location = new Point(10, 40);
-            stagedGroupBox.Size = new Size(460, 150);
+            stagedGroupBox.Size = new Size(460, 170);
 
             stagedListBox = new CheckedListBox();
             stagedListBox.Location = new Point(10, 20);
-            stagedListBox.Size = new Size(360, 115);
+            stagedListBox.Size = new Size(440, 115);
             stagedListBox.Font = new Font("Courier New", 8F);
             stagedListBox.CheckOnClick = true;
             stagedListBox.ItemCheck += OnStagedItemCheck;
 
             unstageAllButton = new Button();
             unstageAllButton.Text = "Unstage All";
-            unstageAllButton.Location = new Point(375, 20);
-            unstageAllButton.Width = 75;
+            unstageAllButton.Location = new Point(10, 140);
+            unstageAllButton.Width = 100;
             unstageAllButton.Height = 25;
             unstageAllButton.Click += OnUnstageAllClick;
 
@@ -109,20 +109,20 @@ namespace GitPane
             // Unstaged files section
             unstagedGroupBox = new GroupBox();
             unstagedGroupBox.Text = "Unstaged Files (0)";
-            unstagedGroupBox.Location = new Point(10, 200);
-            unstagedGroupBox.Size = new Size(460, 150);
+            unstagedGroupBox.Location = new Point(10, 220);
+            unstagedGroupBox.Size = new Size(460, 170);
 
             unstagedListBox = new CheckedListBox();
             unstagedListBox.Location = new Point(10, 20);
-            unstagedListBox.Size = new Size(360, 115);
+            unstagedListBox.Size = new Size(440, 115);
             unstagedListBox.Font = new Font("Courier New", 8F);
             unstagedListBox.CheckOnClick = true;
             unstagedListBox.ItemCheck += OnUnstagedItemCheck;
 
             stageAllButton = new Button();
             stageAllButton.Text = "Stage All";
-            stageAllButton.Location = new Point(375, 20);
-            stageAllButton.Width = 75;
+            stageAllButton.Location = new Point(10, 140);
+            stageAllButton.Width = 100;
             stageAllButton.Height = 25;
             stageAllButton.Click += OnStageAllClick;
 
@@ -132,26 +132,26 @@ namespace GitPane
             // Commit message section
             commitMessageLabel = new Label();
             commitMessageLabel.Text = "Commit Message:";
-            commitMessageLabel.Location = new Point(10, 360);
+            commitMessageLabel.Location = new Point(10, 400);
             commitMessageLabel.AutoSize = true;
 
             commitMessageBox = new TextBox();
             commitMessageBox.Multiline = true;
-            commitMessageBox.Location = new Point(10, 380);
+            commitMessageBox.Location = new Point(10, 420);
             commitMessageBox.Size = new Size(460, 60);
             commitMessageBox.ScrollBars = ScrollBars.Vertical;
 
             // Commit buttons
             commitButton = new Button();
             commitButton.Text = "Commit";
-            commitButton.Location = new Point(315, 450);
+            commitButton.Location = new Point(315, 490);
             commitButton.Width = 70;
             commitButton.Height = 28;
             commitButton.Click += OnCommitClick;
 
             commitPushButton = new Button();
             commitPushButton.Text = "Commit && Push";
-            commitPushButton.Location = new Point(390, 450);
+            commitPushButton.Location = new Point(390, 490);
             commitPushButton.Width = 80;
             commitPushButton.Height = 28;
             commitPushButton.Click += OnCommitPushClick;
