@@ -93,6 +93,55 @@ namespace GitPane
             return checkoutResult.ExitCode == 0;
         }
 
+        public bool HasUncommittedChanges()
+        {
+            var result = ExecuteGitCommand("status --porcelain");
+            return result.ExitCode == 0 && !string.IsNullOrWhiteSpace(result.Output);
+        }
+
+        public string GetUncommittedChangesStatus()
+        {
+            var result = ExecuteGitCommand("status --short");
+            return result.ExitCode == 0 ? result.Output : string.Empty;
+        }
+
+        public bool StashChanges(string message = null)
+        {
+            var stashMessage = string.IsNullOrEmpty(message) ? "GitPane auto-stash" : message;
+            var result = ExecuteGitCommand($"stash push -m \"{stashMessage}\"");
+            return result.ExitCode == 0;
+        }
+
+        public bool CommitChanges(string message)
+        {
+            // Stage all changes
+            var addResult = ExecuteGitCommand("add -A");
+            if (addResult.ExitCode != 0)
+                return false;
+
+            // Commit
+            var commitResult = ExecuteGitCommand($"commit -m \"{message}\"");
+            return commitResult.ExitCode == 0;
+        }
+
+        public bool PushChanges()
+        {
+            var result = ExecuteGitCommand("push");
+            return result.ExitCode == 0;
+        }
+
+        public bool DiscardChanges()
+        {
+            // Reset tracked files
+            var resetResult = ExecuteGitCommand("reset --hard HEAD");
+            if (resetResult.ExitCode != 0)
+                return false;
+
+            // Clean untracked files
+            var cleanResult = ExecuteGitCommand("clean -fd");
+            return cleanResult.ExitCode == 0;
+        }
+
         public string GetRepositoryName()
         {
             // Try to get from origin URL first
