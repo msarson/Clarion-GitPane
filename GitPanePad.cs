@@ -9,7 +9,6 @@ namespace GitPane
     public class GitPanePad : AbstractPadContent
     {
         private Panel contentPanel;
-        private Label repoInfoLabel;
         private Label branchLabel;
         private Label branchValueLabel;
         private Button branchSelectButton;
@@ -35,19 +34,12 @@ namespace GitPane
             contentPanel.Padding = new Padding(10);
             contentPanel.AutoScroll = true;
 
-            // Repository name label
-            repoInfoLabel = new Label();
-            repoInfoLabel.AutoSize = true;
-            repoInfoLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 11F, FontStyle.Bold);
-            repoInfoLabel.ForeColor = SystemColors.ControlText;
-            repoInfoLabel.Location = new Point(10, 10);
-
             // Branch label
             branchLabel = new Label();
             branchLabel.AutoSize = true;
             branchLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F);
             branchLabel.ForeColor = SystemColors.ControlText;
-            branchLabel.Location = new Point(10, 35);
+            branchLabel.Location = new Point(10, 10);
             branchLabel.Text = "Branch:";
 
             // Branch value label
@@ -55,24 +47,23 @@ namespace GitPane
             branchValueLabel.AutoSize = true;
             branchValueLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F, FontStyle.Bold);
             branchValueLabel.ForeColor = Color.DarkBlue;
-            branchValueLabel.Location = new Point(60, 35);
+            branchValueLabel.Location = new Point(60, 10);
 
             // Branch select button
             branchSelectButton = new Button();
             branchSelectButton.Text = "...";
             branchSelectButton.Width = 30;
             branchSelectButton.Height = 23;
-            branchSelectButton.Location = new Point(200, 32);
+            branchSelectButton.Location = new Point(200, 7);
             branchSelectButton.Click += OnBranchSelectClick;
 
-            // Status label
+            // Status label (for non-repo message)
             statusLabel = new Label();
             statusLabel.AutoSize = true;
             statusLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F);
             statusLabel.ForeColor = SystemColors.GrayText;
-            statusLabel.Location = new Point(10, 65);
+            statusLabel.Location = new Point(10, 10);
 
-            contentPanel.Controls.Add(repoInfoLabel);
             contentPanel.Controls.Add(branchLabel);
             contentPanel.Controls.Add(branchValueLabel);
             contentPanel.Controls.Add(branchSelectButton);
@@ -91,35 +82,49 @@ namespace GitPane
                     string repoName = gitRepo.GetRepositoryName();
                     string currentBranch = gitRepo.GetCurrentBranch();
 
-                    repoInfoLabel.Text = $"Repository: {repoName}";
-                    branchValueLabel.Text = currentBranch ?? "unknown";
-                    statusLabel.Text = $"Path: {solutionDir}";
+                    // Update title to include repo name and path
+                    UpdatePadTitle($"{repoName} - {solutionDir}");
 
-                    repoInfoLabel.Visible = true;
+                    branchValueLabel.Text = currentBranch ?? "unknown";
+
                     branchLabel.Visible = true;
                     branchValueLabel.Visible = true;
                     branchSelectButton.Visible = true;
-                    statusLabel.Visible = true;
+                    statusLabel.Visible = false;
                 }
                 else
                 {
-                    repoInfoLabel.Text = "Not a Git repository";
+                    UpdatePadTitle($"Not a Git repository - {solutionDir}");
                     branchLabel.Visible = false;
                     branchValueLabel.Visible = false;
                     branchSelectButton.Visible = false;
-                    statusLabel.Text = $"Path: {solutionDir}";
-                    repoInfoLabel.Visible = true;
+                    statusLabel.Text = "Not a Git repository";
                     statusLabel.Visible = true;
                 }
             }
             else
             {
-                repoInfoLabel.Text = "No solution opened";
-                repoInfoLabel.Visible = true;
+                UpdatePadTitle("Git - No solution opened");
                 branchLabel.Visible = false;
                 branchValueLabel.Visible = false;
                 branchSelectButton.Visible = false;
-                statusLabel.Visible = false;
+                statusLabel.Text = "No solution opened";
+                statusLabel.Visible = true;
+            }
+        }
+
+        private void UpdatePadTitle(string title)
+        {
+            // Try to update the pad title through the parent form
+            var parent = contentPanel.Parent;
+            while (parent != null)
+            {
+                if (parent is Form)
+                {
+                    ((Form)parent).Text = title;
+                    break;
+                }
+                parent = parent.Parent;
             }
         }
 
