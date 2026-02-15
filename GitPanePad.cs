@@ -11,7 +11,8 @@ namespace GitPane
         private Panel contentPanel;
         private Label repoInfoLabel;
         private Label branchLabel;
-        private ComboBox branchComboBox;
+        private Label branchValueLabel;
+        private Button branchSelectButton;
         private Label statusLabel;
         private GitRepository gitRepo;
 
@@ -49,13 +50,20 @@ namespace GitPane
             branchLabel.Location = new Point(10, 35);
             branchLabel.Text = "Branch:";
 
-            // Branch dropdown
-            branchComboBox = new ComboBox();
-            branchComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            branchComboBox.Location = new Point(60, 32);
-            branchComboBox.Width = 200;
-            branchComboBox.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F);
-            branchComboBox.SelectedIndexChanged += OnBranchSelected;
+            // Branch value label
+            branchValueLabel = new Label();
+            branchValueLabel.AutoSize = true;
+            branchValueLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F, FontStyle.Bold);
+            branchValueLabel.ForeColor = Color.DarkBlue;
+            branchValueLabel.Location = new Point(60, 35);
+
+            // Branch select button
+            branchSelectButton = new Button();
+            branchSelectButton.Text = "...";
+            branchSelectButton.Width = 30;
+            branchSelectButton.Height = 23;
+            branchSelectButton.Location = new Point(200, 32);
+            branchSelectButton.Click += OnBranchSelectClick;
 
             // Status label
             statusLabel = new Label();
@@ -66,7 +74,8 @@ namespace GitPane
 
             contentPanel.Controls.Add(repoInfoLabel);
             contentPanel.Controls.Add(branchLabel);
-            contentPanel.Controls.Add(branchComboBox);
+            contentPanel.Controls.Add(branchValueLabel);
+            contentPanel.Controls.Add(branchSelectButton);
             contentPanel.Controls.Add(statusLabel);
         }
 
@@ -83,44 +92,21 @@ namespace GitPane
                     string currentBranch = gitRepo.GetCurrentBranch();
 
                     repoInfoLabel.Text = $"Repository: {repoName}";
+                    branchValueLabel.Text = currentBranch ?? "unknown";
                     statusLabel.Text = $"Path: {solutionDir}";
-
-                    // Populate branch dropdown
-                    branchComboBox.SelectedIndexChanged -= OnBranchSelected;
-                    branchComboBox.Items.Clear();
-                    
-                    var branches = gitRepo.GetAllBranches();
-                    foreach (var branch in branches)
-                    {
-                        branchComboBox.Items.Add(branch);
-                    }
-
-                    // Select current branch
-                    if (currentBranch != null && !currentBranch.StartsWith("HEAD"))
-                    {
-                        int index = branchComboBox.Items.IndexOf(currentBranch);
-                        if (index >= 0)
-                            branchComboBox.SelectedIndex = index;
-                    }
-                    else
-                    {
-                        // Detached HEAD state - show in label
-                        branchComboBox.Items.Insert(0, currentBranch ?? "unknown");
-                        branchComboBox.SelectedIndex = 0;
-                    }
-
-                    branchComboBox.SelectedIndexChanged += OnBranchSelected;
 
                     repoInfoLabel.Visible = true;
                     branchLabel.Visible = true;
-                    branchComboBox.Visible = true;
+                    branchValueLabel.Visible = true;
+                    branchSelectButton.Visible = true;
                     statusLabel.Visible = true;
                 }
                 else
                 {
                     repoInfoLabel.Text = "Not a Git repository";
                     branchLabel.Visible = false;
-                    branchComboBox.Visible = false;
+                    branchValueLabel.Visible = false;
+                    branchSelectButton.Visible = false;
                     statusLabel.Text = $"Path: {solutionDir}";
                     repoInfoLabel.Visible = true;
                     statusLabel.Visible = true;
@@ -131,47 +117,51 @@ namespace GitPane
                 repoInfoLabel.Text = "No solution opened";
                 repoInfoLabel.Visible = true;
                 branchLabel.Visible = false;
-                branchComboBox.Visible = false;
+                branchValueLabel.Visible = false;
+                branchSelectButton.Visible = false;
                 statusLabel.Visible = false;
             }
         }
 
-        private void OnBranchSelected(object sender, EventArgs e)
+        private void OnBranchSelectClick(object sender, EventArgs e)
         {
-            if (branchComboBox.SelectedItem == null || gitRepo == null)
+            if (gitRepo == null)
                 return;
 
-            string selectedBranch = branchComboBox.SelectedItem.ToString();
-            string currentBranch = gitRepo.GetCurrentBranch();
+            var branches = gitRepo.GetAllBranchesWithInfo();
+            var currentBranch = gitRepo.GetCurrentBranch();
 
-            // Don't switch if already on this branch
-            if (selectedBranch == currentBranch)
-                return;
-
-            // Don't allow switching from detached HEAD entries
-            if (selectedBranch.StartsWith("HEAD"))
-                return;
-
-            if (MessageBox.Show(
-                $"Switch to branch '{selectedBranch}'?",
-                "Switch Branch",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question) == DialogResult.Yes)
+            using (var dialog = new BranchSelectorDialog(branches, currentBranch))
             {
-                if (gitRepo.CheckoutBranch(selectedBranch))
+                if (dialog.ShowDialog() == DialogResult.OK && dialog.SelectedBranch != null)
                 {
-                    MessageBox.Show($"Switched to branch '{selectedBranch}'", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    UpdateStatus();
+                    string selectedBranch = dialog.SelectedBranch;
+
+                    // Don't switch if already on this branch
+                    if (selectedBranch == currentBranch)
+                        return;
+
+                    // Don't allow switching from detached HEAD entries
+                    if (selectedBranch.StartsWith("HEAD"))
+                        return;
+
+                    if (MessageBox.Show(
+                        $"Switch to branch '{selectedBranch}'?",
+                        "Switch Branch",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question) == DialogResult.Yes)
+                    {
+                        if (gitRepo.CheckoutBranch(selectedBranch))
+                        {
+                            MessageBox.Show($"Switched to branch '{selectedBranch}'", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            UpdateStatus();
+                        }
+                        else
+                        {
+                            MessageBox.Show($"Failed to switch to branch '{selectedBranch}'.\n\nYou may have uncommitted changes.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
                 }
-                else
-                {
-                    MessageBox.Show($"Failed to switch to branch '{selectedBranch}'.\n\nYou may have uncommitted changes.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    UpdateStatus(); // Refresh to restore correct selection
-                }
-            }
-            else
-            {
-                UpdateStatus(); // Restore previous selection if user cancels
             }
         }
 

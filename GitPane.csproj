@@ -17,6 +17,7 @@
   <ItemGroup>
     <Compile Include="GitPanePad.cs" />
     <Compile Include="GitRepository.cs" />
+    <Compile Include="BranchSelectorDialog.cs" />
   </ItemGroup>
 
   <ItemGroup>

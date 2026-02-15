@@ -42,21 +42,55 @@ namespace GitPane
             return null;
         }
 
-        public string[] GetAllBranches()
+        public BranchInfo[] GetAllBranchesWithInfo()
         {
-            var result = ExecuteGitCommand("branch --format=%(refname:short)");
+            // Get all branches sorted by last commit date
+            var result = ExecuteGitCommand("for-each-ref --sort=-committerdate --format=%(refname:short)|%(committerdate:relative) refs/heads/ refs/remotes/");
             if (result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output))
             {
-                var branches = result.Output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                return branches;
+                var lines = result.Output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                var branches = new System.Collections.Generic.List<BranchInfo>();
+                
+                foreach (var line in lines)
+                {
+                    var parts = line.Split('|');
+                    if (parts.Length == 2)
+                    {
+                        var branchName = parts[0].Trim();
+                        var lastCommit = parts[1].Trim();
+                        var isRemote = branchName.StartsWith("origin/") || branchName.StartsWith("remotes/");
+                        
+                        branches.Add(new BranchInfo
+                        {
+                            Name = branchName,
+                            LastCommit = lastCommit,
+                            IsRemote = isRemote
+                        });
+                    }
+                }
+                
+                return branches.ToArray();
             }
-            return new string[0];
+            return new BranchInfo[0];
         }
 
         public bool CheckoutBranch(string branchName)
         {
-            var result = ExecuteGitCommand($"checkout \"{branchName}\"");
-            return result.ExitCode == 0;
+            // Handle remote branches - create local tracking branch
+            if (branchName.StartsWith("origin/"))
+            {
+                var localName = branchName.Substring(7); // Remove "origin/"
+                var result = ExecuteGitCommand($"checkout -b \"{localName}\" \"{branchName}\"");
+                if (result.ExitCode != 0)
+                {
+                    // Branch might already exist locally, try regular checkout
+                    result = ExecuteGitCommand($"checkout \"{localName}\"");
+                }
+                return result.ExitCode == 0;
+            }
+            
+            var checkoutResult = ExecuteGitCommand($"checkout \"{branchName}\"");
+            return checkoutResult.ExitCode == 0;
         }
 
         public string GetRepositoryName()
