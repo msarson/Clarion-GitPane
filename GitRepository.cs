@@ -176,6 +176,60 @@ namespace GitPane
             return result.ExitCode == 0;
         }
 
+        public string[] GetStagedFiles()
+        {
+            var result = ExecuteGitCommand("diff --name-status --cached");
+            if (result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output))
+            {
+                return result.Output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            return new string[0];
+        }
+
+        public string[] GetUnstagedFiles()
+        {
+            var result = ExecuteGitCommand("diff --name-status");
+            if (result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output))
+            {
+                return result.Output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            return new string[0];
+        }
+
+        public string[] GetUntrackedFiles()
+        {
+            var result = ExecuteGitCommand("ls-files --others --exclude-standard");
+            if (result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output))
+            {
+                return result.Output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            return new string[0];
+        }
+
+        public bool StageFile(string filePath)
+        {
+            var result = ExecuteGitCommand($"add \"{filePath}\"");
+            return result.ExitCode == 0;
+        }
+
+        public bool UnstageFile(string filePath)
+        {
+            var result = ExecuteGitCommand($"reset HEAD \"{filePath}\"");
+            return result.ExitCode == 0;
+        }
+
+        public bool StageAllFiles()
+        {
+            var result = ExecuteGitCommand("add -A");
+            return result.ExitCode == 0;
+        }
+
+        public bool UnstageAllFiles()
+        {
+            var result = ExecuteGitCommand("reset HEAD");
+            return result.ExitCode == 0;
+        }
+
         public string GetRepositoryName()
         {
             // Try to get from origin URL first

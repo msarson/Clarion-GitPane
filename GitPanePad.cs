@@ -13,6 +13,22 @@ namespace GitPane
         private Label branchValueLabel;
         private Button branchSelectButton;
         private Label statusLabel;
+        
+        // Commit workflow controls
+        private GroupBox stagedGroupBox;
+        private CheckedListBox stagedListBox;
+        private Button unstageAllButton;
+        
+        private GroupBox unstagedGroupBox;
+        private CheckedListBox unstagedListBox;
+        private Button stageAllButton;
+        
+        private Label commitMessageLabel;
+        private TextBox commitMessageBox;
+        private Button commitButton;
+        private Button commitPushButton;
+        private Button refreshButton;
+        
         private GitRepository gitRepo;
 
         public override Control Control => contentPanel;
@@ -57,6 +73,87 @@ namespace GitPane
             branchSelectButton.Location = new Point(200, 7);
             branchSelectButton.Click += OnBranchSelectClick;
 
+            // Refresh button
+            refreshButton = new Button();
+            refreshButton.Text = "Refresh";
+            refreshButton.Location = new Point(240, 7);
+            refreshButton.Width = 70;
+            refreshButton.Height = 23;
+            refreshButton.Click += OnRefreshClick;
+
+            // Staged files section
+            stagedGroupBox = new GroupBox();
+            stagedGroupBox.Text = "Staged Files (0)";
+            stagedGroupBox.Location = new Point(10, 40);
+            stagedGroupBox.Size = new Size(460, 150);
+
+            stagedListBox = new CheckedListBox();
+            stagedListBox.Location = new Point(10, 20);
+            stagedListBox.Size = new Size(360, 115);
+            stagedListBox.Font = new Font("Courier New", 8F);
+            stagedListBox.CheckOnClick = true;
+            stagedListBox.ItemCheck += OnStagedItemCheck;
+
+            unstageAllButton = new Button();
+            unstageAllButton.Text = "Unstage All";
+            unstageAllButton.Location = new Point(375, 20);
+            unstageAllButton.Width = 75;
+            unstageAllButton.Height = 25;
+            unstageAllButton.Click += OnUnstageAllClick;
+
+            stagedGroupBox.Controls.Add(stagedListBox);
+            stagedGroupBox.Controls.Add(unstageAllButton);
+
+            // Unstaged files section
+            unstagedGroupBox = new GroupBox();
+            unstagedGroupBox.Text = "Unstaged Files (0)";
+            unstagedGroupBox.Location = new Point(10, 200);
+            unstagedGroupBox.Size = new Size(460, 150);
+
+            unstagedListBox = new CheckedListBox();
+            unstagedListBox.Location = new Point(10, 20);
+            unstagedListBox.Size = new Size(360, 115);
+            unstagedListBox.Font = new Font("Courier New", 8F);
+            unstagedListBox.CheckOnClick = true;
+            unstagedListBox.ItemCheck += OnUnstagedItemCheck;
+
+            stageAllButton = new Button();
+            stageAllButton.Text = "Stage All";
+            stageAllButton.Location = new Point(375, 20);
+            stageAllButton.Width = 75;
+            stageAllButton.Height = 25;
+            stageAllButton.Click += OnStageAllClick;
+
+            unstagedGroupBox.Controls.Add(unstagedListBox);
+            unstagedGroupBox.Controls.Add(stageAllButton);
+
+            // Commit message section
+            commitMessageLabel = new Label();
+            commitMessageLabel.Text = "Commit Message:";
+            commitMessageLabel.Location = new Point(10, 360);
+            commitMessageLabel.AutoSize = true;
+
+            commitMessageBox = new TextBox();
+            commitMessageBox.Multiline = true;
+            commitMessageBox.Location = new Point(10, 380);
+            commitMessageBox.Size = new Size(460, 60);
+            commitMessageBox.ScrollBars = ScrollBars.Vertical;
+
+            // Commit buttons
+            commitButton = new Button();
+            commitButton.Text = "Commit";
+            commitButton.Location = new Point(315, 450);
+            commitButton.Width = 70;
+            commitButton.Height = 28;
+            commitButton.Click += OnCommitClick;
+
+            commitPushButton = new Button();
+            commitPushButton.Text = "Commit && Push";
+            commitPushButton.Location = new Point(390, 450);
+            commitPushButton.Width = 80;
+            commitPushButton.Height = 28;
+            commitPushButton.Click += OnCommitPushClick;
+
             // Status label (for non-repo message)
             statusLabel = new Label();
             statusLabel.AutoSize = true;
@@ -67,6 +164,13 @@ namespace GitPane
             contentPanel.Controls.Add(branchLabel);
             contentPanel.Controls.Add(branchValueLabel);
             contentPanel.Controls.Add(branchSelectButton);
+            contentPanel.Controls.Add(refreshButton);
+            contentPanel.Controls.Add(stagedGroupBox);
+            contentPanel.Controls.Add(unstagedGroupBox);
+            contentPanel.Controls.Add(commitMessageLabel);
+            contentPanel.Controls.Add(commitMessageBox);
+            contentPanel.Controls.Add(commitButton);
+            contentPanel.Controls.Add(commitPushButton);
             contentPanel.Controls.Add(statusLabel);
         }
 
@@ -90,14 +194,23 @@ namespace GitPane
                     branchLabel.Visible = true;
                     branchValueLabel.Visible = true;
                     branchSelectButton.Visible = true;
+                    refreshButton.Visible = true;
                     statusLabel.Visible = false;
+                    
+                    // Show commit workflow controls
+                    stagedGroupBox.Visible = true;
+                    unstagedGroupBox.Visible = true;
+                    commitMessageLabel.Visible = true;
+                    commitMessageBox.Visible = true;
+                    commitButton.Visible = true;
+                    commitPushButton.Visible = true;
+                    
+                    RefreshFileList();
                 }
                 else
                 {
                     UpdatePadTitle($"Not a Git repository - {solutionDir}");
-                    branchLabel.Visible = false;
-                    branchValueLabel.Visible = false;
-                    branchSelectButton.Visible = false;
+                    HideCommitControls();
                     statusLabel.Text = "Not a Git repository";
                     statusLabel.Visible = true;
                 }
@@ -105,11 +218,194 @@ namespace GitPane
             else
             {
                 UpdatePadTitle("Git - No solution opened");
-                branchLabel.Visible = false;
-                branchValueLabel.Visible = false;
-                branchSelectButton.Visible = false;
+                HideCommitControls();
                 statusLabel.Text = "No solution opened";
                 statusLabel.Visible = true;
+            }
+        }
+
+        private void HideCommitControls()
+        {
+            branchLabel.Visible = false;
+            branchValueLabel.Visible = false;
+            branchSelectButton.Visible = false;
+            refreshButton.Visible = false;
+            stagedGroupBox.Visible = false;
+            unstagedGroupBox.Visible = false;
+            commitMessageLabel.Visible = false;
+            commitMessageBox.Visible = false;
+            commitButton.Visible = false;
+            commitPushButton.Visible = false;
+        }
+
+        private void RefreshFileList()
+        {
+            if (gitRepo == null)
+                return;
+
+            // Get staged files
+            stagedListBox.Items.Clear();
+            var stagedFiles = gitRepo.GetStagedFiles();
+            foreach (var file in stagedFiles)
+            {
+                stagedListBox.Items.Add(file, false);
+            }
+            stagedGroupBox.Text = $"Staged Files ({stagedFiles.Length})";
+
+            // Get unstaged files
+            unstagedListBox.Items.Clear();
+            var unstagedFiles = gitRepo.GetUnstagedFiles();
+            var untrackedFiles = gitRepo.GetUntrackedFiles();
+            
+            foreach (var file in unstagedFiles)
+            {
+                unstagedListBox.Items.Add(file, false);
+            }
+            
+            // Add untracked files with ?? prefix
+            foreach (var file in untrackedFiles)
+            {
+                unstagedListBox.Items.Add($"??\t{file}", false);
+            }
+            
+            unstagedGroupBox.Text = $"Unstaged Files ({unstagedFiles.Length + untrackedFiles.Length})";
+        }
+
+        private void OnRefreshClick(object sender, EventArgs e)
+        {
+            RefreshFileList();
+        }
+
+        private void OnStagedItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            if (e.NewValue == CheckState.Checked)
+            {
+                // User checked a staged file - unstage it
+                var item = stagedListBox.Items[e.Index].ToString();
+                var parts = item.Split('\t');
+                var filePath = parts.Length > 1 ? parts[1] : item;
+                
+                if (gitRepo.UnstageFile(filePath))
+                {
+                    // Refresh after a short delay to let the checkbox update
+                    System.Threading.ThreadPool.QueueUserWorkItem(state =>
+                    {
+                        System.Threading.Thread.Sleep(100);
+                        if (contentPanel.InvokeRequired)
+                            contentPanel.Invoke(new Action(RefreshFileList));
+                    });
+                }
+                else
+                {
+                    e.NewValue = CheckState.Unchecked;
+                    MessageBox.Show("Failed to unstage file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void OnUnstagedItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            if (e.NewValue == CheckState.Checked)
+            {
+                // User checked an unstaged file - stage it
+                var item = unstagedListBox.Items[e.Index].ToString();
+                var parts = item.Split('\t');
+                var filePath = parts.Length > 1 ? parts[1] : item;
+                
+                if (gitRepo.StageFile(filePath))
+                {
+                    // Refresh after a short delay to let the checkbox update
+                    System.Threading.ThreadPool.QueueUserWorkItem(state =>
+                    {
+                        System.Threading.Thread.Sleep(100);
+                        if (contentPanel.InvokeRequired)
+                            contentPanel.Invoke(new Action(RefreshFileList));
+                    });
+                }
+                else
+                {
+                    e.NewValue = CheckState.Unchecked;
+                    MessageBox.Show("Failed to stage file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void OnStageAllClick(object sender, EventArgs e)
+        {
+            if (gitRepo != null && gitRepo.StageAllFiles())
+            {
+                RefreshFileList();
+            }
+            else
+            {
+                MessageBox.Show("Failed to stage all files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void OnUnstageAllClick(object sender, EventArgs e)
+        {
+            if (gitRepo != null && gitRepo.UnstageAllFiles())
+            {
+                RefreshFileList();
+            }
+            else
+            {
+                MessageBox.Show("Failed to unstage all files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void OnCommitClick(object sender, EventArgs e)
+        {
+            PerformCommit(false);
+        }
+
+        private void OnCommitPushClick(object sender, EventArgs e)
+        {
+            PerformCommit(true);
+        }
+
+        private void PerformCommit(bool andPush)
+        {
+            var message = commitMessageBox.Text.Trim();
+            
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                MessageBox.Show("Please enter a commit message.", "Commit Message Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (stagedListBox.Items.Count == 0)
+            {
+                MessageBox.Show("No files staged for commit.", "Nothing to Commit", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (gitRepo.CommitChanges(message))
+            {
+                commitMessageBox.Clear();
+                
+                if (andPush)
+                {
+                    if (gitRepo.PushChanges())
+                    {
+                        MessageBox.Show("Committed and pushed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Committed locally but push failed. You can push manually later.", "Partial Success", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Committed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                
+                RefreshFileList();
+                UpdateStatus();
+            }
+            else
+            {
+                MessageBox.Show("Failed to commit changes.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
