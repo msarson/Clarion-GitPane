@@ -162,6 +162,8 @@ namespace GitPane
                         {
                             if (gitRepo.CheckoutBranch(selectedBranch))
                             {
+                                // Check if there are stashes after switching
+                                CheckForStashesToRestore();
                                 MessageBox.Show($"Switched to branch '{selectedBranch}'", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                                 UpdateStatus();
                             }
@@ -255,6 +257,8 @@ namespace GitPane
                     {
                         if (gitRepo.CheckoutBranch(targetBranch))
                         {
+                            // Check if there are stashes after switching
+                            CheckForStashesToRestore();
                             MessageBox.Show($"Changes stashed and switched to branch '{targetBranch}'", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             UpdateStatus();
                             return true;
@@ -281,6 +285,8 @@ namespace GitPane
 
                         if (gitRepo.CheckoutBranch(targetBranch))
                         {
+                            // Check if there are stashes after switching
+                            CheckForStashesToRestore();
                             MessageBox.Show($"Changes committed and switched to branch '{targetBranch}'", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             UpdateStatus();
                             return true;
@@ -295,6 +301,8 @@ namespace GitPane
                     {
                         if (gitRepo.CheckoutBranch(targetBranch))
                         {
+                            // Check if there are stashes after switching
+                            CheckForStashesToRestore();
                             MessageBox.Show($"Changes discarded and switched to branch '{targetBranch}'", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             UpdateStatus();
                             return true;
@@ -353,6 +361,132 @@ namespace GitPane
                     return textBox.Text;
                 
                 return null;
+            }
+        }
+
+        private void CheckForStashesToRestore()
+        {
+            if (!gitRepo.HasStashes())
+                return;
+
+            var stashes = gitRepo.GetStashList();
+            var currentBranch = gitRepo.GetCurrentBranch();
+
+            using (var dialog = new Form())
+            {
+                dialog.Text = "Stashed Changes Available";
+                dialog.Size = new Size(500, 350);
+                dialog.StartPosition = FormStartPosition.CenterParent;
+                dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dialog.MaximizeBox = false;
+                dialog.MinimizeBox = false;
+
+                var label = new Label();
+                label.Text = $"There are stashed changes available on '{currentBranch}'.\nWould you like to restore them?";
+                label.Location = new Point(10, 10);
+                label.AutoSize = true;
+
+                var listBox = new ListBox();
+                listBox.Location = new Point(10, 50);
+                listBox.Size = new Size(460, 200);
+                listBox.Font = new Font("Courier New", 8F);
+                
+                for (int i = 0; i < stashes.Length; i++)
+                {
+                    listBox.Items.Add($"[{i}] {stashes[i]}");
+                }
+                
+                if (stashes.Length > 0)
+                    listBox.SelectedIndex = 0;
+
+                var applyButton = new Button();
+                applyButton.Text = "Apply";
+                applyButton.Location = new Point(10, 260);
+                applyButton.Width = 90;
+                applyButton.Click += (s, ev) => { dialog.Tag = "apply"; dialog.Close(); };
+
+                var popButton = new Button();
+                popButton.Text = "Pop";
+                popButton.Location = new Point(105, 260);
+                popButton.Width = 90;
+                popButton.Click += (s, ev) => { dialog.Tag = "pop"; dialog.Close(); };
+
+                var dropButton = new Button();
+                dropButton.Text = "Drop";
+                dropButton.Location = new Point(200, 260);
+                dropButton.Width = 90;
+                dropButton.ForeColor = Color.Red;
+                dropButton.Click += (s, ev) => 
+                { 
+                    if (MessageBox.Show("Are you sure you want to permanently delete this stash?", 
+                        "Confirm Drop", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                    {
+                        dialog.Tag = "drop"; 
+                        dialog.Close(); 
+                    }
+                };
+
+                var cancelButton = new Button();
+                cancelButton.Text = "Not Now";
+                cancelButton.Location = new Point(295, 260);
+                cancelButton.Width = 90;
+                cancelButton.Click += (s, ev) => { dialog.Tag = "cancel"; dialog.Close(); };
+
+                var helpLabel = new Label();
+                helpLabel.Text = "Apply: Keep stash for later | Pop: Apply and remove | Drop: Delete stash";
+                helpLabel.Location = new Point(10, 290);
+                helpLabel.AutoSize = true;
+                helpLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 7.5F);
+                helpLabel.ForeColor = Color.Gray;
+
+                dialog.Controls.Add(label);
+                dialog.Controls.Add(listBox);
+                dialog.Controls.Add(applyButton);
+                dialog.Controls.Add(popButton);
+                dialog.Controls.Add(dropButton);
+                dialog.Controls.Add(cancelButton);
+                dialog.Controls.Add(helpLabel);
+
+                dialog.ShowDialog();
+
+                string action = dialog.Tag as string;
+                int selectedIndex = listBox.SelectedIndex >= 0 ? listBox.SelectedIndex : 0;
+
+                if (action == "apply")
+                {
+                    if (gitRepo.ApplyStash(selectedIndex))
+                    {
+                        MessageBox.Show("Stash applied successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        UpdateStatus();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Failed to apply stash. You may have conflicts.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                else if (action == "pop")
+                {
+                    if (gitRepo.PopStash(selectedIndex))
+                    {
+                        MessageBox.Show("Stash popped successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        UpdateStatus();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Failed to pop stash. You may have conflicts.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                else if (action == "drop")
+                {
+                    if (gitRepo.DropStash(selectedIndex))
+                    {
+                        MessageBox.Show("Stash dropped successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Failed to drop stash.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             }
         }
 

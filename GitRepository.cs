@@ -142,6 +142,40 @@ namespace GitPane
             return cleanResult.ExitCode == 0;
         }
 
+        public string[] GetStashList()
+        {
+            var result = ExecuteGitCommand("stash list");
+            if (result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output))
+            {
+                return result.Output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            return new string[0];
+        }
+
+        public bool HasStashes()
+        {
+            var stashes = GetStashList();
+            return stashes.Length > 0;
+        }
+
+        public bool ApplyStash(int stashIndex = 0)
+        {
+            var result = ExecuteGitCommand($"stash apply stash@{{{stashIndex}}}");
+            return result.ExitCode == 0;
+        }
+
+        public bool PopStash(int stashIndex = 0)
+        {
+            var result = ExecuteGitCommand($"stash pop stash@{{{stashIndex}}}");
+            return result.ExitCode == 0;
+        }
+
+        public bool DropStash(int stashIndex = 0)
+        {
+            var result = ExecuteGitCommand($"stash drop stash@{{{stashIndex}}}");
+            return result.ExitCode == 0;
+        }
+
         public string GetRepositoryName()
         {
             // Try to get from origin URL first
