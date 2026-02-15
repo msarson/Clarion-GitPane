@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <Compile Include="GitPanePad.cs" />
+    <Compile Include="GitRepository.cs" />
   </ItemGroup>
 
   <ItemGroup>
