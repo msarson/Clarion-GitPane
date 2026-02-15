@@ -144,15 +144,15 @@ namespace GitPane
             // Commit buttons
             commitButton = new Button();
             commitButton.Text = "Commit";
-            commitButton.Location = new Point(315, 490);
-            commitButton.Width = 70;
+            commitButton.Location = new Point(10, 490);
+            commitButton.Width = 80;
             commitButton.Height = 28;
             commitButton.Click += OnCommitClick;
 
             commitPushButton = new Button();
             commitPushButton.Text = "Commit && Push";
-            commitPushButton.Location = new Point(390, 490);
-            commitPushButton.Width = 80;
+            commitPushButton.Location = new Point(95, 490);
+            commitPushButton.Width = 110;
             commitPushButton.Height = 28;
             commitPushButton.Click += OnCommitPushClick;
 
