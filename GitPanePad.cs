@@ -180,48 +180,69 @@ namespace GitPane
         private bool HandleUncommittedChanges(string targetBranch)
         {
             var changesStatus = gitRepo.GetUncommittedChangesStatus();
-            
-            var message = $"You have uncommitted changes:\n\n{changesStatus}\n\nWhat would you like to do?";
+            var changes = changesStatus.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             
             using (var dialog = new Form())
             {
                 dialog.Text = "Uncommitted Changes";
-                dialog.Size = new Size(500, 400);
+                dialog.Size = new Size(600, 450);
                 dialog.StartPosition = FormStartPosition.CenterParent;
                 dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
                 dialog.MaximizeBox = false;
                 dialog.MinimizeBox = false;
 
-                var textBox = new TextBox();
-                textBox.Multiline = true;
-                textBox.ReadOnly = true;
-                textBox.ScrollBars = ScrollBars.Both;
-                textBox.Location = new Point(10, 10);
-                textBox.Size = new Size(460, 240);
-                textBox.Text = message;
-                textBox.Font = new Font("Courier New", 9F);
+                var infoLabel = new Label();
+                infoLabel.Text = $"You have {changes.Length} uncommitted change(s). What would you like to do?";
+                infoLabel.Location = new Point(10, 10);
+                infoLabel.AutoSize = true;
+                infoLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F, FontStyle.Bold);
+
+                var selectAllCheckBox = new CheckBox();
+                selectAllCheckBox.Text = "Select All";
+                selectAllCheckBox.Location = new Point(10, 35);
+                selectAllCheckBox.AutoSize = true;
+                selectAllCheckBox.Checked = true;
+
+                var changesListBox = new CheckedListBox();
+                changesListBox.Location = new Point(10, 60);
+                changesListBox.Size = new Size(560, 280);
+                changesListBox.Font = new Font("Courier New", 9F);
+                changesListBox.CheckOnClick = true;
+                
+                foreach (var change in changes)
+                {
+                    changesListBox.Items.Add(change, true);
+                }
+
+                selectAllCheckBox.CheckedChanged += (s, e) =>
+                {
+                    for (int i = 0; i < changesListBox.Items.Count; i++)
+                    {
+                        changesListBox.SetItemChecked(i, selectAllCheckBox.Checked);
+                    }
+                };
 
                 var stashButton = new Button();
                 stashButton.Text = "Stash";
-                stashButton.Location = new Point(10, 260);
+                stashButton.Location = new Point(10, 350);
                 stashButton.Width = 90;
                 stashButton.Click += (s, ev) => { dialog.Tag = "stash"; dialog.Close(); };
 
                 var commitButton = new Button();
                 commitButton.Text = "Commit";
-                commitButton.Location = new Point(105, 260);
+                commitButton.Location = new Point(105, 350);
                 commitButton.Width = 90;
                 commitButton.Click += (s, ev) => { dialog.Tag = "commit"; dialog.Close(); };
 
                 var commitPushButton = new Button();
                 commitPushButton.Text = "Commit && Push";
-                commitPushButton.Location = new Point(200, 260);
+                commitPushButton.Location = new Point(200, 350);
                 commitPushButton.Width = 110;
                 commitPushButton.Click += (s, ev) => { dialog.Tag = "commitpush"; dialog.Close(); };
 
                 var discardButton = new Button();
                 discardButton.Text = "Discard";
-                discardButton.Location = new Point(315, 260);
+                discardButton.Location = new Point(315, 350);
                 discardButton.Width = 75;
                 discardButton.ForeColor = Color.Red;
                 discardButton.Click += (s, ev) => 
@@ -236,16 +257,26 @@ namespace GitPane
 
                 var cancelButton = new Button();
                 cancelButton.Text = "Cancel";
-                cancelButton.Location = new Point(395, 260);
+                cancelButton.Location = new Point(395, 350);
                 cancelButton.Width = 75;
                 cancelButton.Click += (s, ev) => { dialog.Tag = "cancel"; dialog.Close(); };
 
-                dialog.Controls.Add(textBox);
+                var helpLabel = new Label();
+                helpLabel.Text = "Note: All operations apply to all files (selection is for reference only)";
+                helpLabel.Location = new Point(10, 380);
+                helpLabel.AutoSize = true;
+                helpLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 7.5F);
+                helpLabel.ForeColor = Color.Gray;
+
+                dialog.Controls.Add(infoLabel);
+                dialog.Controls.Add(selectAllCheckBox);
+                dialog.Controls.Add(changesListBox);
                 dialog.Controls.Add(stashButton);
                 dialog.Controls.Add(commitButton);
                 dialog.Controls.Add(commitPushButton);
                 dialog.Controls.Add(discardButton);
                 dialog.Controls.Add(cancelButton);
+                dialog.Controls.Add(helpLabel);
 
                 dialog.ShowDialog();
 
