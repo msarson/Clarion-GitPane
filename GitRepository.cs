@@ -25,7 +25,38 @@ namespace GitPane
         public string GetCurrentBranch()
         {
             var result = ExecuteGitCommand("rev-parse --abbrev-ref HEAD");
-            return result.ExitCode == 0 ? result.Output.Trim() : null;
+            if (result.ExitCode == 0)
+            {
+                var branch = result.Output.Trim();
+                // Handle detached HEAD state
+                if (branch == "HEAD")
+                {
+                    // Get the short commit SHA instead
+                    var shaResult = ExecuteGitCommand("rev-parse --short HEAD");
+                    if (shaResult.ExitCode == 0)
+                        return $"HEAD (detached at {shaResult.Output.Trim()})";
+                    return "HEAD (detached)";
+                }
+                return branch;
+            }
+            return null;
+        }
+
+        public string[] GetAllBranches()
+        {
+            var result = ExecuteGitCommand("branch --format=%(refname:short)");
+            if (result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output))
+            {
+                var branches = result.Output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                return branches;
+            }
+            return new string[0];
+        }
+
+        public bool CheckoutBranch(string branchName)
+        {
+            var result = ExecuteGitCommand($"checkout \"{branchName}\"");
+            return result.ExitCode == 0;
         }
 
         public string GetRepositoryName()
