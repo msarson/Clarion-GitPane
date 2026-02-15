@@ -267,10 +267,10 @@ namespace GitPane
                 unstagedListBox.Items.Add(file, false);
             }
             
-            // Add untracked files with ?? prefix
+            // Add untracked files with U prefix
             foreach (var file in untrackedFiles)
             {
-                unstagedListBox.Items.Add($"??\t{file}", false);
+                unstagedListBox.Items.Add($"U\t{file}", false);
             }
             
             unstagedGroupBox.Text = $"Unstaged Files ({unstagedFiles.Length + untrackedFiles.Length})";
