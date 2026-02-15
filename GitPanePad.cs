@@ -288,8 +288,7 @@ namespace GitPane
                     {
                         if (gitRepo.CheckoutBranch(targetBranch))
                         {
-                            // Check if there are stashes after switching
-                            CheckForStashesToRestore();
+                            // Don't prompt for stash restore right after stashing - user just wanted to switch
                             MessageBox.Show($"Changes stashed and switched to branch '{targetBranch}'", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             UpdateStatus();
                             return true;
