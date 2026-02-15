@@ -1,0 +1,64 @@
+﻿<Components version="1.0">
+  <System.Windows.Forms.Form>
+    <Name value="MyForm" />
+    <AcceptButton value="okButton" />
+    <MinimizeBox value="False" />
+    <StartPosition value="CenterParent" />
+    <MinimumSize value="190, 136" />
+    <MaximizeBox value="False" />
+    <ShowInTaskbar value="False" />
+    <Text value="${res:Dialog.Clarion.EditMacro.DialogName}" />
+    <ClientSize value="{Width=338, Height=100}" />
+    <CancelButton value="cancelButton" />
+    <Controls>
+      <System.Windows.Forms.Button>
+        <Name value="okButton" />
+        <DialogResult value="OK" />
+        <Location value="173, 71" />
+        <Text value="${res:Global.OKButtonText}" />
+        <Size value="75, 23" />
+        <Anchor value="Bottom, Right" />
+        <TabIndex value="4" />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.Button>
+        <Name value="cancelButton" />
+        <DialogResult value="Cancel" />
+        <Location value="253, 71" />
+        <Text value="${res:Global.CancelButtonText}" />
+        <Size value="75, 23" />
+        <Anchor value="Bottom, Right" />
+        <TabIndex value="5" />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.TextBox>
+        <Name value="valueTextBox" />
+        <TabIndex value="3" />
+        <Location value="112, 38" />
+        <Anchor value="Top, Left, Right" />
+        <Size value="216, 20" />
+      </System.Windows.Forms.TextBox>
+      <System.Windows.Forms.Label>
+        <Name value="descriptionLabel" />
+        <Location value="8, 38" />
+        <Text value="${res:Dialog.Clarion.EditMacro.Value}" />
+        <Size value="100, 21" />
+        <TextAlign value="MiddleLeft" />
+        <TabIndex value="2" />
+      </System.Windows.Forms.Label>
+      <System.Windows.Forms.TextBox>
+        <Name value="macroTextBox" />
+        <TabIndex value="1" />
+        <Location value="112, 8" />
+        <Anchor value="Top, Left, Right" />
+        <Size value="216, 20" />
+      </System.Windows.Forms.TextBox>
+      <System.Windows.Forms.Label>
+        <Name value="templateLabel" />
+        <Location value="8, 8" />
+        <Text value="${res:Dialog.Clarion.EditMacro.Label}" />
+        <Size value="100, 21" />
+        <TextAlign value="MiddleLeft" />
+        <TabIndex value="0" />
+      </System.Windows.Forms.Label>
+    </Controls>
+  </System.Windows.Forms.Form>
+</Components>

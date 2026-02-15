@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <AssemblyName>Generator</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <UseWindowsForms>True</UseWindowsForms>
+    <TargetFramework>net40</TargetFramework>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace />
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="SoftVelocity.Generator.Resources.ClarionTemplate-Mode.xshd" />
+    <None Remove="SoftVelocity.Generator.Resources.ApplicationServiceGeneralOptionsPanel.xfrm" />
+    <EmbeddedResource Include="SoftVelocity.Generator.Resources.ClarionTemplate-Mode.xshd" LogicalName="SoftVelocity.Generator.Resources.ClarionTemplate-Mode.xshd" />
+    <EmbeddedResource Include="SoftVelocity.Generator.Resources.ApplicationServiceGeneralOptionsPanel.xfrm" LogicalName="SoftVelocity.Generator.Resources.ApplicationServiceGeneralOptionsPanel.xfrm" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ICSharpCode.SharpDevelop" />
+    <Reference Include="clarion.gen">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\clarion.gen.dll</HintPath>
+    </Reference>
+    <Reference Include="clarion.asl" />
+    <Reference Include="BinaryToText" />
+    <Reference Include="ICSharpCode.Core" />
+    <Reference Include="CommonSources">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\CommonSources.dll</HintPath>
+    </Reference>
+    <Reference Include="DataDictionary">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\DataDictionary.dll</HintPath>
+    </Reference>
+    <Reference Include="SoftVelocity.DataDictionary.Design">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\SoftVelocity.DataDictionary.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="Aga.Controls">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\Aga.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.TextEditor" />
+    <Reference Include="Clarion.Core" />
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="ClarionNetReport">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\ClarionNetReport.dll</HintPath>
+    </Reference>
+    <Reference Include="clarion.tplhelp">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\clarion.tplhelp.dll</HintPath>
+    </Reference>
+    <Reference Include="Clarion.Options">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\Clarion.Options.dll</HintPath>
+    </Reference>
+    <Reference Include="clarion.prj" />
+    <Reference Include="SoftVelocity.Ide.Core">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\SoftVelocity.Ide.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="ClarionParser">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\ClarionParser.dll</HintPath>
+    </Reference>
+    <Reference Include="DataDictionaryEditor">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\DataDictionaryEditor.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpDevelop.Dom" />
+    <Reference Include="Microsoft.Build.Engine" />
+  </ItemGroup>
+</Project>

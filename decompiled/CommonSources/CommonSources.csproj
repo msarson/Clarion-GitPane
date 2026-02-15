@@ -1,0 +1,87 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <AssemblyName>CommonSources</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <UseWindowsForms>True</UseWindowsForms>
+    <TargetFramework>net40</TargetFramework>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace />
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="CommonSources.Resources.LoadViaRed.xfrm" />
+    <None Remove="CommonSources.Resources.ClarionEditorOptionsPanel.xfrm" />
+    <None Remove="CommonSources.Resources.ClarionVersionsOptionsPanel.xfrm" />
+    <None Remove="CommonSources.Resources.EditMacroDialog.xfrm" />
+    <None Remove="CommonSources.Resources.FileDriversDialog.xfrm" />
+    <None Remove="CommonSources.Resources.RegisterDatabaseEngineDialog.xfrm" />
+    <None Remove="CommonSources.Resources.RegisterFileDriversDialog.xfrm" />
+    <EmbeddedResource Include="CommonSources.Resources.LoadViaRed.xfrm" LogicalName="CommonSources.Resources.LoadViaRed.xfrm" />
+    <EmbeddedResource Include="CommonSources.Resources.ClarionEditorOptionsPanel.xfrm" LogicalName="CommonSources.Resources.ClarionEditorOptionsPanel.xfrm" />
+    <EmbeddedResource Include="CommonSources.Resources.ClarionVersionsOptionsPanel.xfrm" LogicalName="CommonSources.Resources.ClarionVersionsOptionsPanel.xfrm" />
+    <EmbeddedResource Include="CommonSources.Resources.EditMacroDialog.xfrm" LogicalName="CommonSources.Resources.EditMacroDialog.xfrm" />
+    <EmbeddedResource Include="CommonSources.Resources.FileDriversDialog.xfrm" LogicalName="CommonSources.Resources.FileDriversDialog.xfrm" />
+    <EmbeddedResource Include="CommonSources.Resources.RegisterDatabaseEngineDialog.xfrm" LogicalName="CommonSources.Resources.RegisterDatabaseEngineDialog.xfrm" />
+    <EmbeddedResource Include="CommonSources.Resources.RegisterFileDriversDialog.xfrm" LogicalName="CommonSources.Resources.RegisterFileDriversDialog.xfrm" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ICSharpCode.TextEditor" />
+    <Reference Include="ICSharpCode.Core" />
+    <Reference Include="FormsDesigner">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\FormsDesigner.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpDevelop" />
+    <Reference Include="ClarionNetReport">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\ClarionNetReport.dll</HintPath>
+    </Reference>
+    <Reference Include="SoftVelocity.DataDictionary.Design">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\SoftVelocity.DataDictionary.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpDevelop.Dom" />
+    <Reference Include="ClarionParser">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\ClarionParser.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Design" />
+    <Reference Include="clarion.asl" />
+    <Reference Include="ClarionNetWindow">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\ClarionNetWindow.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpDevelop.Widgets" />
+    <Reference Include="Aga.Controls">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\Aga.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="SoftVelocity.Clarion.CompilerMessages">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\SoftVelocity.Clarion.CompilerMessages.dll</HintPath>
+    </Reference>
+    <Reference Include="DataDictionary">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\DataDictionary.dll</HintPath>
+    </Reference>
+    <Reference Include="clarion.prj" />
+    <Reference Include="clarion.tplhelp">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\clarion.tplhelp.dll</HintPath>
+    </Reference>
+    <Reference Include="Clarion.Core" />
+    <Reference Include="SmartPropertyGrid">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\SmartPropertyGrid.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Build.Engine" />
+    <Reference Include="CommonControl">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\CommonControl.dll</HintPath>
+    </Reference>
+    <Reference Include="CommonProperties">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\CommonProperties.dll</HintPath>
+    </Reference>
+    <Reference Include="SoftVelocity.Ide.Core">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\SoftVelocity.Ide.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="SoftVelocity.Clarion.FileIO" />
+    <Reference Include="Clarion.Options">
+      <HintPath>C:\Clarion\Clarion11.1\bin\Addins\BackendBindings\ClarionBinding\Common\Clarion.Options.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

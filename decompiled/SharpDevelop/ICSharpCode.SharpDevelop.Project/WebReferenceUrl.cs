@@ -1,0 +1,152 @@
+using System.ComponentModel;
+using System.IO;
+using ICSharpCode.Core;
+using ICSharpCode.SharpDevelop.Gui;
+using Microsoft.Build.BuildEngine;
+
+namespace ICSharpCode.SharpDevelop.Project;
+
+public sealed class WebReferenceUrl : ProjectItem
+{
+	[ReadOnly(true)]
+	[LocalizedProperty("${res:ICSharpCode.SharpDevelop.Internal.Project.ProjectReference.WebReferenceUrl}", Description = "${res:ICSharpCode.SharpDevelop.Internal.Project.ProjectReference.WebReferenceUrl.Description}")]
+	public string UpdateFromURL
+	{
+		get
+		{
+			return GetEvaluatedMetadata("UpdateFromURL");
+		}
+		set
+		{
+			SetEvaluatedMetadata("UpdateFromURL", value);
+		}
+	}
+
+	[Browsable(false)]
+	public string ServiceLocationURL
+	{
+		get
+		{
+			return GetEvaluatedMetadata("ServiceLocationURL");
+		}
+		set
+		{
+			SetEvaluatedMetadata("ServiceLocationURL", value);
+		}
+	}
+
+	[Browsable(false)]
+	public string CachedDynamicPropName
+	{
+		get
+		{
+			return GetEvaluatedMetadata("CachedDynamicPropName");
+		}
+		set
+		{
+			SetEvaluatedMetadata("CachedDynamicPropName", value);
+		}
+	}
+
+	[Browsable(false)]
+	public string CachedAppSettingsObjectName
+	{
+		get
+		{
+			return GetEvaluatedMetadata("CachedAppSettingsObjectName");
+		}
+		set
+		{
+			SetEvaluatedMetadata("CachedAppSettingsObjectName", value);
+		}
+	}
+
+	[Browsable(false)]
+	public string CachedSettingsPropName
+	{
+		get
+		{
+			return GetEvaluatedMetadata("CachedSettingsPropName");
+		}
+		set
+		{
+			SetEvaluatedMetadata("CachedSettingsPropName", value);
+		}
+	}
+
+	[Browsable(false)]
+	public string Namespace
+	{
+		get
+		{
+			string evaluatedMetadata = GetEvaluatedMetadata("Namespace");
+			if (evaluatedMetadata.Length > 0)
+			{
+				return evaluatedMetadata;
+			}
+			return base.Project.RootNamespace;
+		}
+		set
+		{
+			SetEvaluatedMetadata("Namespace", value);
+		}
+	}
+
+	[Browsable(false)]
+	public string RelPath
+	{
+		get
+		{
+			return GetEvaluatedMetadata("RelPath");
+		}
+		set
+		{
+			SetEvaluatedMetadata("RelPath", value);
+		}
+	}
+
+	[ReadOnly(true)]
+	[LocalizedProperty("${res:ICSharpCode.SharpDevelop.Internal.Project.ProjectReference.UrlBehaviour}", Description = "${res:ICSharpCode.SharpDevelop.Internal.Project.ProjectReference.UrlBehaviour.Description}")]
+	public string UrlBehavior
+	{
+		get
+		{
+			return GetEvaluatedMetadata("UrlBehavior");
+		}
+		set
+		{
+			SetEvaluatedMetadata("UrlBehavior", value);
+		}
+	}
+
+	public override string FileName
+	{
+		get
+		{
+			if (base.Project != null && RelPath != null)
+			{
+				return Path.Combine(base.Project.Directory, RelPath.Trim('\\'));
+			}
+			return null;
+		}
+		set
+		{
+			if (base.Project != null)
+			{
+				RelPath = FileUtility.GetRelativePath(base.Project.Directory, value);
+			}
+		}
+	}
+
+	public WebReferenceUrl(IProject project)
+		: base(project, ItemType.WebReferenceUrl)
+	{
+		UrlBehavior = "Static";
+	}
+
+	public WebReferenceUrl(IProject project, BuildItem buildItem)
+		: base(project, buildItem)
+	{
+		UrlBehavior = "Static";
+	}
+}

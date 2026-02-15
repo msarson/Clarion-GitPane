@@ -1,0 +1,170 @@
+<Components version="1.0">
+  <System.Windows.Forms.UserControl>
+    <Name value="CreatedObject0" />
+    <ClientSize value="{Width=565, Height=504}" />
+    <Controls>
+      <System.Windows.Forms.GroupBox>
+        <Name value="groupBox1" />
+        <TabIndex value="3" />
+        <Size value="549, 119" />
+        <Location value="8, 368" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.Options.IDEOptions.TextEditor.General.SearchGroupBox}" />
+        <Controls>
+          <System.Windows.Forms.Label>
+            <Name value="labelSearchMaxNumberOfFindPatterns" />
+            <TabIndex value="7" />
+            <Size value="533, 21" />
+            <Location value="8, 62" />
+            <Anchor value="Top, Left, Right" />
+            <Text value="${res:Dialog.Options.IDEOptions.TextEditor.Search.MaxNumberOfFindPatterns}" />
+            <TextAlign value="BottomLeft" />
+          </System.Windows.Forms.Label>
+          <System.Windows.Forms.NumericUpDown>
+            <Name value="searchMaxNumberOfFindPatternsNumericUpDown" />
+            <TabIndex value="6" />
+            <Size value="71, 20" />
+            <Location value="8, 86" />
+            <Value value="2" />
+            <Minimum value="2" />
+            <Maximum value="1000" />
+          </System.Windows.Forms.NumericUpDown>
+          <System.Windows.Forms.CheckBox>
+            <Name value="circularSearchCheckBox" />
+            <TabIndex value="5" />
+            <Size value="533, 24" />
+            <Location value="8, 32" />
+            <Anchor value="Top, Left, Right" />
+            <Text value="${res:Dialog.Options.IDEOptions.TextEditor.General.CircularSearchCheckBox}" />
+          </System.Windows.Forms.CheckBox>
+        </Controls>
+      </System.Windows.Forms.GroupBox>
+      <System.Windows.Forms.GroupBox>
+        <Name value="CreatedObject2" />
+        <TabIndex value="0" />
+        <Size value="549, 80" />
+        <Location value="8, 8" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.Options.IDEOptions.TextEditor.General.GeneralOptionsGroupBox}" />
+        <Controls>
+          <System.Windows.Forms.CheckBox>
+            <Name value="showQuickClassBrowserCheckBox" />
+            <TabIndex value="4" />
+            <Size value="533, 24" />
+            <Location value="8, 52" />
+            <Anchor value="Top, Left, Right" />
+            <Text value="${res:Dialog.Options.IDEOptions.TextEditor.General.ShowQuickClassBrowserCheckBox}" />
+          </System.Windows.Forms.CheckBox>
+          <System.Windows.Forms.CheckBox>
+            <Name value="enableFoldingCheckBox" />
+            <TabIndex value="3" />
+            <Size value="533, 24" />
+            <Location value="8, 24" />
+            <Anchor value="Top, Left, Right" />
+            <Text value="${res:Dialog.Options.IDEOptions.TextEditor.General.FoldingCheckBox}" />
+          </System.Windows.Forms.CheckBox>
+        </Controls>
+      </System.Windows.Forms.GroupBox>
+      <System.Windows.Forms.GroupBox>
+        <Name value="CreatedObject7" />
+        <TabIndex value="1" />
+        <Size value="549, 151" />
+        <Location value="8, 96" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.Options.IDEOptions.TextEditor.General.FontGroupBox}" />
+        <Controls>
+          <System.Windows.Forms.Label>
+            <Name value="fontPreviewLabel" />
+            <TabIndex value="4" />
+            <Size value="533, 40" />
+            <Location value="8, 74" />
+            <BackColor value="Color [ControlLightLight]" />
+            <Anchor value="Top, Left, Right" />
+            <Text value="AaBbCcXxYyZz" />
+            <TextAlign value="MiddleCenter" />
+            <BorderStyle value="FixedSingle" />
+          </System.Windows.Forms.Label>
+          <System.Windows.Forms.Label>
+            <Name value="fontSizeLabel" />
+            <TabIndex value="2" />
+            <Size value="289, 20" />
+            <Location value="248, 21" />
+            <Anchor value="Top, Left, Right" />
+            <Text value="${res:Dialog.Options.IDEOptions.TextEditor.General.FontSizeLabel}" />
+            <TextAlign value="BottomLeft" />
+          </System.Windows.Forms.Label>
+          <System.Windows.Forms.ComboBox>
+            <Name value="fontSizeComboBox" />
+            <TabIndex value="3" />
+            <Size value="293, 21" />
+            <Location value="248, 44" />
+            <Anchor value="Top, Left, Right" />
+            <FormattingEnabled value="True" />
+          </System.Windows.Forms.ComboBox>
+          <System.Windows.Forms.ComboBox>
+            <Name value="fontListComboBox" />
+            <TabIndex value="1" />
+            <Size value="224, 21" />
+            <RightToLeft value="No" />
+            <Location value="8, 43" />
+            <FormattingEnabled value="True" />
+            <DropDownStyle value="DropDownList" />
+            <DrawMode value="OwnerDrawFixed" />
+          </System.Windows.Forms.ComboBox>
+          <System.Windows.Forms.CheckBox>
+            <Name value="mouseWheelZoomCheckBox" />
+            <TabIndex value="6" />
+            <Size value="349, 24" />
+            <Location value="192, 120" />
+            <Anchor value="Top, Left, Right" />
+            <Text value="${res:Dialog.Options.IDEOptions.TextEditor.General.MouseWheelZoomCheckBoxCheckBox}" />
+          </System.Windows.Forms.CheckBox>
+          <System.Windows.Forms.Label>
+            <Name value="CreatedObject9" />
+            <TabIndex value="0" />
+            <Size value="208, 20" />
+            <Location value="8, 20" />
+            <Text value="${res:Dialog.Options.IDEOptions.TextEditor.General.TextfontLabel}" />
+            <TextAlign value="BottomLeft" />
+          </System.Windows.Forms.Label>
+          <System.Windows.Forms.CheckBox>
+            <Name value="enableAAFontRenderingCheckBox" />
+            <TabIndex value="5" />
+            <Size value="184, 24" />
+            <Location value="8, 119" />
+            <Text value="${res:Dialog.Options.IDEOptions.TextEditor.General.AntialiasedFontCheckBox}" />
+          </System.Windows.Forms.CheckBox>
+        </Controls>
+      </System.Windows.Forms.GroupBox>
+      <System.Windows.Forms.GroupBox>
+        <Name value="CreatedObject8b" />
+        <TabIndex value="2" />
+        <Size value="549, 106" />
+        <Location value="8, 256" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.Options.IDEOptions.TextEditor.General.FontGroupBox.FileEncodingGroupBox}" />
+        <Controls>
+          <System.Windows.Forms.Label>
+            <Name value="CreatedObject9b" />
+            <TabIndex value="0" />
+            <Size value="525, 21" />
+            <Location value="8, 35" />
+            <Anchor value="Top, Left, Right" />
+            <Text value="${res:Dialog.Options.IDEOptions.TextEditor.General.FontGroupBox.FileEncodingLabel}" />
+            <TextAlign value="BottomLeft" />
+          </System.Windows.Forms.Label>
+          <System.Windows.Forms.ComboBox>
+            <Name value="textEncodingComboBox" />
+            <TabIndex value="1" />
+            <Size value="533, 21" />
+            <RightToLeft value="No" />
+            <Location value="8, 72" />
+            <Anchor value="Top, Left, Right" />
+            <FormattingEnabled value="True" />
+            <DropDownStyle value="DropDownList" />
+          </System.Windows.Forms.ComboBox>
+        </Controls>
+      </System.Windows.Forms.GroupBox>
+    </Controls>
+  </System.Windows.Forms.UserControl>
+</Components>

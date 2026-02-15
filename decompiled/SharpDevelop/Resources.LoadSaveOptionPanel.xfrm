@@ -1,0 +1,126 @@
+<Components version="1.0">
+  <System.Windows.Forms.UserControl>
+    <Name value="MyUserControl" />
+    <ClientSize value="{Width=341, Height=416}" />
+    <Controls>
+      <System.Windows.Forms.TextBox>
+        <Name value="readOnlyTextTextBox" />
+        <TabIndex value="10" />
+        <Size value="317, 20" />
+        <Location value="8, 378" />
+      </System.Windows.Forms.TextBox>
+      <System.Windows.Forms.Label>
+        <Name value="readOnlyTextLabel" />
+        <TabIndex value="9" />
+        <Size value="309, 23" />
+        <Location value="16, 351" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.Options.IDEOptions.FileOptions.ReadOnlyTextLabel}" />
+        <TextAlign value="BottomLeft" />
+      </System.Windows.Forms.Label>
+      <System.Windows.Forms.CheckBox>
+        <Name value="openDialogUsesRedFileCheckBox" />
+        <TabIndex value="8" />
+        <Size value="336, 24" />
+        <Location value="8, 323" />
+        <Anchor value="Top, Left, Right" />
+        <UseVisualStyleBackColor value="True" />
+        <Text value="${res:Dialog.Options.IDEOptions.SelectStyle.OpenViaRedirectionCheckBox}" />
+      </System.Windows.Forms.CheckBox>
+      <System.Windows.Forms.CheckBox>
+        <Name value="deleteWillSendToRecycleBinCheckBox" />
+        <TabIndex value="3" />
+        <Size value="325, 24" />
+        <Location value="8, 297" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.Options.IDEOptions.LoadSaveOptions.DeleteWillSendToRecycleBinCheckBox}" />
+      </System.Windows.Forms.CheckBox>
+      <System.Windows.Forms.GroupBox>
+        <Name value="groupBox2" />
+        <TabIndex value="1" />
+        <Size value="325, 112" />
+        <Location value="8, 176" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.Options.IDEOptions.LoadSaveOptions.SaveLabel}" />
+        <Controls>
+          <System.Windows.Forms.ComboBox>
+            <Name value="lineTerminatorStyleComboBox" />
+            <TabIndex value="2" />
+            <Size value="165, 21" />
+            <Location value="8, 72" />
+            <Anchor value="Top, Left, Right" />
+            <DropDownStyle value="DropDownList" />
+          </System.Windows.Forms.ComboBox>
+          <System.Windows.Forms.Label>
+            <Name value="label" />
+            <TabIndex value="1" />
+            <Size value="309, 23" />
+            <Location value="8, 49" />
+            <Anchor value="Top, Left, Right" />
+            <Text value="${res:Dialog.Options.IDEOptions.LoadSaveOptions.LineTerminatorStyleGroupBox}" />
+            <TextAlign value="BottomLeft" />
+          </System.Windows.Forms.Label>
+          <System.Windows.Forms.CheckBox>
+            <Name value="createBackupCopyCheckBox" />
+            <TabIndex value="0" />
+            <Size value="309, 24" />
+            <Location value="8, 25" />
+            <Anchor value="Top, Left, Right" />
+            <Text value="${res:Dialog.Options.IDEOptions.LoadSaveOptions.CreateBackupCopyCheckBox}" />
+          </System.Windows.Forms.CheckBox>
+        </Controls>
+      </System.Windows.Forms.GroupBox>
+      <System.Windows.Forms.GroupBox>
+        <Name value="groupBox" />
+        <TabIndex value="0" />
+        <Size value="325, 162" />
+        <Location value="8, 8" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.Options.IDEOptions.LoadSaveOptions.LoadLabel}" />
+        <Controls>
+          <System.Windows.Forms.Label>
+            <Name value="label1" />
+            <TabIndex value="3" />
+            <Size value="309, 23" />
+            <Location value="8, 106" />
+            <Anchor value="Top, Left, Right" />
+            <Text value="${res:Dialog.Options.IDEOptions.LoadSaveOptions.MaximumRecent}" />
+          </System.Windows.Forms.Label>
+          <System.Windows.Forms.NumericUpDown>
+            <Name value="MaxRecentNumericUpDown" />
+            <TabIndex value="4" />
+            <Size value="52, 20" />
+            <Location value="12, 132" />
+            <Maximum value="999" />
+          </System.Windows.Forms.NumericUpDown>
+          <System.Windows.Forms.CheckBox>
+            <Name value="autoLoadExternalChangesCheckBox" />
+            <TabIndex value="2" />
+            <Size value="296, 24" />
+            <Location value="21, 76" />
+            <Anchor value="Top, Left, Right" />
+            <UseVisualStyleBackColor value="True" />
+            <Text value="${res:Dialog.Options.IDEOptions.LoadSaveOptions.AutoLoadExternalChanges}" />
+          </System.Windows.Forms.CheckBox>
+          <System.Windows.Forms.CheckBox>
+            <Name value="detectExternalChangesCheckBox" />
+            <TabIndex value="1" />
+            <Size value="309, 24" />
+            <Location value="8, 50" />
+            <Anchor value="Top, Left, Right" />
+            <UseVisualStyleBackColor value="True" />
+            <Text value="${res:Dialog.Options.IDEOptions.LoadSaveOptions.DetectExternalChanges}" />
+          </System.Windows.Forms.CheckBox>
+          <System.Windows.Forms.CheckBox>
+            <Name value="loadUserDataCheckBox" />
+            <TabIndex value="0" />
+            <Size value="309, 24" />
+            <Location value="8, 25" />
+            <Anchor value="Top, Left, Right" />
+            <Text value="${res:Dialog.Options.IDEOptions.LoadSaveOptions.LoadUserDataCheckBox}" />
+          </System.Windows.Forms.CheckBox>
+        </Controls>
+      </System.Windows.Forms.GroupBox>
+    </Controls>
+  </System.Windows.Forms.UserControl>
+</Components>

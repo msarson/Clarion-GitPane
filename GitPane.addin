@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AddIn name="GitPane"
+       author="Clarion Community"
+       description="Visual Git operations pane for Clarion IDE"
+       addInManagerHidden="preinstalled">
+
+  <Manifest>
+    <Identity name="GitPane"/>
+  </Manifest>
+
+  <Runtime>
+    <Import assembly="GitPane\GitPane.dll"/>
+  </Runtime>
+
+  <Path name="/SharpDevelop/Workbench/Pads">
+    <Pad id="GitPane"
+         category="Main"
+         title="Git"
+         shortcut="Control|Alt|G"
+         class="GitPane.GitPanePad"/>
+  </Path>
+
+</AddIn>

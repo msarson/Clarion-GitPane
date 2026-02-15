@@ -1,0 +1,68 @@
+<Components version="1.0">
+  <System.Windows.Forms.Form>
+    <Name value="MyForm" />
+    <FormBorderStyle value="SizableToolWindow" />
+    <AcceptButton value="okButton [System.Windows.Forms.Button], Text: ${res:Global.OKButtonText}" />
+    <MinimizeBox value="False" />
+    <StartPosition value="CenterParent" />
+    <MinimumSize value="308, 208" />
+    <MaximizeBox value="False" />
+    <ShowInTaskbar value="False" />
+    <Text value="${res:Dialog.Goto.DialogName}" />
+    <ClientSize value="{Width=397, Height=258}" />
+    <CancelButton value="cancelButton [System.Windows.Forms.Button], Text: ${res:Global.CancelButtonText}" />
+    <Controls>
+      <System.Windows.Forms.ListView>
+        <Name value="listView" />
+        <HotTracking value="True" />
+        <MultiSelect value="False" />
+        <Location value="13, 101" />
+        <TabIndex value="5" />
+        <HoverSelection value="True" />
+        <Anchor value="Top, Bottom, Left, Right" />
+        <View value="Details" />
+        <HeaderStyle value="None" />
+        <Activation value="OneClick" />
+        <Size value="372, 105" />
+        <Columns>
+          <System.Windows.Forms.ColumnHeader>
+            <Name value="columnHeader" />
+          </System.Windows.Forms.ColumnHeader>
+        </Columns>
+      </System.Windows.Forms.ListView>
+      <System.Windows.Forms.Button>
+        <Name value="cancelButton" />
+        <DialogResult value="Cancel" />
+        <Location value="289, 218" />
+        <Text value="${res:Global.CancelButtonText}" />
+        <Size value="96, 32" />
+        <Anchor value="Bottom, Right" />
+        <TabIndex value="4" />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.Button>
+        <Name value="okButton" />
+        <Location value="187, 218" />
+        <Text value="${res:Global.OKButtonText}" />
+        <Size value="96, 32" />
+        <Anchor value="Bottom, Right" />
+        <TabIndex value="3" />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.TextBox>
+        <Name value="textBox" />
+        <TabIndex value="1" />
+        <Location value="13, 68" />
+        <Anchor value="Top, Left, Right" />
+        <Size value="372, 22" />
+      </System.Windows.Forms.TextBox>
+      <System.Windows.Forms.Label>
+        <Name value="label" />
+        <Location value="8, 0" />
+        <Text value="${res:Dialog.Goto.IntroText}" />
+        <Size value="381, 61" />
+        <TextAlign value="BottomLeft" />
+        <Anchor value="Top, Left, Right" />
+        <TabIndex value="0" />
+      </System.Windows.Forms.Label>
+    </Controls>
+  </System.Windows.Forms.Form>
+</Components>

@@ -1,0 +1,233 @@
+<Components version="1.0">
+  <System.Windows.Forms.UserControl>
+    <Name value="XmlUserControl1" />
+    <ClientSize value="{Width=446, Height=495}" />
+    <Controls>
+      <System.Windows.Forms.Button>
+        <Name value="deleteVersionButton" />
+        <Location value="307, 3" />
+        <Text value="${res:ClarionVersionsOptionsPanel.RemoveVersion}" />
+        <Anchor value="Top, Right" />
+        <UseVisualStyleBackColor value="True" />
+        <Size value="129, 32" />
+        <TabIndex value="1" />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.TabControl>
+        <Name value="versionTabControl" />
+        <Location value="0, 35" />
+        <TabIndex value="2" />
+        <Anchor value="Top, Bottom, Left, Right" />
+        <Size value="446, 457" />
+        <Multiline value="True" />
+        <TabPages>
+          <System.Windows.Forms.TabPage>
+            <Name value="generalTabPage" />
+            <Padding value="3, 3, 3, 3" />
+            <Text value="${res:ClarionVersionsOptionsPanel.Tab.General}" />
+            <UseVisualStyleBackColor value="True" />
+            <Size value="438, 407" />
+            <Controls>
+              <System.Windows.Forms.Button>
+                <Name value="removeLibSrcButton" />
+                <Location value="348, 270" />
+                <Text value="${res:Global.RemoveButtonText}" />
+                <Anchor value="Top, Right" />
+                <UseVisualStyleBackColor value="True" />
+                <Size value="86, 32" />
+                <TabIndex value="11" />
+              </System.Windows.Forms.Button>
+              <System.Windows.Forms.Button>
+                <Name value="editLibSrcButton" />
+                <Location value="348, 210" />
+                <Text value="${res:Global.EditButtonText}" />
+                <Anchor value="Top, Right" />
+                <UseVisualStyleBackColor value="True" />
+                <Size value="86, 32" />
+                <TabIndex value="10" />
+              </System.Windows.Forms.Button>
+              <System.Windows.Forms.Button>
+                <Name value="addLibSrcButton" />
+                <Location value="348, 150" />
+                <Text value="${res:Global.AddButtonText}" />
+                <UseVisualStyleBackColor value="True" />
+                <Size value="86, 32" />
+                <Anchor value="Top, Right" />
+                <TabIndex value="9" />
+              </System.Windows.Forms.Button>
+              <System.Windows.Forms.ListView>
+                <Name value="libSrcListView" />
+                <FullRowSelect value="True" />
+                <GridLines value="True" />
+                <Location value="6, 121" />
+                <TabIndex value="8" />
+                <Anchor value="Top, Bottom, Left, Right" />
+                <Sorting value="Ascending" />
+                <View value="Details" />
+                <Size value="336, 229" />
+                <HideSelection value="False" />
+                <Columns>
+                  <System.Windows.Forms.ColumnHeader>
+                    <Name value="columnHeader3" />
+                    <Text value="${res:ClarionVersionsOptionsPanel.GeneralTab.LibSrcList.Directory}" />
+                    <Width value="2000" />
+                  </System.Windows.Forms.ColumnHeader>
+                </Columns>
+              </System.Windows.Forms.ListView>
+              <System.Windows.Forms.Label>
+                <Name value="label7" />
+                <Location value="6, 13" />
+                <Text value="${res:ClarionVersionsOptionsPanel.GeneralTab.Name}" />
+                <Size value="100, 23" />
+                <TextAlign value="MiddleLeft" />
+                <TabIndex value="5" />
+              </System.Windows.Forms.Label>
+              <System.Windows.Forms.TextBox>
+                <Name value="nameTextBox" />
+                <TabIndex value="0" />
+                <Location value="112, 14" />
+                <Anchor value="Top, Left, Right" />
+                <Size value="320, 22" />
+              </System.Windows.Forms.TextBox>
+              <System.Windows.Forms.TextBox>
+                <Name value="binTextBox" />
+                <TabIndex value="1" />
+                <Location value="6, 77" />
+                <Anchor value="Top, Left, Right" />
+                <Size value="390, 22" />
+              </System.Windows.Forms.TextBox>
+              <System.Windows.Forms.Button>
+                <Name value="binButton" />
+                <Location value="402, 77" />
+                <Text value="..." />
+                <UseVisualStyleBackColor value="True" />
+                <Size value="30, 22" />
+                <Anchor value="Top, Right" />
+                <TabIndex value="2" />
+              </System.Windows.Forms.Button>
+              <System.Windows.Forms.Label>
+                <Name value="label2" />
+                <Location value="6, 51" />
+                <Text value="${res:ClarionVersionsOptionsPanel.GeneralTab.Directory}" />
+                <Size value="367, 23" />
+                <TabIndex value="6" />
+              </System.Windows.Forms.Label>
+            </Controls>
+          </System.Windows.Forms.TabPage>
+          <System.Windows.Forms.TabPage>
+            <Name value="redirectionTabPage" />
+            <Padding value="3, 3, 3, 3" />
+            <Text value="${res:ClarionVersionsOptionsPanel.Tab.Redirection}" />
+            <Size value="438, 407" />
+            <UseVisualStyleBackColor value="True" />
+            <Controls>
+              <System.Windows.Forms.Button>
+                <Name value="removeButton" />
+                <Location value="359, 270" />
+                <Text value="${res:Global.RemoveButtonText}" />
+                <UseVisualStyleBackColor value="True" />
+                <Size value="75, 23" />
+                <Anchor value="Top, Right" />
+                <TabIndex value="5" />
+              </System.Windows.Forms.Button>
+              <System.Windows.Forms.Button>
+                <Name value="editButton" />
+                <Location value="359, 210" />
+                <Text value="${res:Global.EditButtonText}" />
+                <UseVisualStyleBackColor value="True" />
+                <Size value="75, 23" />
+                <Anchor value="Top, Right" />
+                <TabIndex value="4" />
+              </System.Windows.Forms.Button>
+              <System.Windows.Forms.Button>
+                <Name value="addButton" />
+                <Location value="359, 150" />
+                <Text value="${res:Global.AddButtonText}" />
+                <UseVisualStyleBackColor value="True" />
+                <Size value="75, 23" />
+                <Anchor value="Top, Right" />
+                <TabIndex value="3" />
+              </System.Windows.Forms.Button>
+              <System.Windows.Forms.Label>
+                <Name value="label6" />
+                <Location value="62, 70" />
+                <Text value="${res:ClarionVersionsOptionsPanel.RedirectionTab.Macros}" />
+                <Size value="156, 23" />
+                <TextAlign value="MiddleCenter" />
+                <TabIndex value="8" />
+              </System.Windows.Forms.Label>
+              <System.Windows.Forms.ListView>
+                <Name value="macrosListView" />
+                <FullRowSelect value="True" />
+                <GridLines value="True" />
+                <Location value="6, 96" />
+                <TabIndex value="2" />
+                <Anchor value="Top, Bottom, Left, Right" />
+                <Sorting value="Ascending" />
+                <View value="Details" />
+                <Size value="347, 229" />
+                <HideSelection value="False" />
+                <Columns>
+                  <System.Windows.Forms.ColumnHeader>
+                    <Text value="${res:ClarionVersionsOptionsPanel.RedirectionTab.MacrosList.Macro}" />
+                    <Width value="79" />
+                    <Name value="columnHeader1" />
+                  </System.Windows.Forms.ColumnHeader>
+                  <System.Windows.Forms.ColumnHeader>
+                    <Text value="${res:ClarionVersionsOptionsPanel.RedirectionTab.MacrosList.Value}" />
+                    <Width value="240" />
+                    <Name value="columnHeader2" />
+                  </System.Windows.Forms.ColumnHeader>
+                </Columns>
+              </System.Windows.Forms.ListView>
+              <System.Windows.Forms.TextBox>
+                <Name value="redNameTextBox" />
+                <TabIndex value="0" />
+                <Location value="112, 14" />
+                <Anchor value="Top, Left, Right" />
+                <Size value="320, 22" />
+              </System.Windows.Forms.TextBox>
+              <System.Windows.Forms.Label>
+                <Name value="label5" />
+                <Location value="6, 13" />
+                <Text value="${res:ClarionVersionsOptionsPanel.RedirectionTab.Name}" />
+                <Size value="133, 23" />
+                <TextAlign value="MiddleLeft" />
+                <TabIndex value="7" />
+              </System.Windows.Forms.Label>
+              <System.Windows.Forms.CheckBox>
+                <Name value="includeCheckBox" />
+                <Location value="6, 43" />
+                <Text value="${res:ClarionVersionsOptionsPanel.RedirectionTab.UseInclude}" />
+                <TabIndex value="1" />
+                <Size value="253, 24" />
+                <UseVisualStyleBackColor value="True" />
+              </System.Windows.Forms.CheckBox>
+              <System.Windows.Forms.Label>
+                <Name value="label4" />
+                <Location value="6, 3" />
+                <Size value="100, 23" />
+                <TabIndex value="6" />
+              </System.Windows.Forms.Label>
+            </Controls>
+          </System.Windows.Forms.TabPage>
+        </TabPages>
+      </System.Windows.Forms.TabControl>
+      <System.Windows.Forms.ComboBox>
+        <Name value="versionsComboBox" />
+        <TabIndex value="0" />
+        <Location value="0, 3" />
+        <Anchor value="Top, Left, Right" />
+        <Size value="301, 24" />
+        <FormattingEnabled value="True" />
+      </System.Windows.Forms.ComboBox>
+      <System.Windows.Forms.Label>
+        <Name value="label1" />
+        <Location value="8, 8" />
+        <Size value="62, 23" />
+        <TextAlign value="BottomLeft" />
+        <Anchor value="Top, Left, Right" />
+        <TabIndex value="0" />
+      </System.Windows.Forms.Label>
+    </Controls>
+  </System.Windows.Forms.UserControl>
+</Components>

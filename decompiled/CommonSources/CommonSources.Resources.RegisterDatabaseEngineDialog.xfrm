@@ -1,0 +1,65 @@
+<Components version="1.0">
+  <System.Windows.Forms.Form>
+    <Name value="RegisterDatabaseEngineDialog" />
+    <MinimizeBox value="False" />
+    <StartPosition value="CenterParent" />
+    <MinimumSize value="397, 438" />
+    <AutoSizeMode value="GrowAndShrink" />
+    <ShowInTaskbar value="False" />
+    <Text value="${res:Dialog.RegisterDatabaseEnginesDialog.DialogName}" />
+    <ClientSize value="{Width=525, Height=395}" />
+    <Controls>
+      <System.Windows.Forms.Button>
+        <Name value="okButton" />
+        <DialogResult value="Cancel" />
+        <Location value="407, 351" />
+        <UseCompatibleTextRendering value="True" />
+        <Text value="${res:Global.OKButtonText}" />
+        <UseVisualStyleBackColor value="True" />
+        <Size value="107, 34" />
+        <Anchor value="Bottom, Right" />
+        <TabIndex value="5" />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.Button>
+        <Name value="removeButton" />
+        <Location value="407, 80" />
+        <UseCompatibleTextRendering value="True" />
+        <Text value="${res:Global.DeleteButtonText}" />
+        <UseVisualStyleBackColor value="True" />
+        <Size value="107, 34" />
+        <Anchor value="Top, Right" />
+        <TabIndex value="4" />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.Button>
+        <Name value="addButton" />
+        <Location value="407, 39" />
+        <UseCompatibleTextRendering value="True" />
+        <Text value="${res:Global.AddButtonText}" />
+        <UseVisualStyleBackColor value="True" />
+        <Size value="107, 34" />
+        <Anchor value="Top, Right" />
+        <TabIndex value="2" />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.ListView>
+        <Name value="engineList" />
+        <FullRowSelect value="True" />
+        <MultiSelect value="False" />
+        <Location value="12, 12" />
+        <TabIndex value="1" />
+        <Anchor value="Top, Bottom, Left, Right" />
+        <Sorting value="Ascending" />
+        <View value="Details" />
+        <HeaderStyle value="Nonclickable" />
+        <Size value="389, 371" />
+        <Columns>
+          <System.Windows.Forms.ColumnHeader>
+            <TextAlign value="Center" />
+            <Name value="columnHeader" />
+            <Text value="${res:Dialog.RegisterDatabaseEnginesDialog.DatabaseEngines}" />
+            <Width value="10000" />
+          </System.Windows.Forms.ColumnHeader>
+        </Columns>
+      </System.Windows.Forms.ListView>
+    </Controls>
+  </System.Windows.Forms.Form>
+</Components>

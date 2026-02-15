@@ -1,0 +1,88 @@
+﻿<Components version="1.0">
+  <System.Windows.Forms.UserControl>
+    <Name value="FullscreenPanel" />
+    <ClientSize value="{Width=484, Height=371}" />
+    <Controls>
+      <System.Windows.Forms.Label>
+        <Name value="labelDescription" />
+        <Location value="3, 10" />
+        <Text value="${res:Dialog.Options.IDEOptions.FullScreen.DescriptionLabel}" />
+        <Size value="466, 28" />
+        <Anchor value="Top, Left, Right" />
+        <TabIndex value="0" />
+      </System.Windows.Forms.Label>
+      <System.Windows.Forms.CheckBox>
+        <Name value="HideMainMenuCheckBox" />
+        <Location value="13, 46" />
+        <Text value="${res:Dialog.Options.IDEOptions.FullScreen.HideMainMenu}" />
+        <TabIndex value="1" />
+        <Size value="456, 30" />
+        <Anchor value="Top, Left, Right" />
+      </System.Windows.Forms.CheckBox>
+      <System.Windows.Forms.CheckBox>
+        <Name value="ShowMainMenuOnMouseMoveCheckBox" />
+        <Location value="34, 82" />
+        <Text value="${res:Dialog.Options.IDEOptions.FullScreen.ShowMainMenuOnMouseHover}" />
+        <TabIndex value="2" />
+        <Size value="435, 30" />
+        <Anchor value="Top, Left, Right" />
+      </System.Windows.Forms.CheckBox>
+      <System.Windows.Forms.CheckBox>
+        <Name value="HideToolbarsCheckBox" />
+        <Location value="13, 118" />
+        <Text value="${res:Dialog.Options.IDEOptions.FullScreen.HideToolbars}" />
+        <TabIndex value="3" />
+        <Size value="456, 30" />
+        <Anchor value="Top, Left, Right" />
+      </System.Windows.Forms.CheckBox>
+      <System.Windows.Forms.CheckBox>
+        <Name value="HideTabsCheckBox" />
+        <Location value="13, 154" />
+        <Text value="${res:Dialog.Options.IDEOptions.FullScreen.HideTabs}" />
+        <TabIndex value="4" />
+        <Size value="456, 30" />
+        <Anchor value="Top, Left, Right" />
+      </System.Windows.Forms.CheckBox>
+      <System.Windows.Forms.CheckBox>
+        <Name value="HideVerticalScrollbarCheckBox" />
+        <Location value="13, 190" />
+        <Text value="${res:Dialog.Options.IDEOptions.FullScreen.HideVerticalScrollbar}" />
+        <TabIndex value="5" />
+        <Size value="456, 30" />
+        <Anchor value="Top, Left, Right" />
+      </System.Windows.Forms.CheckBox>
+      <System.Windows.Forms.CheckBox>
+        <Name value="HideHorizontalScrollbarCheckBox" />
+        <Location value="13, 226" />
+        <Text value="${res:Dialog.Options.IDEOptions.FullScreen.HideHorizontalScrollbar}" />
+        <TabIndex value="6" />
+        <Size value="456, 30" />
+        <Anchor value="Top, Left, Right" />
+      </System.Windows.Forms.CheckBox>
+      <System.Windows.Forms.CheckBox>
+        <Name value="HideStatusBarCheckBox" />
+        <Location value="13, 262" />
+        <Text value="${res:Dialog.Options.IDEOptions.FullScreen.HideStatusBar}" />
+        <TabIndex value="7" />
+        <Size value="456, 30" />
+        <Anchor value="Top, Left, Right" />
+      </System.Windows.Forms.CheckBox>
+      <System.Windows.Forms.CheckBox>
+        <Name value="ShowStatusBarOnMouseMoveCheckBox" />
+        <Location value="34, 298" />
+        <Text value="${res:Dialog.Options.IDEOptions.FullScreen.ShowMainMenuOnMouseHover}" />
+        <TabIndex value="8" />
+        <Size value="435, 30" />
+        <Anchor value="Top, Left, Right" />
+      </System.Windows.Forms.CheckBox>
+      <System.Windows.Forms.CheckBox>
+        <Name value="HideWindowsTaskbarCheckBox" />
+        <Location value="13, 334" />
+        <Text value="${res:Dialog.Options.IDEOptions.FullScreen.HideWindowsTaskbar}" />
+        <TabIndex value="9" />
+        <Size value="456, 30" />
+        <Anchor value="Top, Left, Right" />
+      </System.Windows.Forms.CheckBox>
+    </Controls>
+  </System.Windows.Forms.UserControl>
+</Components>

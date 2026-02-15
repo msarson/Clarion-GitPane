@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <AssemblyName>Clarion.Core</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <UseWindowsForms>True</UseWindowsForms>
+    <TargetFramework>net40</TargetFramework>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace />
+  </PropertyGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Reference Include="ICSharpCode.Core">
+      <HintPath>C:\Clarion\Clarion11.1\bin\ICSharpCode.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="SoftVelocity.Ide.Core">
+      <HintPath>C:\Clarion\Clarion11.1\bin\SoftVelocity.Ide.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="SoftVelocity.Clarion.Runtime.Classes">
+      <HintPath>C:\Clarion\Clarion11.1\bin\SoftVelocity.Clarion.Runtime.Classes.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpDevelop">
+      <HintPath>C:\Clarion\Clarion11.1\bin\ICSharpCode.SharpDevelop.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+</Project>

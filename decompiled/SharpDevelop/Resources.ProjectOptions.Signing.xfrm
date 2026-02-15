@@ -1,0 +1,94 @@
+<Components version="1.0">
+  <System.Windows.Forms.UserControl>
+    <Name value="XmlUserControl1" />
+    <ClientSize value="{Width=555, Height=312}" />
+    <AutoScroll value="True" />
+    <AutoScaleMode value="Font" />
+    <Controls>
+      <System.Windows.Forms.GroupBox>
+        <Name value="clickOnceGroupBox" />
+        <TabIndex value="2" />
+        <Size value="531, 48" />
+        <Location value="3, 156" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.ProjectOptions.Signing.ClickOnce}" />
+        <Controls>
+          <System.Windows.Forms.Label>
+            <Name value="label2" />
+            <TabIndex value="0" />
+            <Size value="352, 23" />
+            <Location value="8, 17" />
+            <Text value="${res:Dialog.ProjectOptions.Signing.ClickOnceNotSupported}" />
+          </System.Windows.Forms.Label>
+        </Controls>
+      </System.Windows.Forms.GroupBox>
+      <System.Windows.Forms.GroupBox>
+        <Name value="signingGroupBox" />
+        <TabIndex value="1" />
+        <Size value="531, 147" />
+        <Location value="3, 3" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.ProjectOptions.Signing.StrongName}" />
+        <Controls>
+          <System.Windows.Forms.Panel>
+            <Name value="strongNameSignPanel" />
+            <TabIndex value="1" />
+            <Size value="516, 100" />
+            <Location value="7, 41" />
+            <Anchor value="Top, Bottom, Left, Right" />
+            <Controls>
+              <System.Windows.Forms.Label>
+                <Name value="label1" />
+                <TabIndex value="10" />
+                <Size value="517, 23" />
+                <Location value="0, 77" />
+                <Anchor value="Top, Left, Right" />
+                <Text value="${res:Dialog.ProjectOptions.Signing.DelaySignWarning}" />
+              </System.Windows.Forms.Label>
+              <System.Windows.Forms.CheckBox>
+                <Name value="delaySignOnlyCheckBox" />
+                <TabIndex value="8" />
+                <Size value="517, 24" />
+                <Location value="0, 50" />
+                <Anchor value="Top, Left, Right" />
+                <Text value="${res:Dialog.ProjectOptions.Signing.DelaySignOnly}" />
+              </System.Windows.Forms.CheckBox>
+              <System.Windows.Forms.ComboBox>
+                <Name value="keyFileComboBox" />
+                <TabIndex value="1" />
+                <Size value="361, 24" />
+                <Location value="0, 23" />
+                <Anchor value="Top, Left, Right" />
+                <FormattingEnabled value="True" />
+              </System.Windows.Forms.ComboBox>
+              <System.Windows.Forms.Label>
+                <Name value="label3" />
+                <TabIndex value="9" />
+                <Size value="517, 19" />
+                <Location value="0, 1" />
+                <Anchor value="Top, Left, Right" />
+                <Text value="${res:Dialog.ProjectOptions.Signing.ChooseKeyFile}" />
+              </System.Windows.Forms.Label>
+              <System.Windows.Forms.Button>
+                <Name value="changePasswordButton" />
+                <TabIndex value="2" />
+                <Size value="150, 22" />
+                <Location value="367, 22" />
+                <Anchor value="Top, Right" />
+                <Text value="${res:Dialog.ProjectOptions.Signing.ChangePassword}" />
+              </System.Windows.Forms.Button>
+            </Controls>
+          </System.Windows.Forms.Panel>
+          <System.Windows.Forms.CheckBox>
+            <Name value="signAssemblyCheckBox" />
+            <TabIndex value="0" />
+            <Size value="515, 24" />
+            <Location value="8, 20" />
+            <Anchor value="Top, Left, Right" />
+            <Text value="${res:Dialog.ProjectOptions.Signing.SignAssembly}" />
+          </System.Windows.Forms.CheckBox>
+        </Controls>
+      </System.Windows.Forms.GroupBox>
+    </Controls>
+  </System.Windows.Forms.UserControl>
+</Components>

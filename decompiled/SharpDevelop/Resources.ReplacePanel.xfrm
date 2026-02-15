@@ -1,0 +1,154 @@
+<Components version="1.0">
+  <System.Windows.Forms.UserControl>
+    <Name value="XmlUserControl1" />
+    <ClientSize value="{Width=430, Height=460}" />
+    <AutoSizeMode value="GrowAndShrink" />
+    <Controls>
+      <System.Windows.Forms.CheckBox>
+        <Name value="includeReadOnlyCheckBox" />
+        <TabIndex value="17" />
+        <Size value="413, 24" />
+        <Location value="8, 263" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.NewProject.SearchReplace.IncludeReadOnlyBlocks}" />
+      </System.Windows.Forms.CheckBox>
+      <System.Windows.Forms.ComboBox>
+        <Name value="useComboBox" />
+        <TabIndex value="13" />
+        <Size value="413, 21" />
+        <Location value="8, 382" />
+        <Anchor value="Top, Left, Right" />
+        <DropDownStyle value="DropDownList" />
+      </System.Windows.Forms.ComboBox>
+      <System.Windows.Forms.Label>
+        <Name value="label5" />
+        <TabIndex value="12" />
+        <Size value="413, 23" />
+        <Location value="8, 350" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.NewProject.SearchReplace.UseMethodLabel}" />
+        <TextAlign value="BottomLeft" />
+      </System.Windows.Forms.Label>
+      <System.Windows.Forms.Button>
+        <Name value="replaceAllButton" />
+        <TabIndex value="16" />
+        <Size value="100, 30" />
+        <Location value="321, 425" />
+        <Anchor value="Top, Right" />
+        <Text value="${res:Dialog.NewProject.SearchReplace.ReplaceAllButton}" />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.ComboBox>
+        <Name value="replaceComboBox" />
+        <TabIndex value="3" />
+        <Size value="413, 21" />
+        <Location value="8, 92" />
+        <Anchor value="Top, Left, Right" />
+      </System.Windows.Forms.ComboBox>
+      <System.Windows.Forms.Label>
+        <Name value="label4" />
+        <TabIndex value="2" />
+        <Size value="413, 23" />
+        <Location value="8, 64" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.NewProject.SearchReplace.ReplaceWith}" />
+        <TextAlign value="BottomLeft" />
+      </System.Windows.Forms.Label>
+      <System.Windows.Forms.Button>
+        <Name value="findNextButton" />
+        <TabIndex value="14" />
+        <Size value="100, 30" />
+        <Location value="105, 425" />
+        <Anchor value="Top, Right" />
+        <Text value="${res:Dialog.NewProject.SearchReplace.FindNextButton}" />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.Button>
+        <Name value="replaceButton" />
+        <TabIndex value="15" />
+        <Size value="100, 30" />
+        <Location value="213, 425" />
+        <Anchor value="Top, Right" />
+        <Text value="${res:Dialog.NewProject.SearchReplace.ReplaceButton}" />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.CheckBox>
+        <Name value="matchWholeWordCheckBox" />
+        <TabIndex value="11" />
+        <Size value="413, 24" />
+        <Location value="8, 321" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.NewProject.SearchReplace.MatchWholeWord}" />
+      </System.Windows.Forms.CheckBox>
+      <System.Windows.Forms.CheckBox>
+        <Name value="matchCaseCheckBox" />
+        <TabIndex value="10" />
+        <Size value="413, 24" />
+        <Location value="8, 293" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.NewProject.SearchReplace.MatchCase}" />
+      </System.Windows.Forms.CheckBox>
+      <System.Windows.Forms.ComboBox>
+        <Name value="fileTypesComboBox" />
+        <TabIndex value="9" />
+        <Size value="413, 21" />
+        <Location value="8, 234" />
+        <Anchor value="Top, Left, Right" />
+      </System.Windows.Forms.ComboBox>
+      <System.Windows.Forms.Label>
+        <Name value="lookAtTypesLabel" />
+        <TabIndex value="8" />
+        <Size value="413, 23" />
+        <Location value="8, 206" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.NewProject.SearchReplace.LookAtFileTypes}" />
+        <TextAlign value="BottomLeft" />
+      </System.Windows.Forms.Label>
+      <System.Windows.Forms.CheckBox>
+        <Name value="includeSubFolderCheckBox" />
+        <TabIndex value="7" />
+        <Size value="397, 24" />
+        <Location value="24, 176" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.NewProject.SearchReplace.IncludeSubFolders}" />
+      </System.Windows.Forms.CheckBox>
+      <System.Windows.Forms.Button>
+        <Name value="lookInBrowseButton" />
+        <TabIndex value="6" />
+        <Size value="31, 21" />
+        <Location value="390, 146" />
+        <Anchor value="Top, Right" />
+        <Text value="..." />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.ComboBox>
+        <Name value="lookInComboBox" />
+        <TabIndex value="5" />
+        <Size value="376, 21" />
+        <Location value="8, 146" />
+        <Anchor value="Top, Left, Right" />
+      </System.Windows.Forms.ComboBox>
+      <System.Windows.Forms.Label>
+        <Name value="label2" />
+        <TabIndex value="4" />
+        <Size value="413, 23" />
+        <Location value="8, 117" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.NewProject.SearchReplace.SearchIn}" />
+        <TextAlign value="BottomLeft" />
+      </System.Windows.Forms.Label>
+      <System.Windows.Forms.ComboBox>
+        <Name value="findComboBox" />
+        <TabIndex value="1" />
+        <Size value="413, 21" />
+        <Location value="8, 39" />
+        <Anchor value="Top, Left, Right" />
+      </System.Windows.Forms.ComboBox>
+      <System.Windows.Forms.Label>
+        <Name value="label1" />
+        <TabIndex value="0" />
+        <Size value="413, 23" />
+        <Location value="8, 13" />
+        <Anchor value="Top, Left, Right" />
+        <Text value="${res:Dialog.NewProject.SearchReplace.FindWhat}" />
+        <TextAlign value="BottomLeft" />
+      </System.Windows.Forms.Label>
+    </Controls>
+  </System.Windows.Forms.UserControl>
+</Components>

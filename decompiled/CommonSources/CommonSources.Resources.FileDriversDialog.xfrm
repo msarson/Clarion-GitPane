@@ -1,0 +1,65 @@
+<Components version="1.0">
+  <System.Windows.Forms.Form>
+    <Name value="FileDriverList" />
+    <FormBorderStyle value="SizableToolWindow" />
+    <AcceptButton value="selectButton" />
+    <MinimizeBox value="False" />
+    <StartPosition value="CenterParent" />
+    <MinimumSize value="376, 469" />
+    <ShowInTaskbar value="False" />
+    <Text value="${res:Dialog.SelectFileDriversDialog.DialogName}" />
+    <ClientSize value="{Width=389, Height=455}" />
+    <CancelButton value="cancelButton" />
+    <Controls>
+      <System.Windows.Forms.Button>
+        <Name value="registerButton" />
+        <Location value="154, 416" />
+        <UseCompatibleTextRendering value="True" />
+        <Text value="${res:Dialog.SelectFileDriversDialog.addDriver}" />
+        <UseVisualStyleBackColor value="True" />
+        <Size value="105, 32" />
+        <Anchor value="Bottom, Right" />
+        <TabIndex value="4" />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.Button>
+        <Name value="cancelButton" />
+        <DialogResult value="Cancel" />
+        <Location value="266, 416" />
+        <UseCompatibleTextRendering value="True" />
+        <Text value="${res:Global.CancelButtonText}" />
+        <Size value="105, 32" />
+        <Anchor value="Bottom, Right" />
+        <TabIndex value="3" />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.Button>
+        <Name value="selectButton" />
+        <DialogResult value="OK" />
+        <Location value="43, 416" />
+        <UseCompatibleTextRendering value="True" />
+        <Text value="${res:Dialog.SelectButtonText}" />
+        <Size value="105, 32" />
+        <Anchor value="Bottom, Right" />
+        <TabIndex value="2" />
+      </System.Windows.Forms.Button>
+      <System.Windows.Forms.ListView>
+        <Name value="driverList" />
+        <FullRowSelect value="True" />
+        <Location value="8, 8" />
+        <TabIndex value="1" />
+        <Anchor value="Top, Bottom, Left, Right" />
+        <Sorting value="Ascending" />
+        <View value="Details" />
+        <HeaderStyle value="Nonclickable" />
+        <Size value="373, 399" />
+        <Columns>
+          <System.Windows.Forms.ColumnHeader>
+            <TextAlign value="Center" />
+            <Name value="columnHeader" />
+            <Text value="${res:Dialog.SelectFileDriversDialog.FileDrivers}" />
+            <Width value="10000" />
+          </System.Windows.Forms.ColumnHeader>
+        </Columns>
+      </System.Windows.Forms.ListView>
+    </Controls>
+  </System.Windows.Forms.Form>
+</Components>

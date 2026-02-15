@@ -1,0 +1,76 @@
+<Components version="1.0">
+  <System.Windows.Forms.UserControl>
+    <Name value="CreatedObject0" />
+    <ClientSize value="{Width=400, Height=287}" />
+    <Controls>
+      <System.Windows.Forms.GroupBox>
+        <Name value="commentGeneratingGroupBox" />
+        <Location value="8, 157" />
+        <Text value="${res:Dialog.Options.IDEOptions.CodeGenerationOptionsPanel.CommentGenerationOptionsGroupBox}" />
+        <Size value="384, 106" />
+        <Anchor value="Top, Left, Right" />
+        <TabIndex value="1" />
+        <Controls>
+          <System.Windows.Forms.CheckBox>
+            <Name value="generateAdditonalCommentsCheckBox" />
+            <Location value="8, 69" />
+            <Text value="${res:Dialog.Options.IDEOptions.CodeGenerationOptionsPanel.GenerateAdditionalCommentsCheckBox}" />
+            <TabIndex value="1" />
+            <Size value="368, 24" />
+            <Anchor value="Top, Left, Right" />
+          </System.Windows.Forms.CheckBox>
+          <System.Windows.Forms.CheckBox>
+            <Name value="generateDocCommentsCheckBox" />
+            <Location value="8, 41" />
+            <Text value="${res:Dialog.Options.IDEOptions.CodeGenerationOptionsPanel.GenerateDocCommentsCheckBox}" />
+            <TabIndex value="0" />
+            <Size value="368, 24" />
+            <Anchor value="Top, Left, Right" />
+          </System.Windows.Forms.CheckBox>
+        </Controls>
+      </System.Windows.Forms.GroupBox>
+      <System.Windows.Forms.GroupBox>
+        <Name value="codeGenerationGroupBox" />
+        <Location value="8, 8" />
+        <Text value="${res:Dialog.Options.IDEOptions.CodeGenerationOptionsPanel.CodeGenerationOptionsGroupBox}" />
+        <Size value="384, 142" />
+        <Anchor value="Top, Left, Right" />
+        <TabIndex value="0" />
+        <Controls>
+          <System.Windows.Forms.CheckBox>
+            <Name value="useFullTypeNamesCheckBox" />
+            <Location value="8, 111" />
+            <Text value="${res:Dialog.Options.IDEOptions.CodeGenerationOptionsPanel.UseFullTypeNamesCheckBox}" />
+            <TabIndex value="3" />
+            <Size value="368, 24" />
+            <Anchor value="Top, Left, Right" />
+          </System.Windows.Forms.CheckBox>
+          <System.Windows.Forms.CheckBox>
+            <Name value="blankLinesBetweenMemberCheckBox" />
+            <Location value="8, 84" />
+            <Text value="${res:Dialog.Options.IDEOptions.CodeGenerationOptionsPanel.BlankLinesBetweenMembersCheckBox}" />
+            <TabIndex value="2" />
+            <Size value="368, 24" />
+            <Anchor value="Top, Left, Right" />
+          </System.Windows.Forms.CheckBox>
+          <System.Windows.Forms.CheckBox>
+            <Name value="elseOnClosingCheckbox" />
+            <Location value="8, 57" />
+            <Text value="${res:Dialog.Options.IDEOptions.CodeGenerationOptionsPanel.ElseOnClosingCheckBox}" />
+            <TabIndex value="1" />
+            <Size value="368, 24" />
+            <Anchor value="Top, Left, Right" />
+          </System.Windows.Forms.CheckBox>
+          <System.Windows.Forms.CheckBox>
+            <Name value="startBlockOnTheSameLineCheckBox" />
+            <Location value="8, 31" />
+            <Text value="${res:Dialog.Options.IDEOptions.CodeGenerationOptionsPanel.StartBlockOnTheSameLineCheckBox}" />
+            <TabIndex value="0" />
+            <Size value="368, 24" />
+            <Anchor value="Top, Left, Right" />
+          </System.Windows.Forms.CheckBox>
+        </Controls>
+      </System.Windows.Forms.GroupBox>
+    </Controls>
+  </System.Windows.Forms.UserControl>
+</Components>

@@ -1,0 +1,68 @@
+using System.ComponentModel;
+using ICSharpCode.Core;
+using Microsoft.Build.BuildEngine;
+
+namespace ICSharpCode.SharpDevelop.Project;
+
+public class ProjectReferenceProjectItem : ReferenceProjectItem
+{
+	private IProject referencedProject;
+
+	[Browsable(false)]
+	public IProject ReferencedProject
+	{
+		get
+		{
+			if (referencedProject == null)
+			{
+				referencedProject = ProjectService.GetProject(FileName);
+			}
+			return referencedProject;
+		}
+	}
+
+	[ReadOnly(true)]
+	public string ProjectGuid
+	{
+		get
+		{
+			return GetEvaluatedMetadata("Project");
+		}
+		set
+		{
+			SetEvaluatedMetadata("Project", value);
+		}
+	}
+
+	[ReadOnly(true)]
+	public string ProjectName
+	{
+		get
+		{
+			return GetEvaluatedMetadata("Name");
+		}
+		set
+		{
+			SetEvaluatedMetadata("Name", value);
+		}
+	}
+
+	protected internal ProjectReferenceProjectItem(IProject project, BuildItem buildItem)
+		: base(project, buildItem)
+	{
+	}
+
+	public ProjectReferenceProjectItem(IProject project, IProject referenceTo)
+		: base(project, ItemType.ProjectReference)
+	{
+		base.Include = FileUtility.GetRelativePath(project.Directory, referenceTo.FileName);
+		ProjectGuid = referenceTo.IdGuid;
+		ProjectName = referenceTo.Name;
+		referencedProject = referenceTo;
+	}
+
+	public override string TypeName()
+	{
+		return "Project Reference Properties";
+	}
+}

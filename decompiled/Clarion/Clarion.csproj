@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <AssemblyName>Clarion</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <OutputType>WinExe</OutputType>
+    <UseWindowsForms>True</UseWindowsForms>
+    <TargetFramework>net40</TargetFramework>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <RootNamespace />
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Resources.SplashScreen.png" />
+    <None Remove="Resources.SplashScreenEE.png" />
+    <None Remove="Resources.SplashScreenPE.png" />
+    <None Remove="Resources.SplashScreenSE.png" />
+    <EmbeddedResource Include="Resources.SplashScreen.png" LogicalName="Resources.SplashScreen.png" />
+    <EmbeddedResource Include="Resources.SplashScreenEE.png" LogicalName="Resources.SplashScreenEE.png" />
+    <EmbeddedResource Include="Resources.SplashScreenPE.png" LogicalName="Resources.SplashScreenPE.png" />
+    <EmbeddedResource Include="Resources.SplashScreenSE.png" LogicalName="Resources.SplashScreenSE.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ICSharpCode.Core">
+      <HintPath>C:\Clarion\Clarion11.1\bin\ICSharpCode.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpDevelop.Sda">
+      <HintPath>C:\Clarion\Clarion11.1\bin\ICSharpCode.SharpDevelop.Sda.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpDevelop">
+      <HintPath>C:\Clarion\Clarion11.1\bin\ICSharpCode.SharpDevelop.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

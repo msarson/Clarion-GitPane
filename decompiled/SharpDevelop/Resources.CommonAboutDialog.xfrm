@@ -1,0 +1,58 @@
+<System.Windows.Forms.Form> 
+	<Text            value = "${res:Dialog.About.DialogName}"/>
+	<ClientSize      value = "{Width=416, Height=499}"/>
+	<ShowInTaskbar   value = "False"/>
+	<MaximizeBox     value = "False"/>
+	<MinimizeBox     value = "False"/>
+	<FormBorderStyle value = "FixedDialog"/>
+	<StartPosition   value = "CenterScreen"/>
+	<AcceptButton    value = "okButton"/>
+	<CancelButton    value = "okButton"/>
+	<Controls>
+		<ICSharpCode.SharpDevelop.Gui.ScrollBox>
+			<Name     value = "aboutPictureScrollBox"/>
+			<TabIndex value = "0"/>
+			<Width    value = "400"/>
+			<Height   value = "224"/>
+			<Location value = "{X=8, Y=8}"/>
+			<TabStop value = "False"/>
+		</ICSharpCode.SharpDevelop.Gui.ScrollBox>
+		<System.Windows.Forms.Label>
+			<Text    value = "(c) 1986 - 2022 by SoftVelocity Inc."/>
+			<Width   value = "400"/>
+			<Height  value = "20"/>
+			<Location value = "{X=8, Y=234}"/>
+		</System.Windows.Forms.Label>
+		<System.Windows.Forms.TabControl>
+			<Width   value = "400"/>
+			<Height  value = "208"/>
+			<Location value = "{X=8, Y=256}"/>
+			<TabPages>
+				<System.Windows.Forms.TabPage>
+					<Text value="${res:Dialog.About.DialogName}"/>
+					<Controls>
+						<ICSharpCode.SharpDevelop.Gui.AboutSharpDevelopTabPage/>
+					</Controls>
+					<UseVisualStyleBackColor value = "True"/>
+				</System.Windows.Forms.TabPage>
+				<System.Windows.Forms.TabPage>
+					<Text value="${res:Dialog.About.VersionInfoTabName}"/>
+					<Controls>
+						<ICSharpCode.SharpDevelop.Gui.VersionInformationTabPage/>
+					</Controls>
+					<UseVisualStyleBackColor value = "True"/>
+				</System.Windows.Forms.TabPage>
+			</TabPages>
+		</System.Windows.Forms.TabControl>
+		<System.Windows.Forms.Button>
+			<Name    value = "okButton"/>
+			<Width   value = "80"/>
+			<Height  value = "24"/>
+			<Location value = "{X=328, Y=472}"/>
+			<TabIndex value = "1"/>
+			<Text     value = "${res:Global.OKButtonText}"/>
+			<FlatStyle value = "System"/>
+			<DialogResult value = "OK"/>
+		</System.Windows.Forms.Button>
+	</Controls>
+</System.Windows.Forms.Form>
