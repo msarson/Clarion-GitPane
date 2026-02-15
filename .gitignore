@@ -58,7 +58,5 @@ $RECYCLE.BIN/
 .idea/
 *.sln.iml
 
-# Decompiled source (keep directory structure but not DLLs)
-decompiled/**/*.dll
-decompiled/**/bin/
-decompiled/**/obj/
+# Decompiled source - for reference only, not tracked
+decompiled/

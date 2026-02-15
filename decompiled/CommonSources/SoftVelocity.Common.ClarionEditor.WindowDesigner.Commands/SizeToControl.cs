@@ -1,8 +1,0 @@
-using System.ComponentModel.Design;
-
-namespace SoftVelocity.Common.ClarionEditor.WindowDesigner.Commands;
-
-public class SizeToControl : AbstractWindowDesignerCommand
-{
-	public override CommandID CommandID => StandardCommands.SizeToControl;
-}
