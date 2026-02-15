@@ -30,6 +30,8 @@ namespace GitPane
         private Button refreshButton;
         
         private GitRepository gitRepo;
+        private System.IO.FileSystemWatcher fileWatcher;
+        private System.Threading.Timer debounceTimer;
 
         public override Control Control => contentPanel;
 
@@ -206,11 +208,13 @@ namespace GitPane
                     commitPushButton.Visible = true;
                     
                     RefreshFileList();
+                    StartFileWatcher(solutionDir);
                 }
                 else
                 {
                     UpdatePadTitle($"Not a Git repository - {solutionDir}");
                     HideCommitControls();
+                    StopFileWatcher();
                     statusLabel.Text = "Not a Git repository";
                     statusLabel.Visible = true;
                 }
@@ -219,6 +223,7 @@ namespace GitPane
             {
                 UpdatePadTitle("Git - No solution opened");
                 HideCommitControls();
+                StopFileWatcher();
                 statusLabel.Text = "No solution opened";
                 statusLabel.Visible = true;
             }
@@ -835,8 +840,78 @@ namespace GitPane
         {
             ProjectService.SolutionLoaded -= OnSolutionChanged;
             ProjectService.SolutionClosed -= OnSolutionClosed;
+            StopFileWatcher();
+            debounceTimer?.Dispose();
             contentPanel?.Dispose();
             base.Dispose();
+        }
+
+        private void StartFileWatcher(string directory)
+        {
+            StopFileWatcher();
+
+            try
+            {
+                fileWatcher = new System.IO.FileSystemWatcher(directory);
+                fileWatcher.IncludeSubdirectories = true;
+                fileWatcher.NotifyFilter = System.IO.NotifyFilters.LastWrite 
+                    | System.IO.NotifyFilters.FileName 
+                    | System.IO.NotifyFilters.DirectoryName
+                    | System.IO.NotifyFilters.Size;
+
+                // Filter out .git folder changes to reduce noise
+                fileWatcher.Changed += OnFileSystemChanged;
+                fileWatcher.Created += OnFileSystemChanged;
+                fileWatcher.Deleted += OnFileSystemChanged;
+                fileWatcher.Renamed += OnFileSystemChanged;
+
+                fileWatcher.EnableRaisingEvents = true;
+            }
+            catch
+            {
+                // Silently fail if we can't watch (maybe permissions issue)
+                fileWatcher = null;
+            }
+        }
+
+        private void StopFileWatcher()
+        {
+            if (fileWatcher != null)
+            {
+                fileWatcher.EnableRaisingEvents = false;
+                fileWatcher.Dispose();
+                fileWatcher = null;
+            }
+        }
+
+        private void OnFileSystemChanged(object sender, System.IO.FileSystemEventArgs e)
+        {
+            // Ignore .git folder changes
+            if (e.FullPath.Contains("\\.git\\"))
+                return;
+
+            // Debounce the refresh - only refresh after 500ms of no changes
+            if (debounceTimer != null)
+                debounceTimer.Dispose();
+
+            debounceTimer = new System.Threading.Timer(state =>
+            {
+                if (contentPanel.InvokeRequired)
+                {
+                    try
+                    {
+                        contentPanel.Invoke(new Action(RefreshFileList));
+                    }
+                    catch
+                    {
+                        // Ignore if control is disposed
+                    }
+                }
+                else
+                {
+                    RefreshFileList();
+                }
+            }, null, 500, System.Threading.Timeout.Infinite);
         }
     }
 }
