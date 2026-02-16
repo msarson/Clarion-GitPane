@@ -7,6 +7,7 @@ namespace GitPane
     public class GitRepository
     {
         private readonly string workingDirectory;
+        private static bool? gitAvailable = null;
 
         public GitRepository(string directory)
         {
@@ -16,6 +17,64 @@ namespace GitPane
         public string GetWorkingDirectory()
         {
             return workingDirectory;
+        }
+
+        public static bool IsGitAvailable()
+        {
+            // Cache the result to avoid repeated checks
+            if (gitAvailable.HasValue)
+                return gitAvailable.Value;
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "git",
+                    Arguments = "--version",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(psi))
+                {
+                    process.WaitForExit();
+                    gitAvailable = process.ExitCode == 0;
+                    return gitAvailable.Value;
+                }
+            }
+            catch (Exception)
+            {
+                gitAvailable = false;
+                return false;
+            }
+        }
+
+        public static bool IsGitHubCLIAvailable()
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "gh",
+                    Arguments = "--version",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(psi))
+                {
+                    process.WaitForExit();
+                    return process.ExitCode == 0;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public bool IsRepository()

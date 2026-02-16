@@ -24,6 +24,12 @@ namespace GitPane
 
         public GitPanePad()
         {
+            // Check Git availability first
+            if (!GitRepository.IsGitAvailable())
+            {
+                ShowGitNotInstalledMessage();
+            }
+            
             InitializeUI();
             UpdateStatus();
 
@@ -32,12 +38,46 @@ namespace GitPane
             ProjectService.SolutionClosed += OnSolutionClosed;
         }
 
+        private void ShowGitNotInstalledMessage()
+        {
+            var result = MessageBox.Show(
+                "Git is not installed or not found in your system PATH.\n\n" +
+                "GitPane requires Git to be installed to function.\n\n" +
+                "Would you like to open the Git download page?",
+                "Git Not Found",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            if (result == DialogResult.Yes)
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start("https://git-scm.com/downloads");
+                }
+                catch
+                {
+                    MessageBox.Show("Please visit https://git-scm.com/downloads to download Git.",
+                        "Git Download", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+        }
+
         #endregion
 
         #region Main Status and Updates
 
         private void UpdateStatus()
         {
+            // Check if Git is available first
+            if (!GitRepository.IsGitAvailable())
+            {
+                statusLabel.Text = "Git not installed - Please install Git to use this pane";
+                statusLabel.ForeColor = Color.Red;
+                HideCommitControls();
+                UpdateMenuStates();
+                return;
+            }
+            
             if (ProjectService.OpenSolution != null)
             {
                 string solutionDir = ProjectService.OpenSolution.Directory;
@@ -216,9 +256,29 @@ namespace GitPane
 
         private void UpdateMenuStates()
         {
-            bool hasRepo = gitRepo != null && gitRepo.IsRepository();
+            bool gitAvailable = GitRepository.IsGitAvailable();
+            bool hasRepo = gitAvailable && gitRepo != null && gitRepo.IsRepository();
             bool hasSolution = ProjectService.OpenSolution != null;
             bool hasRemote = hasRepo && gitRepo.HasRemote();
+            bool hasGitHubCLI = GitRepository.IsGitHubCLIAvailable();
+            
+            // Disable everything if Git is not available
+            if (!gitAvailable)
+            {
+                initRepoMenuItem.Visible = false;
+                fetchMenuItem.Enabled = false;
+                pullMenuItem.Enabled = false;
+                pushMenuItem.Enabled = false;
+                viewOnRemoteMenuItem.Enabled = false;
+                createGitHubMenuItem.Enabled = false;
+                addRemoteMenuItem.Enabled = false;
+                removeRemoteMenuItem.Enabled = false;
+                switchBranchMenuItem.Enabled = false;
+                createBranchMenuItem.Enabled = false;
+                deleteBranchMenuItem.Enabled = false;
+                mergeBranchMenuItem.Enabled = false;
+                return;
+            }
             
             // File menu
             initRepoMenuItem.Visible = hasSolution && !hasRepo;
@@ -228,7 +288,7 @@ namespace GitPane
             pullMenuItem.Enabled = hasRemote;
             pushMenuItem.Enabled = hasRemote;
             viewOnRemoteMenuItem.Enabled = hasRemote;
-            createGitHubMenuItem.Enabled = hasRepo && !hasRemote;
+            createGitHubMenuItem.Enabled = hasRepo && !hasRemote && hasGitHubCLI; // Requires gh CLI
             addRemoteMenuItem.Enabled = hasRepo && !hasRemote;
             removeRemoteMenuItem.Enabled = hasRemote;
             
