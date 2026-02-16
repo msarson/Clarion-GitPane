@@ -20,10 +20,12 @@ namespace GitPane
         // Commit workflow controls
         private GroupBox stagedGroupBox;
         private CheckedListBox stagedListBox;
+        private Button unstageSelectedButton;
         private Button unstageAllButton;
         
         private GroupBox unstagedGroupBox;
         private CheckedListBox unstagedListBox;
+        private Button stageSelectedButton;
         private Button stageAllButton;
         
         private Label commitMessageLabel;
@@ -119,16 +121,23 @@ namespace GitPane
             stagedListBox.Size = new Size(440, 115);
             stagedListBox.Font = new Font("Courier New", 8F);
             stagedListBox.CheckOnClick = true;
-            stagedListBox.ItemCheck += OnStagedItemCheck;
+
+            unstageSelectedButton = new Button();
+            unstageSelectedButton.Text = "Unstage Selected";
+            unstageSelectedButton.Location = new Point(10, 140);
+            unstageSelectedButton.Width = 120;
+            unstageSelectedButton.Height = 25;
+            unstageSelectedButton.Click += OnUnstageSelectedClick;
 
             unstageAllButton = new Button();
             unstageAllButton.Text = "Unstage All";
-            unstageAllButton.Location = new Point(10, 140);
+            unstageAllButton.Location = new Point(135, 140);
             unstageAllButton.Width = 100;
             unstageAllButton.Height = 25;
             unstageAllButton.Click += OnUnstageAllClick;
 
             stagedGroupBox.Controls.Add(stagedListBox);
+            stagedGroupBox.Controls.Add(unstageSelectedButton);
             stagedGroupBox.Controls.Add(unstageAllButton);
 
             // Unstaged files section
@@ -142,16 +151,23 @@ namespace GitPane
             unstagedListBox.Size = new Size(440, 115);
             unstagedListBox.Font = new Font("Courier New", 8F);
             unstagedListBox.CheckOnClick = true;
-            unstagedListBox.ItemCheck += OnUnstagedItemCheck;
+
+            stageSelectedButton = new Button();
+            stageSelectedButton.Text = "Stage Selected";
+            stageSelectedButton.Location = new Point(10, 140);
+            stageSelectedButton.Width = 120;
+            stageSelectedButton.Height = 25;
+            stageSelectedButton.Click += OnStageSelectedClick;
 
             stageAllButton = new Button();
             stageAllButton.Text = "Stage All";
-            stageAllButton.Location = new Point(10, 140);
+            stageAllButton.Location = new Point(135, 140);
             stageAllButton.Width = 100;
             stageAllButton.Height = 25;
             stageAllButton.Click += OnStageAllClick;
 
             unstagedGroupBox.Controls.Add(unstagedListBox);
+            unstagedGroupBox.Controls.Add(stageSelectedButton);
             unstagedGroupBox.Controls.Add(stageAllButton);
 
             // Commit message section
@@ -326,58 +342,34 @@ namespace GitPane
             RefreshFileList();
         }
 
-        private void OnStagedItemCheck(object sender, ItemCheckEventArgs e)
+        private void OnStageSelectedClick(object sender, EventArgs e)
         {
-            if (e.NewValue == CheckState.Checked)
+            if (gitRepo == null || unstagedListBox.CheckedItems.Count == 0)
+                return;
+
+            foreach (var item in unstagedListBox.CheckedItems)
             {
-                // User checked a staged file - unstage it
-                var item = stagedListBox.Items[e.Index].ToString();
-                var parts = item.Split('\t');
-                var filePath = parts.Length > 1 ? parts[1] : item;
-                
-                if (gitRepo.UnstageFile(filePath))
-                {
-                    // Refresh after a short delay to let the checkbox update
-                    System.Threading.ThreadPool.QueueUserWorkItem(state =>
-                    {
-                        System.Threading.Thread.Sleep(100);
-                        if (contentPanel.InvokeRequired)
-                            contentPanel.Invoke(new Action(RefreshFileList));
-                    });
-                }
-                else
-                {
-                    e.NewValue = CheckState.Unchecked;
-                    MessageBox.Show("Failed to unstage file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                var parts = item.ToString().Split('\t');
+                var filePath = parts.Length > 1 ? parts[1] : item.ToString();
+                gitRepo.StageFile(filePath);
             }
+
+            RefreshFileList();
         }
 
-        private void OnUnstagedItemCheck(object sender, ItemCheckEventArgs e)
+        private void OnUnstageSelectedClick(object sender, EventArgs e)
         {
-            if (e.NewValue == CheckState.Checked)
+            if (gitRepo == null || stagedListBox.CheckedItems.Count == 0)
+                return;
+
+            foreach (var item in stagedListBox.CheckedItems)
             {
-                // User checked an unstaged file - stage it
-                var item = unstagedListBox.Items[e.Index].ToString();
-                var parts = item.Split('\t');
-                var filePath = parts.Length > 1 ? parts[1] : item;
-                
-                if (gitRepo.StageFile(filePath))
-                {
-                    // Refresh after a short delay to let the checkbox update
-                    System.Threading.ThreadPool.QueueUserWorkItem(state =>
-                    {
-                        System.Threading.Thread.Sleep(100);
-                        if (contentPanel.InvokeRequired)
-                            contentPanel.Invoke(new Action(RefreshFileList));
-                    });
-                }
-                else
-                {
-                    e.NewValue = CheckState.Unchecked;
-                    MessageBox.Show("Failed to stage file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                var parts = item.ToString().Split('\t');
+                var filePath = parts.Length > 1 ? parts[1] : item.ToString();
+                gitRepo.UnstageFile(filePath);
             }
+
+            RefreshFileList();
         }
 
         private void OnStageAllClick(object sender, EventArgs e)
