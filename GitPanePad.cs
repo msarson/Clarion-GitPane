@@ -45,6 +45,9 @@ namespace GitPane
             // Subscribe to solution events
             ProjectService.SolutionLoaded += OnSolutionChanged;
             ProjectService.SolutionClosed += OnSolutionClosed;
+            
+            // Ensure initial layout is applied
+            contentPanel.Layout += OnPanelLayout;
         }
 
         private void InitializeUI()
@@ -54,6 +57,7 @@ namespace GitPane
             contentPanel.Padding = new Padding(10);
             contentPanel.AutoScroll = true;
             contentPanel.Resize += OnPanelResize;
+            contentPanel.SizeChanged += OnPanelResize;
 
             // Branch label
             branchLabel = new Label();
@@ -570,6 +574,11 @@ namespace GitPane
         {
             // Dynamically reposition controls based on panel width
             int panelWidth = contentPanel.Width;
+            
+            // Skip if panel hasn't been sized yet
+            if (panelWidth <= 0)
+                return;
+                
             int margin = 10;
             int rightMargin = 20; // Extra padding on right since IDE has no border
             int availableWidth = panelWidth - margin - rightMargin;
@@ -597,6 +606,12 @@ namespace GitPane
             // Adjust list boxes inside group boxes
             stagedListBox.Width = availableWidth - 20; // 20 = internal padding
             unstagedListBox.Width = availableWidth - 20;
+        }
+
+        private void OnPanelLayout(object sender, LayoutEventArgs e)
+        {
+            // Trigger resize logic when panel layout changes
+            OnPanelResize(sender, EventArgs.Empty);
         }
 
         private void OnBranchSelectClick(object sender, EventArgs e)
