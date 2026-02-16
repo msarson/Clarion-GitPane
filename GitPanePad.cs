@@ -164,6 +164,7 @@ namespace GitPane
             unstagedContextMenu.Items.Add(ignoreFileItem);
             unstagedContextMenu.Items.Add(ignoreExtensionItem);
             unstagedContextMenu.Items.Add(ignoreDirectoryItem);
+            unstagedContextMenu.Opening += OnUnstagedContextMenuOpening;
             unstagedListBox.ContextMenuStrip = unstagedContextMenu;
 
             stageSelectedButton = new Button();
@@ -407,6 +408,46 @@ namespace GitPane
             else
             {
                 MessageBox.Show("Failed to unstage all files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void OnUnstagedContextMenuOpening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // Update menu items text based on selected file
+            if (unstagedListBox.SelectedItem == null)
+            {
+                e.Cancel = true; // Don't show menu if nothing selected
+                return;
+            }
+
+            var item = unstagedListBox.SelectedItem.ToString();
+            var parts = item.Split('\t');
+            var filePath = parts.Length > 1 ? parts[1] : item;
+
+            // Update extension menu item text
+            string extension = System.IO.Path.GetExtension(filePath);
+            if (!string.IsNullOrEmpty(extension))
+            {
+                ((ToolStripMenuItem)unstagedContextMenu.Items[1]).Text = $"Ignore file type (*{extension})";
+            }
+            else
+            {
+                ((ToolStripMenuItem)unstagedContextMenu.Items[1]).Text = "Ignore file type (no extension)";
+                ((ToolStripMenuItem)unstagedContextMenu.Items[1]).Enabled = false;
+            }
+
+            // Update directory menu item
+            string directory = System.IO.Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                string displayDir = directory.Length > 20 ? "..." + directory.Substring(directory.Length - 20) : directory;
+                ((ToolStripMenuItem)unstagedContextMenu.Items[2]).Text = $"Ignore directory ({displayDir}/)";
+                ((ToolStripMenuItem)unstagedContextMenu.Items[2]).Enabled = true;
+            }
+            else
+            {
+                ((ToolStripMenuItem)unstagedContextMenu.Items[2]).Text = "Ignore directory (root)";
+                ((ToolStripMenuItem)unstagedContextMenu.Items[2]).Enabled = false;
             }
         }
 
