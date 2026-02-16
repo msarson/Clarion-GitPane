@@ -451,26 +451,90 @@ namespace GitPane
 
         private void OnStageAllClick(object sender, EventArgs e)
         {
-            if (gitRepo != null && gitRepo.StageAllFiles())
+            if (gitRepo == null)
+                return;
+
+            // Disable UI during operation
+            stageAllButton.Enabled = false;
+            stageSelectedButton.Enabled = false;
+            statusLabel.Text = "Staging all files...";
+            statusLabel.ForeColor = Color.Blue;
+            Application.DoEvents(); // Force UI update
+
+            // Run in background using ThreadPool (.NET 4.0 compatible)
+            System.Threading.ThreadPool.QueueUserWorkItem(_ =>
             {
-                RefreshFileList();
-            }
-            else
-            {
-                MessageBox.Show("Failed to stage all files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                bool success = gitRepo.StageAllFiles();
+                
+                // Update UI on main thread
+                try
+                {
+                    this.Control.Invoke((Action)(() =>
+                    {
+                        if (success)
+                        {
+                            RefreshFileList();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Failed to stage all files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            statusLabel.Text = "Ready";
+                            statusLabel.ForeColor = SystemColors.ControlText;
+                        }
+                        
+                        stageAllButton.Enabled = true;
+                        stageSelectedButton.Enabled = true;
+                    }));
+                }
+                catch
+                {
+                    // Control disposed or unavailable
+                }
+            });
         }
 
         private void OnUnstageAllClick(object sender, EventArgs e)
         {
-            if (gitRepo != null && gitRepo.UnstageAllFiles())
+            if (gitRepo == null)
+                return;
+
+            // Disable UI during operation
+            unstageAllButton.Enabled = false;
+            unstageSelectedButton.Enabled = false;
+            statusLabel.Text = "Unstaging all files...";
+            statusLabel.ForeColor = Color.Blue;
+            Application.DoEvents(); // Force UI update
+
+            // Run in background using ThreadPool (.NET 4.0 compatible)
+            System.Threading.ThreadPool.QueueUserWorkItem(_ =>
             {
-                RefreshFileList();
-            }
-            else
-            {
-                MessageBox.Show("Failed to unstage all files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                bool success = gitRepo.UnstageAllFiles();
+                
+                // Update UI on main thread
+                try
+                {
+                    this.Control.Invoke((Action)(() =>
+                    {
+                        if (success)
+                        {
+                            RefreshFileList();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Failed to unstage all files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            statusLabel.Text = "Ready";
+                            statusLabel.ForeColor = SystemColors.ControlText;
+                        }
+                        
+                        unstageAllButton.Enabled = true;
+                        unstageSelectedButton.Enabled = true;
+                    }));
+                }
+                catch
+                {
+                    // Control disposed or unavailable
+                }
+            });
         }
 
         private void OnDiscardSelectedClick(object sender, EventArgs e)
@@ -512,14 +576,43 @@ namespace GitPane
             if (result != DialogResult.Yes)
                 return;
 
-            if (gitRepo.DiscardAllFiles())
+            // Disable UI during operation
+            discardAllButton.Enabled = false;
+            discardSelectedButton.Enabled = false;
+            statusLabel.Text = "Discarding all changes...";
+            statusLabel.ForeColor = Color.Blue;
+            Application.DoEvents(); // Force UI update
+
+            // Run in background using ThreadPool (.NET 4.0 compatible)
+            System.Threading.ThreadPool.QueueUserWorkItem(_ =>
             {
-                RefreshFileList();
-            }
-            else
-            {
-                MessageBox.Show("Failed to discard all changes.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                bool success = gitRepo.DiscardAllFiles();
+                
+                // Update UI on main thread
+                try
+                {
+                    this.Control.Invoke((Action)(() =>
+                    {
+                        if (success)
+                        {
+                            RefreshFileList();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Failed to discard changes.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            statusLabel.Text = "Ready";
+                            statusLabel.ForeColor = SystemColors.ControlText;
+                        }
+                        
+                        discardAllButton.Enabled = true;
+                        discardSelectedButton.Enabled = true;
+                    }));
+                }
+                catch
+                {
+                    // Control disposed or unavailable
+                }
+            });
         }
 
         private void OnStagedListBox_ItemCheck(object sender, ItemCheckEventArgs e)
