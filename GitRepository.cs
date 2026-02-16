@@ -51,7 +51,20 @@ namespace GitPane
             var result = ExecuteGitCommand("rev-parse --abbrev-ref @{u}");
             if (result.ExitCode != 0)
             {
-                // No upstream branch set
+                // No upstream branch set - check if we have a remote and local commits
+                if (HasRemote() && HasCommits())
+                {
+                    // Return total commit count (all unpushed)
+                    result = ExecuteGitCommand("rev-list --count HEAD");
+                    if (result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output))
+                    {
+                        int count;
+                        if (int.TryParse(result.Output.Trim(), out count))
+                        {
+                            return count;
+                        }
+                    }
+                }
                 return 0;
             }
 
