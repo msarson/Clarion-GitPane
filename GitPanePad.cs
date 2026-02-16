@@ -449,26 +449,74 @@ namespace GitPane
 
         private void OnStageAllClick(object sender, EventArgs e)
         {
-            if (gitRepo != null && gitRepo.StageAllFiles())
+            if (gitRepo == null)
+                return;
+
+            // Disable button to prevent double-clicks
+            stageAllButton.Enabled = false;
+            statusLabel.Text = "Staging all files...";
+            statusLabel.Visible = true;
+
+            // Run Stage All in background thread
+            System.Threading.ThreadPool.QueueUserWorkItem(delegate
             {
-                RefreshFileList();
-            }
-            else
-            {
-                MessageBox.Show("Failed to stage all files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                var success = gitRepo.StageAllFiles();
+                
+                // Marshal back to UI thread
+                if (Control.InvokeRequired)
+                {
+                    Control.Invoke(new System.Action(delegate
+                    {
+                        statusLabel.Visible = false;
+                        stageAllButton.Enabled = true;
+                        
+                        if (success)
+                        {
+                            RefreshFileList();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Failed to stage all files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }));
+                }
+            });
         }
 
         private void OnUnstageAllClick(object sender, EventArgs e)
         {
-            if (gitRepo != null && gitRepo.UnstageAllFiles())
+            if (gitRepo == null)
+                return;
+
+            // Disable button to prevent double-clicks
+            unstageAllButton.Enabled = false;
+            statusLabel.Text = "Unstaging all files...";
+            statusLabel.Visible = true;
+
+            // Run Unstage All in background thread
+            System.Threading.ThreadPool.QueueUserWorkItem(delegate
             {
-                RefreshFileList();
-            }
-            else
-            {
-                MessageBox.Show("Failed to unstage all files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                var success = gitRepo.UnstageAllFiles();
+                
+                // Marshal back to UI thread
+                if (Control.InvokeRequired)
+                {
+                    Control.Invoke(new System.Action(delegate
+                    {
+                        statusLabel.Visible = false;
+                        unstageAllButton.Enabled = true;
+                        
+                        if (success)
+                        {
+                            RefreshFileList();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Failed to unstage all files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }));
+                }
+            });
         }
 
         private void OnDiscardSelectedClick(object sender, EventArgs e)
@@ -510,14 +558,35 @@ namespace GitPane
             if (result != DialogResult.Yes)
                 return;
 
-            if (gitRepo.DiscardAllFiles())
+            // Disable button to prevent double-clicks
+            discardAllButton.Enabled = false;
+            statusLabel.Text = "Discarding all changes...";
+            statusLabel.Visible = true;
+
+            // Run Discard All in background thread
+            System.Threading.ThreadPool.QueueUserWorkItem(delegate
             {
-                RefreshFileList();
-            }
-            else
-            {
-                MessageBox.Show("Failed to discard all changes.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                var success = gitRepo.DiscardAllFiles();
+                
+                // Marshal back to UI thread
+                if (Control.InvokeRequired)
+                {
+                    Control.Invoke(new System.Action(delegate
+                    {
+                        statusLabel.Visible = false;
+                        discardAllButton.Enabled = true;
+                        
+                        if (success)
+                        {
+                            RefreshFileList();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Failed to discard all changes.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }));
+                }
+            });
         }
 
         private void OnStagedListBox_ItemCheck(object sender, ItemCheckEventArgs e)
@@ -761,7 +830,28 @@ namespace GitPane
             }
             else
             {
-                MessageBox.Show($"Fetch failed.\n\nError: {result.Error}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // Check for authentication errors
+                var errorText = result.Error + "\n" + result.Output;
+                if (errorText.Contains("Authentication failed") || 
+                    errorText.Contains("Invalid username or token") ||
+                    errorText.Contains("Password authentication is not supported"))
+                {
+                    MessageBox.Show(
+                        "Fetch failed due to authentication error.\n\n" +
+                        "GitHub no longer supports password authentication.\n\n" +
+                        "Solutions:\n" +
+                        "1. Use SSH instead of HTTPS (recommended)\n" +
+                        "2. Use a Personal Access Token (PAT) as password\n" +
+                        "3. Use Git Credential Manager\n\n" +
+                        $"Error details:\n{errorText}",
+                        "Authentication Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
+                else
+                {
+                    MessageBox.Show($"Fetch failed.\n\nError: {result.Error}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
@@ -799,7 +889,32 @@ namespace GitPane
             }
             else
             {
-                MessageBox.Show($"Pull failed.\n\nError: {pullResult.Error}\n\n{pullResult.Output}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // Check for authentication errors
+                var errorText = pullResult.Error + "\n" + pullResult.Output;
+                if (errorText.Contains("Authentication failed") || 
+                    errorText.Contains("Invalid username or token") ||
+                    errorText.Contains("Password authentication is not supported"))
+                {
+                    MessageBox.Show(
+                        "Pull failed due to authentication error.\n\n" +
+                        "GitHub no longer supports password authentication.\n\n" +
+                        "Solutions:\n" +
+                        "1. Use SSH instead of HTTPS (recommended)\n" +
+                        "   - Configure SSH key: git config --global url.\"git@github.com:\".insteadOf \"https://github.com/\"\n\n" +
+                        "2. Use a Personal Access Token (PAT)\n" +
+                        "   - Generate at: github.com → Settings → Developer settings → Personal access tokens\n" +
+                        "   - Use PAT as password when prompted\n\n" +
+                        "3. Use Git Credential Manager\n" +
+                        "   - Download from: github.com/git-ecosystem/git-credential-manager\n\n" +
+                        $"Error details:\n{errorText}",
+                        "Authentication Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
+                else
+                {
+                    MessageBox.Show($"Pull failed.\n\nError: {pullResult.Error}\n\n{pullResult.Output}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 

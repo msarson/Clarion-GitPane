@@ -38,14 +38,36 @@ namespace GitPane
 
             if (result == DialogResult.Yes)
             {
-                if (gitRepo.PushChanges())
+                var pushResult = gitRepo.PushChanges();
+                if (pushResult.ExitCode == 0)
                 {
                     MessageBox.Show("Commits pushed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     RefreshFileList(); // Update push button visibility
                 }
                 else
                 {
-                    MessageBox.Show("Failed to push commits. Check your connection and credentials.", "Push Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // Check for authentication errors
+                    var errorText = pushResult.Error + "\n" + pushResult.Output;
+                    if (errorText.Contains("Authentication failed") || 
+                        errorText.Contains("Invalid username or token") ||
+                        errorText.Contains("Password authentication is not supported"))
+                    {
+                        MessageBox.Show(
+                            "Push failed due to authentication error.\n\n" +
+                            "GitHub no longer supports password authentication.\n\n" +
+                            "Solutions:\n" +
+                            "1. Use SSH instead of HTTPS (recommended)\n" +
+                            "2. Use a Personal Access Token (PAT) as password\n" +
+                            "3. Use Git Credential Manager\n\n" +
+                            $"Error details:\n{errorText}",
+                            "Authentication Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning);
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Failed to push commits.\n\n{pushResult.Error}", "Push Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }
@@ -108,13 +130,35 @@ namespace GitPane
                 
                 if (andPush)
                 {
-                    if (gitRepo.PushChanges())
+                    var pushResult = gitRepo.PushChanges();
+                    if (pushResult.ExitCode == 0)
                     {
                         MessageBox.Show("Committed and pushed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     else
                     {
-                        MessageBox.Show("Committed locally but push failed. You can push manually later.", "Partial Success", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        // Check for authentication errors
+                        var errorText = pushResult.Error + "\n" + pushResult.Output;
+                        if (errorText.Contains("Authentication failed") || 
+                            errorText.Contains("Invalid username or token") ||
+                            errorText.Contains("Password authentication is not supported"))
+                        {
+                            MessageBox.Show(
+                                "Committed locally but push failed due to authentication error.\n\n" +
+                                "GitHub no longer supports password authentication.\n\n" +
+                                "Solutions:\n" +
+                                "1. Use SSH instead of HTTPS (recommended)\n" +
+                                "2. Use a Personal Access Token (PAT) as password\n" +
+                                "3. Use Git Credential Manager\n\n" +
+                                "You can push manually later from the Repository menu.",
+                                "Authentication Error",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning);
+                        }
+                        else
+                        {
+                            MessageBox.Show($"Committed locally but push failed.\n\n{pushResult.Error}\n\nYou can push manually later.", "Partial Success", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
                     }
                 }
                 else

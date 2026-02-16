@@ -197,9 +197,20 @@ namespace GitPane
                     {
                         if (action == "commitpush")
                         {
-                            if (!gitRepo.PushChanges())
+                            var pushResult = gitRepo.PushChanges();
+                            if (pushResult.ExitCode != 0)
                             {
-                                MessageBox.Show("Committed locally but push failed. You can push manually later.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                var errorText = pushResult.Error + "\n" + pushResult.Output;
+                                if (errorText.Contains("Authentication failed") || 
+                                    errorText.Contains("Invalid username or token") ||
+                                    errorText.Contains("Password authentication is not supported"))
+                                {
+                                    MessageBox.Show("Committed locally but push failed (authentication error). You can push manually later.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                }
+                                else
+                                {
+                                    MessageBox.Show("Committed locally but push failed. You can push manually later.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                }
                             }
                         }
 

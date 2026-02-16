@@ -161,13 +161,13 @@ namespace GitPane
                     // Offer to push if there are commits
                     if (hasCommits)
                     {
-                        var pushResult = MessageBox.Show(
+                        var pushPrompt = MessageBox.Show(
                             $"Repository '{repoName}' created successfully!\n\nYou have local commits. Push them to GitHub now?",
                             "Push Commits?",
                             MessageBoxButtons.YesNo,
                             MessageBoxIcon.Question);
                         
-                        if (pushResult == DialogResult.Yes)
+                        if (pushPrompt == DialogResult.Yes)
                         {
                             progressForm = new Form();
                             progressForm.Text = "Pushing...";
@@ -184,15 +184,32 @@ namespace GitPane
                             progressForm.Show();
                             progressForm.Refresh();
                             
-                            if (gitRepo.PushChanges())
+                            var pushResult = gitRepo.PushChanges();
+                            progressForm.Close();
+                            
+                            if (pushResult.ExitCode == 0)
                             {
-                                progressForm.Close();
                                 MessageBox.Show("Commits pushed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             }
                             else
                             {
-                                progressForm.Close();
-                                MessageBox.Show("Failed to push commits. You may need to run 'git push -u origin main' manually.", "Push Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                var errorText = pushResult.Error + "\n" + pushResult.Output;
+                                if (errorText.Contains("Authentication failed") || 
+                                    errorText.Contains("Invalid username or token") ||
+                                    errorText.Contains("Password authentication is not supported"))
+                                {
+                                    MessageBox.Show(
+                                        "Push failed due to authentication error.\n\n" +
+                                        "GitHub no longer supports password authentication.\n\n" +
+                                        "Please configure SSH or use a Personal Access Token.",
+                                        "Authentication Error",
+                                        MessageBoxButtons.OK,
+                                        MessageBoxIcon.Warning);
+                                }
+                                else
+                                {
+                                    MessageBox.Show($"Failed to push commits.\n\n{pushResult.Error}\n\nYou may need to run 'git push -u origin main' manually.", "Push Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                }
                             }
                         }
                     }

@@ -281,19 +281,18 @@ namespace GitPane
             return commitResult.ExitCode == 0;
         }
 
-        public bool PushChanges()
+        public GitCommandResult PushChanges()
         {
             // Get current branch
             string branch = GetCurrentBranch();
             if (string.IsNullOrEmpty(branch) || branch.Contains("HEAD"))
             {
                 // Can't push from detached HEAD
-                return false;
+                return new GitCommandResult { ExitCode = 1, Error = "Cannot push from detached HEAD state" };
             }
             
             // Try push with upstream set (works for first push and subsequent pushes)
-            var result = ExecuteGitCommand($"push -u origin {branch}");
-            return result.ExitCode == 0;
+            return ExecuteGitCommand($"push -u origin {branch}");
         }
 
         public GitCommandResult Fetch()
