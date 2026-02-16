@@ -31,6 +31,20 @@ namespace GitPane
             return result.ExitCode == 0;
         }
 
+        public bool HasCommits()
+        {
+            var result = ExecuteGitCommand("rev-list --count HEAD");
+            if (result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output))
+            {
+                int count;
+                if (int.TryParse(result.Output.Trim(), out count))
+                {
+                    return count > 0;
+                }
+            }
+            return false;
+        }
+
         public string GetCurrentBranch()
         {
             var result = ExecuteGitCommand("rev-parse --abbrev-ref HEAD");

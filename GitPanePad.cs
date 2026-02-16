@@ -769,7 +769,7 @@ namespace GitPane
             var repoDialog = new Form();
             repoDialog.Text = "Create GitHub Repository";
             repoDialog.Width = 450;
-            repoDialog.Height = 240;
+            repoDialog.Height = 265;
             repoDialog.StartPosition = FormStartPosition.CenterParent;
             repoDialog.FormBorderStyle = FormBorderStyle.FixedDialog;
             repoDialog.MaximizeBox = false;
@@ -818,17 +818,24 @@ namespace GitPane
             privateRadio.AutoSize = true;
             repoDialog.Controls.Add(privateRadio);
 
+            var readmeCheckbox = new CheckBox();
+            readmeCheckbox.Text = "Create README.md";
+            readmeCheckbox.Location = new Point(10, 165);
+            readmeCheckbox.Checked = true; // Default to creating README
+            readmeCheckbox.AutoSize = true;
+            repoDialog.Controls.Add(readmeCheckbox);
+
             var createButton = new Button();
             createButton.Text = "Create";
             createButton.DialogResult = DialogResult.OK;
-            createButton.Location = new Point(250, 170);
+            createButton.Location = new Point(250, 195);
             createButton.Width = 80;
             repoDialog.Controls.Add(createButton);
 
             var cancelButton = new Button();
             cancelButton.Text = "Cancel";
             cancelButton.DialogResult = DialogResult.Cancel;
-            cancelButton.Location = new Point(340, 170);
+            cancelButton.Location = new Point(340, 195);
             cancelButton.Width = 80;
             repoDialog.Controls.Add(cancelButton);
 
@@ -840,12 +847,38 @@ namespace GitPane
                 string repoName = nameBox.Text.Trim();
                 string description = descBox.Text.Trim();
                 bool isPrivate = privateRadio.Checked;
+                bool createReadme = readmeCheckbox.Checked;
 
                 if (string.IsNullOrEmpty(repoName))
                 {
                     MessageBox.Show("Repository name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
+
+                // Create README.md if requested and doesn't exist
+                if (createReadme)
+                {
+                    string readmePath = System.IO.Path.Combine(ProjectService.OpenSolution.Directory, "README.md");
+                    if (!System.IO.File.Exists(readmePath))
+                    {
+                        try
+                        {
+                            string readmeContent = $"# {repoName}\n\n{description}\n";
+                            System.IO.File.WriteAllText(readmePath, readmeContent);
+                            
+                            // Stage and commit the README
+                            gitRepo.StageFile("README.md");
+                            gitRepo.CommitChanges("Add README.md");
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Failed to create README.md: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+                    }
+                }
+
+                // Check if there are commits to push
+                bool hasCommits = gitRepo.HasCommits();
 
                 // Show progress message
                 var progressForm = new Form();
@@ -869,9 +902,51 @@ namespace GitPane
 
                 if (result.ExitCode == 0)
                 {
-                    MessageBox.Show($"Repository '{repoName}' created successfully on GitHub!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     UpdateRemoteStatus();
                     UpdateStatus();
+                    
+                    // Offer to push if there are commits
+                    if (hasCommits)
+                    {
+                        var pushResult = MessageBox.Show(
+                            $"Repository '{repoName}' created successfully!\n\nYou have local commits. Push them to GitHub now?",
+                            "Push Commits?",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question);
+                        
+                        if (pushResult == DialogResult.Yes)
+                        {
+                            progressForm = new Form();
+                            progressForm.Text = "Pushing...";
+                            progressForm.Width = 300;
+                            progressForm.Height = 100;
+                            progressForm.StartPosition = FormStartPosition.CenterParent;
+                            progressForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                            progressForm.ControlBox = false;
+                            progressLabel = new Label();
+                            progressLabel.Text = "Pushing commits to GitHub...\nPlease wait.";
+                            progressLabel.Location = new Point(20, 20);
+                            progressLabel.AutoSize = true;
+                            progressForm.Controls.Add(progressLabel);
+                            progressForm.Show();
+                            progressForm.Refresh();
+                            
+                            if (gitRepo.PushChanges())
+                            {
+                                progressForm.Close();
+                                MessageBox.Show("Commits pushed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+                            else
+                            {
+                                progressForm.Close();
+                                MessageBox.Show("Failed to push commits. You may need to run 'git push -u origin main' manually.", "Push Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Repository '{repoName}' created successfully on GitHub!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
                 }
                 else
                 {
