@@ -152,6 +152,7 @@ namespace GitPane
             unstagedListBox.Size = new Size(440, 115);
             unstagedListBox.Font = new Font("Courier New", 8F);
             unstagedListBox.CheckOnClick = true;
+            unstagedListBox.MouseDown += OnUnstagedListBoxMouseDown;
 
             // Context menu for unstaged files
             unstagedContextMenu = new ContextMenuStrip();
@@ -408,6 +409,19 @@ namespace GitPane
             else
             {
                 MessageBox.Show("Failed to unstage all files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void OnUnstagedListBoxMouseDown(object sender, MouseEventArgs e)
+        {
+            // Select item on right-click before showing context menu
+            if (e.Button == MouseButtons.Right)
+            {
+                int index = unstagedListBox.IndexFromPoint(e.Location);
+                if (index >= 0 && index < unstagedListBox.Items.Count)
+                {
+                    unstagedListBox.SelectedIndex = index;
+                }
             }
         }
 
