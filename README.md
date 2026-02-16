@@ -158,7 +158,9 @@ Contributions are welcome! Please:
 
 ## License
 
-This project is open source. License to be determined.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+You are free to use, modify, and distribute this software for any purpose, commercial or non-commercial.
 
 ## Author
 
