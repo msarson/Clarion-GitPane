@@ -35,6 +35,7 @@ namespace GitPane
         private TextBox commitMessageBox;
         private Button commitButton;
         private Button commitPushButton;
+        private Button pushButton;
         private Button refreshButton;
         
         private GitRepository gitRepo;
@@ -237,6 +238,15 @@ namespace GitPane
             commitPushButton.Height = 28;
             commitPushButton.Click += OnCommitPushClick;
 
+            // Push button (for unpushed commits)
+            pushButton = new Button();
+            pushButton.Text = "Push";
+            pushButton.Location = new Point(210, 490);
+            pushButton.Width = 80;
+            pushButton.Height = 28;
+            pushButton.Click += OnPushClick;
+            pushButton.Visible = false;
+
             // Status label (for non-repo message)
             statusLabel = new Label();
             statusLabel.AutoSize = true;
@@ -267,6 +277,7 @@ namespace GitPane
             contentPanel.Controls.Add(commitMessageBox);
             contentPanel.Controls.Add(commitButton);
             contentPanel.Controls.Add(commitPushButton);
+            contentPanel.Controls.Add(pushButton);
             contentPanel.Controls.Add(statusLabel);
             contentPanel.Controls.Add(initRepoButton);
         }
@@ -346,12 +357,16 @@ namespace GitPane
             commitMessageBox.Visible = false;
             commitButton.Visible = false;
             commitPushButton.Visible = false;
+            pushButton.Visible = false;
         }
 
         private void RefreshFileList()
         {
             if (gitRepo == null)
                 return;
+
+            // Check for unpushed commits and show/hide push button
+            UpdatePushButtonVisibility();
 
             // Get staged files
             stagedListBox.Items.Clear();
@@ -385,6 +400,26 @@ namespace GitPane
         {
             RefreshFileList();
             UpdateRemoteStatus(); // Check if remote still exists
+        }
+
+        private void UpdatePushButtonVisibility()
+        {
+            if (gitRepo == null || !gitRepo.HasRemote())
+            {
+                pushButton.Visible = false;
+                return;
+            }
+
+            int unpushedCount = gitRepo.GetUnpushedCommitsCount();
+            if (unpushedCount > 0)
+            {
+                pushButton.Text = $"Push ({unpushedCount})";
+                pushButton.Visible = true;
+            }
+            else
+            {
+                pushButton.Visible = false;
+            }
         }
 
         private void OnStageSelectedClick(object sender, EventArgs e)
@@ -579,6 +614,33 @@ namespace GitPane
         private void OnCommitPushClick(object sender, EventArgs e)
         {
             PerformCommit(true);
+        }
+
+        private void OnPushClick(object sender, EventArgs e)
+        {
+            if (gitRepo == null)
+                return;
+
+            int unpushedCount = gitRepo.GetUnpushedCommitsCount();
+            
+            var result = MessageBox.Show(
+                $"Push {unpushedCount} local commit{(unpushedCount > 1 ? "s" : "")} to remote?",
+                "Push Commits",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result == DialogResult.Yes)
+            {
+                if (gitRepo.PushChanges())
+                {
+                    MessageBox.Show("Commits pushed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    RefreshFileList(); // Update push button visibility
+                }
+                else
+                {
+                    MessageBox.Show("Failed to push commits. Check your connection and credentials.", "Push Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
         private void PerformCommit(bool andPush)

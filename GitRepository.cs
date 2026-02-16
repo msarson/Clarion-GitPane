@@ -45,6 +45,29 @@ namespace GitPane
             return false;
         }
 
+        public int GetUnpushedCommitsCount()
+        {
+            // Check if we have a remote tracking branch
+            var result = ExecuteGitCommand("rev-parse --abbrev-ref @{u}");
+            if (result.ExitCode != 0)
+            {
+                // No upstream branch set
+                return 0;
+            }
+
+            // Count commits ahead of remote
+            result = ExecuteGitCommand("rev-list --count @{u}..HEAD");
+            if (result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output))
+            {
+                int count;
+                if (int.TryParse(result.Output.Trim(), out count))
+                {
+                    return count;
+                }
+            }
+            return 0;
+        }
+
         public string GetCurrentBranch()
         {
             var result = ExecuteGitCommand("rev-parse --abbrev-ref HEAD");
