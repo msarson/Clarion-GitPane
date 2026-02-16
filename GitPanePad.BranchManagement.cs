@@ -205,7 +205,7 @@ namespace GitPane
                                     errorText.Contains("Invalid username or token") ||
                                     errorText.Contains("Password authentication is not supported"))
                                 {
-                                    MessageBox.Show("Committed locally but push failed (authentication error). You can push manually later.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                    MessageBox.Show("Committed locally but push failed: Git could not authenticate. Run 'gh auth login' or configure SSH/PAT. You can push manually later.", "Authentication Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                                 }
                                 else
                                 {

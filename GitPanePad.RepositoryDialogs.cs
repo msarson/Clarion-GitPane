@@ -199,10 +199,12 @@ namespace GitPane
                                     errorText.Contains("Password authentication is not supported"))
                                 {
                                     MessageBox.Show(
-                                        "Push failed due to authentication error.\n\n" +
-                                        "GitHub no longer supports password authentication.\n\n" +
-                                        "Please configure SSH or use a Personal Access Token.",
-                                        "Authentication Error",
+                                        "Push failed: Git could not authenticate with the remote server.\n\n" +
+                                        "Why this happens:\n" +
+                                        "Other Git tools may have credentials stored. GitPane uses Git directly " +
+                                        "and cannot prompt for credentials.\n\n" +
+                                        "Solution: Run 'gh auth login' once, or configure SSH/PAT.",
+                                        "Authentication Required",
                                         MessageBoxButtons.OK,
                                         MessageBoxIcon.Warning);
                                 }

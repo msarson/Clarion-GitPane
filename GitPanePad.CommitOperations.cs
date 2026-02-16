@@ -53,14 +53,17 @@ namespace GitPane
                         errorText.Contains("Password authentication is not supported"))
                     {
                         MessageBox.Show(
-                            "Push failed due to authentication error.\n\n" +
-                            "GitHub no longer supports password authentication.\n\n" +
-                            "Solutions:\n" +
-                            "1. Use SSH instead of HTTPS (recommended)\n" +
-                            "2. Use a Personal Access Token (PAT) as password\n" +
-                            "3. Use Git Credential Manager\n\n" +
-                            $"Error details:\n{errorText}",
-                            "Authentication Error",
+                            "Push failed: Git could not authenticate with the remote server.\n\n" +
+                            "Why this happens:\n" +
+                            "Other Git tools may have credentials stored and supply them automatically. " +
+                            "GitPane uses Git directly and cannot prompt for credentials.\n\n" +
+                            "Solutions for GitHub:\n" +
+                            "• Run 'gh auth login' once (easiest)\n" +
+                            "• Use SSH instead of HTTPS\n" +
+                            "• Use a Personal Access Token (PAT) as your password\n" +
+                            "• Install Git Credential Manager\n\n" +
+                            $"Git error:\n{errorText}",
+                            "Authentication Required",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Warning);
                     }
@@ -144,14 +147,15 @@ namespace GitPane
                             errorText.Contains("Password authentication is not supported"))
                         {
                             MessageBox.Show(
-                                "Committed locally but push failed due to authentication error.\n\n" +
-                                "GitHub no longer supports password authentication.\n\n" +
-                                "Solutions:\n" +
-                                "1. Use SSH instead of HTTPS (recommended)\n" +
-                                "2. Use a Personal Access Token (PAT) as password\n" +
-                                "3. Use Git Credential Manager\n\n" +
+                                "Committed locally, but push failed: Git could not authenticate.\n\n" +
+                                "Why this happens:\n" +
+                                "Other Git tools may have credentials stored. GitPane uses Git directly " +
+                                "and cannot prompt for credentials.\n\n" +
+                                "Solutions for GitHub:\n" +
+                                "• Run 'gh auth login' once (easiest)\n" +
+                                "• Use SSH, PAT, or Git Credential Manager\n\n" +
                                 "You can push manually later from the Repository menu.",
-                                "Authentication Error",
+                                "Authentication Required",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Warning);
                         }

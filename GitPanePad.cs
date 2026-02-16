@@ -837,14 +837,17 @@ namespace GitPane
                     errorText.Contains("Password authentication is not supported"))
                 {
                     MessageBox.Show(
-                        "Fetch failed due to authentication error.\n\n" +
-                        "GitHub no longer supports password authentication.\n\n" +
-                        "Solutions:\n" +
-                        "1. Use SSH instead of HTTPS (recommended)\n" +
-                        "2. Use a Personal Access Token (PAT) as password\n" +
-                        "3. Use Git Credential Manager\n\n" +
-                        $"Error details:\n{errorText}",
-                        "Authentication Error",
+                        "Fetch failed: Git could not authenticate with the remote server.\n\n" +
+                        "Why this happens:\n" +
+                        "Other Git tools may have credentials stored and supply them automatically. " +
+                        "GitPane uses Git directly and cannot prompt for credentials.\n\n" +
+                        "Solutions for GitHub:\n" +
+                        "• Run 'gh auth login' once (easiest)\n" +
+                        "• Use SSH instead of HTTPS\n" +
+                        "• Use a Personal Access Token (PAT) as your password\n" +
+                        "• Install Git Credential Manager\n\n" +
+                        $"Git error:\n{errorText}",
+                        "Authentication Required",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning);
                 }
@@ -896,18 +899,17 @@ namespace GitPane
                     errorText.Contains("Password authentication is not supported"))
                 {
                     MessageBox.Show(
-                        "Pull failed due to authentication error.\n\n" +
-                        "GitHub no longer supports password authentication.\n\n" +
-                        "Solutions:\n" +
-                        "1. Use SSH instead of HTTPS (recommended)\n" +
-                        "   - Configure SSH key: git config --global url.\"git@github.com:\".insteadOf \"https://github.com/\"\n\n" +
-                        "2. Use a Personal Access Token (PAT)\n" +
-                        "   - Generate at: github.com → Settings → Developer settings → Personal access tokens\n" +
-                        "   - Use PAT as password when prompted\n\n" +
-                        "3. Use Git Credential Manager\n" +
-                        "   - Download from: github.com/git-ecosystem/git-credential-manager\n\n" +
-                        $"Error details:\n{errorText}",
-                        "Authentication Error",
+                        "Pull failed: Git could not authenticate with the remote server.\n\n" +
+                        "Why this happens:\n" +
+                        "Other Git tools may have credentials stored and supply them automatically. " +
+                        "GitPane uses Git directly and cannot prompt for credentials.\n\n" +
+                        "Solutions for GitHub:\n" +
+                        "• Run 'gh auth login' once (easiest - GitHub CLI will handle credentials)\n" +
+                        "• Use SSH instead of HTTPS\n" +
+                        "• Use a Personal Access Token (PAT) as your password\n" +
+                        "• Install Git Credential Manager to store credentials\n\n" +
+                        $"Git error:\n{errorText}",
+                        "Authentication Required",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning);
                 }
