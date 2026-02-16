@@ -657,8 +657,8 @@ namespace GitPane
             }
             else
             {
-                remoteLabel.Text = "Local repository only";
-                remoteLabel.Visible = true;
+                // No remote - just show the button, hide the label
+                remoteLabel.Visible = false;
                 addRemoteButton.Visible = true;
             }
         }
