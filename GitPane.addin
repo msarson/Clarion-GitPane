@@ -9,7 +9,7 @@
   </Manifest>
 
   <Runtime>
-    <Import assembly="GitPane.dll"/>
+    <Import assembly="GitPane\GitPane.dll"/>
   </Runtime>
 
   <Path name="/SharpDevelop/Workbench/Pads">
