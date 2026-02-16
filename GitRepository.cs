@@ -22,6 +22,15 @@ namespace GitPane
             return result.ExitCode == 0;
         }
 
+        public bool InitializeRepository()
+        {
+            if (string.IsNullOrEmpty(workingDirectory) || !Directory.Exists(workingDirectory))
+                return false;
+
+            var result = ExecuteGitCommand("init");
+            return result.ExitCode == 0;
+        }
+
         public string GetCurrentBranch()
         {
             var result = ExecuteGitCommand("rev-parse --abbrev-ref HEAD");

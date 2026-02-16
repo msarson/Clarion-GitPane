@@ -14,6 +14,7 @@ namespace GitPane
         private Button branchSelectButton;
         private Label remoteLabel;
         private Button addRemoteButton;
+        private Button initRepoButton;
         private Label statusLabel;
         
         // Commit workflow controls
@@ -187,6 +188,15 @@ namespace GitPane
             statusLabel.ForeColor = SystemColors.GrayText;
             statusLabel.Location = new Point(10, 10);
 
+            // Initialize Repo button (for non-repo directories)
+            initRepoButton = new Button();
+            initRepoButton.Text = "Initialize Git Repository";
+            initRepoButton.Location = new Point(10, 40);
+            initRepoButton.Width = 180;
+            initRepoButton.Height = 30;
+            initRepoButton.Click += OnInitRepoClick;
+            initRepoButton.Visible = false;
+
             contentPanel.Controls.Add(branchLabel);
             contentPanel.Controls.Add(branchValueLabel);
             contentPanel.Controls.Add(branchSelectButton);
@@ -200,6 +210,7 @@ namespace GitPane
             contentPanel.Controls.Add(commitButton);
             contentPanel.Controls.Add(commitPushButton);
             contentPanel.Controls.Add(statusLabel);
+            contentPanel.Controls.Add(initRepoButton);
         }
 
         private void UpdateStatus()
@@ -246,6 +257,7 @@ namespace GitPane
                     StopFileWatcher();
                     statusLabel.Text = "Not a Git repository";
                     statusLabel.Visible = true;
+                    initRepoButton.Visible = true; // Show init button
                 }
             }
             else
@@ -255,6 +267,7 @@ namespace GitPane
                 StopFileWatcher();
                 statusLabel.Text = "No solution opened";
                 statusLabel.Visible = true;
+                initRepoButton.Visible = false; // Hide init button - no solution
             }
         }
 
@@ -265,6 +278,7 @@ namespace GitPane
             branchSelectButton.Visible = false;
             remoteLabel.Visible = false;
             addRemoteButton.Visible = false;
+            initRepoButton.Visible = false;
             refreshButton.Visible = false;
             stagedGroupBox.Visible = false;
             unstagedGroupBox.Visible = false;
@@ -551,6 +565,33 @@ namespace GitPane
                 {
                     MessageBox.Show("Failed to add remote. The remote may already exist or the URL is invalid.", 
                         "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void OnInitRepoClick(object sender, EventArgs e)
+        {
+            if (ProjectService.OpenSolution == null)
+                return;
+
+            string solutionDir = ProjectService.OpenSolution.Directory;
+            
+            var result = MessageBox.Show(
+                $"Initialize a new Git repository in:\n{solutionDir}\n\nThis will create a .git folder. Continue?",
+                "Initialize Git Repository",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result == DialogResult.Yes)
+            {
+                if (gitRepo != null && gitRepo.InitializeRepository())
+                {
+                    MessageBox.Show("Git repository initialized successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    UpdateStatus(); // Refresh UI to show repo controls
+                }
+                else
+                {
+                    MessageBox.Show("Failed to initialize Git repository.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
