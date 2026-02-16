@@ -1109,11 +1109,12 @@ namespace GitPane
 
         private void OnPanelResize(object sender, EventArgs e)
         {
-            // Dynamically reposition controls based on panel width
+            // Dynamically reposition controls based on panel size
             int panelWidth = contentPanel.Width;
+            int panelHeight = contentPanel.Height;
             
             // Skip if panel hasn't been sized yet
-            if (panelWidth <= 0)
+            if (panelWidth <= 0 || panelHeight <= 0)
                 return;
                 
             int margin = 10;
@@ -1150,14 +1151,56 @@ namespace GitPane
                 }
             }
 
-            // Adjust anchored control widths to respect right margin
+            // Vertical layout with dynamic sizing
+            // Calculate available vertical space for file lists
+            int topControlsHeight = 40; // Branch section
+            int commitMessageHeight = 100; // Commit message + label
+            int commitButtonsHeight = 40; // Buttons at bottom
+            int bottomMargin = 10;
+            
+            int availableVerticalSpace = panelHeight - topControlsHeight - commitMessageHeight - commitButtonsHeight - bottomMargin - (margin * 4);
+            
+            // Split remaining space between staged and unstaged (50/50)
+            int listBoxHeight = (availableVerticalSpace / 2) - margin;
+            
+            // Minimum height for usability
+            if (listBoxHeight < 100)
+                listBoxHeight = 100;
+            
+            // Position and size staged files section
+            stagedGroupBox.Location = new Point(margin, topControlsHeight);
             stagedGroupBox.Width = availableWidth;
+            stagedGroupBox.Height = listBoxHeight + 50; // +50 for button below
+            
+            stagedListBox.Width = availableWidth - 20;
+            stagedListBox.Height = listBoxHeight;
+            
+            unstageSelectedButton.Top = listBoxHeight + 25;
+            unstageAllButton.Top = listBoxHeight + 25;
+            
+            // Position unstaged files section below staged
+            int unstagedTop = stagedGroupBox.Bottom + margin;
+            unstagedGroupBox.Location = new Point(margin, unstagedTop);
             unstagedGroupBox.Width = availableWidth;
+            unstagedGroupBox.Height = listBoxHeight + 50;
+            
+            unstagedListBox.Width = availableWidth - 20;
+            unstagedListBox.Height = listBoxHeight;
+            
+            stageSelectedButton.Top = listBoxHeight + 25;
+            stageAllButton.Top = listBoxHeight + 25;
+            
+            // Position commit message section at bottom
+            int commitMessageTop = unstagedGroupBox.Bottom + margin;
+            commitMessageLabel.Location = new Point(margin, commitMessageTop);
+            commitMessageBox.Location = new Point(margin, commitMessageTop + 20);
             commitMessageBox.Width = availableWidth;
             
-            // Adjust list boxes inside group boxes
-            stagedListBox.Width = availableWidth - 20; // 20 = internal padding
-            unstagedListBox.Width = availableWidth - 20;
+            // Position commit buttons at very bottom
+            int buttonsTop = commitMessageBox.Bottom + margin;
+            commitButton.Top = buttonsTop;
+            commitPushButton.Top = buttonsTop;
+            pushButton.Top = buttonsTop;
         }
 
         private void OnPanelLayout(object sender, LayoutEventArgs e)
