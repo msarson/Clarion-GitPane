@@ -38,7 +38,9 @@ namespace GitPane
         
         private GitRepository gitRepo;
         private System.IO.FileSystemWatcher fileWatcher;
+        private System.IO.FileSystemWatcher gitConfigWatcher;
         private System.Threading.Timer debounceTimer;
+        private System.Threading.Timer configDebounceTimer;
 
         public override Control Control => contentPanel;
 
@@ -368,6 +370,7 @@ namespace GitPane
         private void OnRefreshClick(object sender, EventArgs e)
         {
             RefreshFileList();
+            UpdateRemoteStatus(); // Check if remote still exists
         }
 
         private void OnStageSelectedClick(object sender, EventArgs e)
@@ -1488,11 +1491,23 @@ namespace GitPane
                 fileWatcher.Renamed += OnFileSystemChanged;
 
                 fileWatcher.EnableRaisingEvents = true;
+                
+                // Watch .git/config for remote changes
+                string gitDir = System.IO.Path.Combine(directory, ".git");
+                if (System.IO.Directory.Exists(gitDir))
+                {
+                    gitConfigWatcher = new System.IO.FileSystemWatcher(gitDir);
+                    gitConfigWatcher.Filter = "config";
+                    gitConfigWatcher.NotifyFilter = System.IO.NotifyFilters.LastWrite;
+                    gitConfigWatcher.Changed += OnGitConfigChanged;
+                    gitConfigWatcher.EnableRaisingEvents = true;
+                }
             }
             catch
             {
                 // Silently fail if we can't watch (maybe permissions issue)
                 fileWatcher = null;
+                gitConfigWatcher = null;
             }
         }
 
@@ -1503,6 +1518,13 @@ namespace GitPane
                 fileWatcher.EnableRaisingEvents = false;
                 fileWatcher.Dispose();
                 fileWatcher = null;
+            }
+            
+            if (gitConfigWatcher != null)
+            {
+                gitConfigWatcher.EnableRaisingEvents = false;
+                gitConfigWatcher.Dispose();
+                gitConfigWatcher = null;
             }
         }
 
@@ -1532,6 +1554,32 @@ namespace GitPane
                 else
                 {
                     RefreshFileList();
+                }
+            }, null, 500, System.Threading.Timeout.Infinite);
+        }
+
+        private void OnGitConfigChanged(object sender, System.IO.FileSystemEventArgs e)
+        {
+            // Debounce the refresh - .git/config can change multiple times
+            if (configDebounceTimer != null)
+                configDebounceTimer.Dispose();
+
+            configDebounceTimer = new System.Threading.Timer(state =>
+            {
+                if (contentPanel.InvokeRequired)
+                {
+                    try
+                    {
+                        contentPanel.Invoke(new Action(UpdateRemoteStatus));
+                    }
+                    catch
+                    {
+                        // Ignore if control is disposed
+                    }
+                }
+                else
+                {
+                    UpdateRemoteStatus();
                 }
             }, null, 500, System.Threading.Timeout.Infinite);
         }
