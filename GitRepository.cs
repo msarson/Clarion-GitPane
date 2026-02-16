@@ -149,7 +149,16 @@ namespace GitPane
 
         public bool PushChanges()
         {
-            var result = ExecuteGitCommand("push");
+            // Get current branch
+            string branch = GetCurrentBranch();
+            if (string.IsNullOrEmpty(branch) || branch.Contains("HEAD"))
+            {
+                // Can't push from detached HEAD
+                return false;
+            }
+            
+            // Try push with upstream set (works for first push and subsequent pushes)
+            var result = ExecuteGitCommand($"push -u origin {branch}");
             return result.ExitCode == 0;
         }
 
