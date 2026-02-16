@@ -13,6 +13,7 @@ namespace GitPane
         private Panel contentPanel;
         
         // Toolbar controls
+        private ToolStrip toolStrip;
         private Label branchValueLabel;
         private ToolStripButton branchSelectButton;
         private Label remoteLabel;
@@ -20,6 +21,10 @@ namespace GitPane
         private ToolStripButton addRemoteButton;
         private ToolStripButton createGitHubRepoButton;
         private ToolStripButton refreshButton;
+        
+        // Main layout containers
+        private SplitContainer mainSplitter;
+        private Panel commitPanel;
         
         private Button initRepoButton;
         private Label statusLabel;
@@ -62,23 +67,21 @@ namespace GitPane
             // Subscribe to solution events
             ProjectService.SolutionLoaded += OnSolutionChanged;
             ProjectService.SolutionClosed += OnSolutionClosed;
-            
-            // Layout now handled by Anchor/Dock properties - no manual resize needed
         }
 
         private void InitializeUI()
         {
             contentPanel = new Panel();
-            contentPanel.Dock = DockStyle.Fill; // Let the IDE handle sizing automatically
+            contentPanel.Dock = DockStyle.Fill;
             contentPanel.BackColor = SystemColors.Window;
             contentPanel.Padding = new Padding(10);
-            contentPanel.AutoScroll = true; // Enable auto-scroll as fallback
-            // Removed manual resize handlers - let Anchor/Dock properties handle layout
+            contentPanel.AutoScroll = false; // FIX: Disable AutoScroll - incompatible with Dock.Fill SplitContainer
 
             // ToolStrip for top controls - professional layout
-            ToolStrip toolStrip = new ToolStrip();
+            toolStrip = new ToolStrip();
             toolStrip.Dock = DockStyle.Top;
             toolStrip.GripStyle = ToolStripGripStyle.Hidden;
+            toolStrip.Padding = new Padding(5, 2, 5, 2);
             
             // Branch info
             ToolStripLabel branchToolLabel = new ToolStripLabel("Branch:");
@@ -86,20 +89,24 @@ namespace GitPane
             branchValueLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F, FontStyle.Bold);
             branchValueLabel.ForeColor = Color.DarkBlue;
             branchValueLabel.AutoSize = true;
+            branchValueLabel.Margin = new Padding(0, 0, 5, 0);
             ToolStripControlHost branchValueHost = new ToolStripControlHost(branchValueLabel);
             
             branchSelectButton = new ToolStripButton("...");
             branchSelectButton.Click += OnBranchSelectClick;
+            branchSelectButton.Margin = new Padding(0, 1, 3, 2);
             
             // Separator
             ToolStripSeparator separator1 = new ToolStripSeparator();
+            separator1.Margin = new Padding(5, 0, 5, 0);
             
             // Remote info
             remoteLabel = new Label();
             remoteLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 8F);
             remoteLabel.ForeColor = SystemColors.GrayText;
             remoteLabel.AutoSize = true;
-            remoteLabel.MaximumSize = new Size(200, 0);
+            remoteLabel.MaximumSize = new Size(300, 0);
+            remoteLabel.Margin = new Padding(0, 0, 5, 0);
             ToolStripControlHost remoteLabelHost = new ToolStripControlHost(remoteLabel);
             
             // Remote buttons
@@ -107,21 +114,26 @@ namespace GitPane
             removeRemoteButton.Font = new Font(SystemFonts.DefaultFont.FontFamily, 10F, FontStyle.Bold);
             removeRemoteButton.Click += OnRemoveRemoteClick;
             removeRemoteButton.Visible = false;
+            removeRemoteButton.Margin = new Padding(0, 1, 3, 2);
             
             addRemoteButton = new ToolStripButton("Add Remote");
             addRemoteButton.Click += OnAddRemoteClick;
             addRemoteButton.Visible = false;
+            addRemoteButton.Margin = new Padding(0, 1, 3, 2);
             
             createGitHubRepoButton = new ToolStripButton("Create on GitHub");
             createGitHubRepoButton.Click += OnCreateGitHubRepoClick;
             createGitHubRepoButton.Visible = false;
+            createGitHubRepoButton.Margin = new Padding(0, 1, 3, 2);
             
             // Separator
             ToolStripSeparator separator2 = new ToolStripSeparator();
+            separator2.Margin = new Padding(5, 0, 5, 0);
             
             // Refresh button
             refreshButton = new ToolStripButton("Refresh");
             refreshButton.Click += OnRefreshClick;
+            refreshButton.Margin = new Padding(0, 1, 3, 2);
             
             // Add items to toolbar
             toolStrip.Items.Add(branchToolLabel);
@@ -135,52 +147,68 @@ namespace GitPane
             toolStrip.Items.Add(separator2);
             toolStrip.Items.Add(refreshButton);
             
-            // Bottom panel for commit controls - Docked to bottom
-            Panel bottomPanel = new Panel();
-            bottomPanel.Dock = DockStyle.Bottom;
-            bottomPanel.Height = 100;
+            // Commit panel - docked to bottom with fixed height
+            commitPanel = new Panel();
+            commitPanel.Dock = DockStyle.Bottom;
+            commitPanel.Height = 120;
+            commitPanel.Padding = new Padding(10);
 
-            // Staged files section - Docked to top
+            // Horizontal splitter for staged vs unstaged - fills remaining space
+            mainSplitter = new SplitContainer();
+            mainSplitter.Dock = DockStyle.Fill;
+            mainSplitter.Orientation = Orientation.Horizontal;
+            // Don't set SplitterDistance here - will be set dynamically after layout
+            
+            // Staged files section - in top panel of splitter
             stagedGroupBox = new GroupBox();
             stagedGroupBox.Text = "Staged Files (0)";
-            stagedGroupBox.Dock = DockStyle.Top;
-            stagedGroupBox.Height = 180;
+            stagedGroupBox.Dock = DockStyle.Fill;
+
+            // Panel for buttons at bottom of staged group
+            Panel stagedButtonPanel = new Panel();
+            stagedButtonPanel.Dock = DockStyle.Bottom;
+            stagedButtonPanel.Height = 35;
 
             stagedListBox = new CheckedListBox();
-            stagedListBox.Location = new Point(10, 20);
-            stagedListBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
-            stagedListBox.Height = 125;
+            stagedListBox.Dock = DockStyle.Fill;
             stagedListBox.Font = new Font("Courier New", 8F);
             stagedListBox.CheckOnClick = true;
 
             unstageSelectedButton = new Button();
             unstageSelectedButton.Text = "Unstage Selected";
-            unstageSelectedButton.Location = new Point(10, 150);
+            unstageSelectedButton.Location = new Point(10, 5);
             unstageSelectedButton.Width = 120;
             unstageSelectedButton.Height = 25;
             unstageSelectedButton.Click += OnUnstageSelectedClick;
-            unstageSelectedButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
 
             unstageAllButton = new Button();
             unstageAllButton.Text = "Unstage All";
-            unstageAllButton.Location = new Point(135, 150);
+            unstageAllButton.Location = new Point(135, 5);
             unstageAllButton.Width = 100;
             unstageAllButton.Height = 25;
             unstageAllButton.Click += OnUnstageAllClick;
-            unstageAllButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
 
-            stagedGroupBox.Controls.Add(stagedListBox);
-            stagedGroupBox.Controls.Add(unstageSelectedButton);
-            stagedGroupBox.Controls.Add(unstageAllButton);
+            stagedButtonPanel.Controls.Add(unstageSelectedButton);
+            stagedButtonPanel.Controls.Add(unstageAllButton);
+            // FIX: Add Fill FIRST, then Bottom (z-order matters in WinForms)
+            stagedGroupBox.Controls.Add(stagedListBox);        // Fill first
+            stagedGroupBox.Controls.Add(stagedButtonPanel);    // Bottom last
+            
+            // Add staged groupbox to top panel of splitter
+            mainSplitter.Panel1.Controls.Add(stagedGroupBox);
 
-            // Unstaged files section - Fills remaining space
+            // Unstaged files section - in bottom panel of splitter
             unstagedGroupBox = new GroupBox();
             unstagedGroupBox.Text = "Unstaged Files (0)";
             unstagedGroupBox.Dock = DockStyle.Fill;
 
+            // Panel for buttons at bottom of unstaged group
+            Panel unstagedButtonPanel = new Panel();
+            unstagedButtonPanel.Dock = DockStyle.Bottom;
+            unstagedButtonPanel.Height = 35;
+
             unstagedListBox = new CheckedListBox();
-            unstagedListBox.Location = new Point(10, 20);
-            unstagedListBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
+            unstagedListBox.Dock = DockStyle.Fill;
             unstagedListBox.Font = new Font("Courier New", 8F);
             unstagedListBox.CheckOnClick = true;
             unstagedListBox.MouseDown += OnUnstagedListBoxMouseDown;
@@ -201,48 +229,56 @@ namespace GitPane
 
             stageSelectedButton = new Button();
             stageSelectedButton.Text = "Stage Selected";
-            stageSelectedButton.Location = new Point(10, 140);
+            stageSelectedButton.Location = new Point(10, 5);
             stageSelectedButton.Width = 120;
             stageSelectedButton.Height = 25;
             stageSelectedButton.Click += OnStageSelectedClick;
-            stageSelectedButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
 
             stageAllButton = new Button();
             stageAllButton.Text = "Stage All";
-            stageAllButton.Location = new Point(135, 140);
+            stageAllButton.Location = new Point(135, 5);
             stageAllButton.Width = 100;
             stageAllButton.Height = 25;
             stageAllButton.Click += OnStageAllClick;
-            stageAllButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
 
-            unstagedGroupBox.Controls.Add(unstagedListBox);
-            unstagedGroupBox.Controls.Add(stageSelectedButton);
-            unstagedGroupBox.Controls.Add(stageAllButton);
+            unstagedButtonPanel.Controls.Add(stageSelectedButton);
+            unstagedButtonPanel.Controls.Add(stageAllButton);
+            // FIX: Add Fill FIRST, then Bottom (z-order matters in WinForms)
+            unstagedGroupBox.Controls.Add(unstagedListBox);      // Fill first
+            unstagedGroupBox.Controls.Add(unstagedButtonPanel);  // Bottom last
+            
+            // Add unstaged groupbox to bottom panel of splitter
+            mainSplitter.Panel2.Controls.Add(unstagedGroupBox);
 
-            // Commit message section - Goes in bottom panel
+            // Commit message section - using Dock instead of Anchor for reliable positioning
             commitMessageLabel = new Label();
             commitMessageLabel.Text = "Commit Message:";
-            commitMessageLabel.Location = new Point(0, 0);
-            commitMessageLabel.AutoSize = true;
+            commitMessageLabel.Dock = DockStyle.Top;
+            commitMessageLabel.Height = 20;
+            commitMessageLabel.TextAlign = ContentAlignment.MiddleLeft;
 
             commitMessageBox = new TextBox();
             commitMessageBox.Multiline = true;
-            commitMessageBox.Location = new Point(0, 20);
-            commitMessageBox.Size = new Size(450, 40);
+            commitMessageBox.Dock = DockStyle.Top;
+            commitMessageBox.Height = 45;
             commitMessageBox.ScrollBars = ScrollBars.Vertical;
-            commitMessageBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
-            // Commit buttons - Goes in bottom panel
+            // Panel for commit buttons - docked to top (after label and textbox)
+            Panel buttonPanel = new Panel();
+            buttonPanel.Dock = DockStyle.Top;
+            buttonPanel.Height = 35;
+
+            // Commit buttons - positioned in button panel
             commitButton = new Button();
             commitButton.Text = "Commit";
-            commitButton.Location = new Point(0, 65);
+            commitButton.Location = new Point(0, 5);
             commitButton.Width = 80;
             commitButton.Height = 28;
             commitButton.Click += OnCommitClick;
 
             commitPushButton = new Button();
             commitPushButton.Text = "Commit && Push";
-            commitPushButton.Location = new Point(85, 65);
+            commitPushButton.Location = new Point(85, 5);
             commitPushButton.Width = 110;
             commitPushButton.Height = 28;
             commitPushButton.Click += OnCommitPushClick;
@@ -250,17 +286,20 @@ namespace GitPane
             // Push button (for unpushed commits)
             pushButton = new Button();
             pushButton.Text = "Push";
-            pushButton.Location = new Point(200, 65);
+            pushButton.Location = new Point(200, 5);
             pushButton.Width = 80;
             pushButton.Height = 28;
             pushButton.Click += OnPushClick;
             pushButton.Visible = false;
             
-            bottomPanel.Controls.Add(commitMessageLabel);
-            bottomPanel.Controls.Add(commitMessageBox);
-            bottomPanel.Controls.Add(commitButton);
-            bottomPanel.Controls.Add(commitPushButton);
-            bottomPanel.Controls.Add(pushButton);
+            buttonPanel.Controls.Add(commitButton);
+            buttonPanel.Controls.Add(commitPushButton);
+            buttonPanel.Controls.Add(pushButton);
+            
+            // Add to commit panel in correct order (bottom-up since using Dock.Top)
+            commitPanel.Controls.Add(buttonPanel);
+            commitPanel.Controls.Add(commitMessageBox);
+            commitPanel.Controls.Add(commitMessageLabel);
 
             // Status label (for non-repo message)
             statusLabel = new Label();
@@ -279,11 +318,10 @@ namespace GitPane
             initRepoButton.Visible = false;
 
             // Add controls to contentPanel in correct docking order
-            // For docking: Bottom first, then Top (in REVERSE order), then Fill
-            contentPanel.Controls.Add(bottomPanel);      // Dock.Bottom - at bottom
-            contentPanel.Controls.Add(unstagedGroupBox); // Dock.Fill - fills middle
-            contentPanel.Controls.Add(stagedGroupBox);   // Dock.Top - below toolbar
-            contentPanel.Controls.Add(toolStrip);        // Dock.Top - at very top
+            // Bottom-docked first, then Fill, then Top
+            contentPanel.Controls.Add(commitPanel);   // Dock.Bottom - commit area at bottom
+            contentPanel.Controls.Add(mainSplitter);  // Dock.Fill - staged/unstaged splitter
+            contentPanel.Controls.Add(toolStrip);     // Dock.Top - toolbar at top
             contentPanel.Controls.Add(statusLabel);
             contentPanel.Controls.Add(initRepoButton);
         }
@@ -309,10 +347,16 @@ namespace GitPane
 
                     branchValueLabel.Text = currentBranch ?? "unknown";
 
+                    // FIX: Hide non-repo controls, show repo UI
+                    statusLabel.Visible = false;
+                    initRepoButton.Visible = false;
+                    toolStrip.Visible = true;
+                    mainSplitter.Visible = true;
+                    commitPanel.Visible = true;
+                    
                     branchValueLabel.Visible = true;
                     branchSelectButton.Visible = true;
                     refreshButton.Visible = true;
-                    statusLabel.Visible = false;
                     
                     // Check remote status
                     UpdateRemoteStatus();
@@ -324,6 +368,12 @@ namespace GitPane
                     commitMessageBox.Visible = true;
                     commitButton.Visible = true;
                     commitPushButton.Visible = true;
+                    
+                    // FIX: Set splitter distance after controls are visible
+                    if (mainSplitter.Height > 0)
+                    {
+                        mainSplitter.SplitterDistance = mainSplitter.Height / 2;
+                    }
                     
                     RefreshFileList();
                     StartFileWatcher(solutionDir);
