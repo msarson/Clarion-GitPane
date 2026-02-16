@@ -62,6 +62,7 @@ namespace GitPane
                     
                     branchValueLabel.Visible = true;
                     branchSelectButton.Visible = true;
+                    historyButton.Visible = true;
                     refreshButton.Visible = true;
                     
                     // Check remote status
@@ -107,8 +108,14 @@ namespace GitPane
 
         private void HideCommitControls()
         {
+            // Hide main UI containers
+            toolStrip.Visible = false;
+            mainSplitter.Visible = false;
+            
+            // Hide individual controls
             branchValueLabel.Visible = false;
             branchSelectButton.Visible = false;
+            historyButton.Visible = false;
             remoteLabel.Visible = false;
             removeRemoteButton.Visible = false;
             addRemoteButton.Visible = false;
@@ -158,6 +165,65 @@ namespace GitPane
             }
             
             unstagedGroupBox.Text = $"Unstaged Files ({unstagedFiles.Length + untrackedFiles.Length})";
+            
+            // Update button states after refreshing lists
+            UpdateButtonStates();
+        }
+
+        private void UpdateButtonStates()
+        {
+            if (gitRepo == null || !gitRepo.IsRepository())
+            {
+                // No repo - disable all git operation buttons
+                stageSelectedButton.Enabled = false;
+                stageAllButton.Enabled = false;
+                discardSelectedButton.Enabled = false;
+                discardAllButton.Enabled = false;
+                unstageSelectedButton.Enabled = false;
+                unstageAllButton.Enabled = false;
+                commitButton.Enabled = false;
+                commitPushButton.Enabled = false;
+                pushButton.Enabled = false;
+                branchSelectButton.Enabled = false;
+                historyButton.Enabled = false;
+                refreshButton.Enabled = false;
+                return;
+            }
+            
+            // Enable refresh, history, and branch buttons when repo exists
+            refreshButton.Enabled = true;
+            historyButton.Enabled = true;
+            branchSelectButton.Enabled = true;
+            
+            // Stage buttons - enabled when unstaged files exist or are checked
+            int unstagedCount = unstagedListBox.Items.Count;
+            int unstagedCheckedCount = unstagedListBox.CheckedItems.Count;
+            stageSelectedButton.Enabled = unstagedCheckedCount > 0;
+            stageAllButton.Enabled = unstagedCount > 0;
+            
+            // Discard buttons - same logic as stage buttons (work on unstaged files)
+            discardSelectedButton.Enabled = unstagedCheckedCount > 0;
+            discardAllButton.Enabled = unstagedCount > 0;
+            
+            // Unstage buttons - enabled when staged files exist or are checked
+            int stagedCount = stagedListBox.Items.Count;
+            int stagedCheckedCount = stagedListBox.CheckedItems.Count;
+            unstageSelectedButton.Enabled = stagedCheckedCount > 0;
+            unstageAllButton.Enabled = stagedCount > 0;
+            
+            // Commit message box - only enabled when there are staged files
+            commitMessageBox.Enabled = stagedCount > 0;
+            
+            // Commit buttons - enabled when staged files exist AND commit message is not empty
+            bool hasCommitMessage = !string.IsNullOrWhiteSpace(commitMessageBox.Text);
+            bool canCommit = stagedCount > 0 && hasCommitMessage;
+            commitButton.Enabled = canCommit;
+            
+            // Commit & Push - same as commit, plus requires remote
+            bool hasRemote = gitRepo.HasRemote();
+            commitPushButton.Enabled = canCommit && hasRemote;
+            
+            // Push button visibility/enabled already handled by UpdatePushButtonVisibility()
         }
 
         private void UpdatePushButtonVisibility()
@@ -183,6 +249,17 @@ namespace GitPane
         #endregion
 
         #region Event Handlers - Basic Actions
+
+        private void OnHistoryClick(object sender, EventArgs e)
+        {
+            if (gitRepo == null || !gitRepo.IsRepository())
+                return;
+            
+            using (var dialog = new GitHistoryDialog(gitRepo))
+            {
+                dialog.ShowDialog(this.Control.FindForm());
+            }
+        }
 
         private void OnRefreshClick(object sender, EventArgs e)
         {
@@ -242,6 +319,72 @@ namespace GitPane
             {
                 MessageBox.Show("Failed to unstage all files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void OnDiscardSelectedClick(object sender, EventArgs e)
+        {
+            if (gitRepo == null || unstagedListBox.CheckedItems.Count == 0)
+                return;
+
+            var fileCount = unstagedListBox.CheckedItems.Count;
+            var result = MessageBox.Show(
+                $"Are you sure you want to discard changes to {fileCount} file(s)?\n\nThis action cannot be undone.",
+                "Confirm Discard",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            if (result != DialogResult.Yes)
+                return;
+
+            foreach (var item in unstagedListBox.CheckedItems)
+            {
+                var parts = item.ToString().Split('\t');
+                var filePath = parts.Length > 1 ? parts[1] : item.ToString();
+                gitRepo.DiscardFile(filePath);
+            }
+
+            RefreshFileList();
+        }
+
+        private void OnDiscardAllClick(object sender, EventArgs e)
+        {
+            if (gitRepo == null)
+                return;
+
+            var result = MessageBox.Show(
+                "Are you sure you want to discard ALL unstaged changes?\n\nThis will:\n- Discard all changes to tracked files\n- Remove all untracked files\n\nThis action cannot be undone.",
+                "Confirm Discard All",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            if (result != DialogResult.Yes)
+                return;
+
+            if (gitRepo.DiscardAllFiles())
+            {
+                RefreshFileList();
+            }
+            else
+            {
+                MessageBox.Show("Failed to discard all changes.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void OnStagedListBox_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            // ItemCheck fires before the check state is updated, so we need to delay the update
+            contentPanel.BeginInvoke(new Action(() => UpdateButtonStates()));
+        }
+
+        private void OnUnstagedListBox_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            // ItemCheck fires before the check state is updated, so we need to delay the update
+            contentPanel.BeginInvoke(new Action(() => UpdateButtonStates()));
+        }
+
+        private void OnCommitMessageBox_TextChanged(object sender, EventArgs e)
+        {
+            UpdateButtonStates();
         }
 
         private void OnUnstagedListBoxMouseDown(object sender, MouseEventArgs e)

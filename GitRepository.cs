@@ -298,6 +298,37 @@ namespace GitPane
             return result.ExitCode == 0;
         }
 
+        public bool DiscardFile(string filePath)
+        {
+            // Use git restore (Git 2.23+) or fall back to checkout
+            var result = ExecuteGitCommand($"restore \"{filePath}\"");
+            if (result.ExitCode != 0)
+            {
+                // Fall back to checkout for older git versions
+                result = ExecuteGitCommand($"checkout -- \"{filePath}\"");
+            }
+            return result.ExitCode == 0;
+        }
+
+        public bool DiscardAllFiles()
+        {
+            // Discard tracked file changes
+            var result = ExecuteGitCommand("restore .");
+            if (result.ExitCode != 0)
+            {
+                // Fall back to checkout for older git versions
+                result = ExecuteGitCommand("checkout -- .");
+            }
+            
+            // Also remove untracked files
+            if (result.ExitCode == 0)
+            {
+                ExecuteGitCommand("clean -fd");
+            }
+            
+            return result.ExitCode == 0;
+        }
+
         public string GetRepositoryName()
         {
             // Try to get from origin URL first
@@ -382,6 +413,92 @@ namespace GitPane
             {
                 return false;
             }
+        }
+
+        public GitCommitInfo[] GetCommitHistory(int maxCount = 100)
+        {
+            // Get commit log with custom format: hash|author|date|subject
+            string format = "%H|%an|%ai|%s";
+            var result = ExecuteGitCommand($"log --max-count={maxCount} --pretty=format:\"{format}\"");
+            
+            if (result.ExitCode != 0 || string.IsNullOrEmpty(result.Output))
+                return new GitCommitInfo[0];
+            
+            var lines = result.Output.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var commits = new GitCommitInfo[lines.Length];
+            
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var parts = lines[i].Split('|');
+                if (parts.Length >= 4)
+                {
+                    commits[i] = new GitCommitInfo
+                    {
+                        Hash = parts[0],
+                        ShortHash = parts[0].Substring(0, Math.Min(7, parts[0].Length)),
+                        Author = parts[1],
+                        Date = parts[2],
+                        Subject = parts[3]
+                    };
+                }
+            }
+            
+            return commits;
+        }
+
+        public GitCommitDetails GetCommitDetails(string commitHash)
+        {
+            if (string.IsNullOrEmpty(commitHash))
+                return null;
+            
+            // Get commit details
+            var detailsResult = ExecuteGitCommand($"show --stat --format=\"%H%n%an%n%ai%n%s%n%b\" {commitHash}");
+            if (detailsResult.ExitCode != 0)
+                return null;
+            
+            var lines = detailsResult.Output.Split(new[] { '\n' }, StringSplitOptions.None);
+            if (lines.Length < 4)
+                return null;
+            
+            // Parse the output
+            var details = new GitCommitDetails
+            {
+                Hash = lines[0].Trim(),
+                Author = lines[1].Trim(),
+                Date = lines[2].Trim(),
+                Subject = lines[3].Trim()
+            };
+            
+            // Find message body (lines after subject until first empty line or stats)
+            int bodyStart = 4;
+            int bodyEnd = bodyStart;
+            for (int i = bodyStart; i < lines.Length; i++)
+            {
+                if (string.IsNullOrWhiteSpace(lines[i]) || lines[i].Contains(" file") || lines[i].Contains(" changed"))
+                    break;
+                bodyEnd = i + 1;
+            }
+            
+            if (bodyEnd > bodyStart)
+            {
+                details.Body = string.Join("\n", lines, bodyStart, bodyEnd - bodyStart).Trim();
+            }
+            
+            // Get stats summary
+            var statsResult = ExecuteGitCommand($"show --shortstat --format=\"\" {commitHash}");
+            if (statsResult.ExitCode == 0 && !string.IsNullOrEmpty(statsResult.Output))
+            {
+                details.Stats = statsResult.Output.Trim();
+            }
+            
+            // Get diff
+            var diffResult = ExecuteGitCommand($"show --format=\"\" {commitHash}");
+            if (diffResult.ExitCode == 0)
+            {
+                details.Diff = diffResult.Output;
+            }
+            
+            return details;
         }
 
         public bool IsGitHubCLIInstalled()
@@ -526,6 +643,26 @@ namespace GitPane
             public int ExitCode { get; set; }
             public string Output { get; set; }
             public string Error { get; set; }
+        }
+
+        public class GitCommitInfo
+        {
+            public string Hash { get; set; }
+            public string ShortHash { get; set; }
+            public string Author { get; set; }
+            public string Date { get; set; }
+            public string Subject { get; set; }
+        }
+
+        public class GitCommitDetails
+        {
+            public string Hash { get; set; }
+            public string Author { get; set; }
+            public string Date { get; set; }
+            public string Subject { get; set; }
+            public string Body { get; set; }
+            public string Stats { get; set; }
+            public string Diff { get; set; }
         }
     }
 }

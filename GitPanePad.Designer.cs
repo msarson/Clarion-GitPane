@@ -25,6 +25,7 @@ namespace GitPane
         private ToolStripButton removeRemoteButton;
         private ToolStripButton addRemoteButton;
         private ToolStripButton createGitHubRepoButton;
+        private ToolStripButton historyButton;
         private ToolStripButton refreshButton;
         
         // Main layout containers
@@ -39,20 +40,25 @@ namespace GitPane
         // Commit workflow controls
         private GroupBox stagedGroupBox;
         private CheckedListBox stagedListBox;
-        private Button unstageSelectedButton;
-        private Button unstageAllButton;
+        private ToolStrip stagedToolStrip;
+        private ToolStripButton unstageSelectedButton;
+        private ToolStripButton unstageAllButton;
         
         private GroupBox unstagedGroupBox;
         private CheckedListBox unstagedListBox;
         private ContextMenuStrip unstagedContextMenu;
-        private Button stageSelectedButton;
-        private Button stageAllButton;
+        private ToolStrip unstagedToolStrip;
+        private ToolStripButton stageSelectedButton;
+        private ToolStripButton stageAllButton;
+        private ToolStripButton discardSelectedButton;
+        private ToolStripButton discardAllButton;
         
         private Label commitMessageLabel;
         private TextBox commitMessageBox;
-        private Button commitButton;
-        private Button commitPushButton;
-        private Button pushButton;
+        private ToolStrip commitToolStrip;
+        private ToolStripButton commitButton;
+        private ToolStripButton commitPushButton;
+        private ToolStripButton pushButton;
         
         #endregion
         
@@ -119,6 +125,11 @@ namespace GitPane
             ToolStripSeparator separator2 = new ToolStripSeparator();
             separator2.Margin = new Padding(5, 0, 5, 0);
             
+            // History button
+            historyButton = new ToolStripButton("History");
+            historyButton.Click += OnHistoryClick;
+            historyButton.Margin = new Padding(0, 1, 3, 2);
+            
             // Refresh button
             refreshButton = new ToolStripButton("Refresh");
             refreshButton.Click += OnRefreshClick;
@@ -134,6 +145,7 @@ namespace GitPane
             toolStrip.Items.Add(addRemoteButton);
             toolStrip.Items.Add(createGitHubRepoButton);
             toolStrip.Items.Add(separator2);
+            toolStrip.Items.Add(historyButton);
             toolStrip.Items.Add(refreshButton);
             
             // Commit container - holds editor area and buttons in lower splitter
@@ -162,35 +174,30 @@ namespace GitPane
             stagedGroupBox.Text = "Staged Files (0)";
             stagedGroupBox.Dock = DockStyle.Fill;
 
-            // Panel for buttons at bottom of staged group
-            Panel stagedButtonPanel = new Panel();
-            stagedButtonPanel.Dock = DockStyle.Bottom;
-            stagedButtonPanel.Height = 35;
+            // ToolStrip for staged file actions
+            stagedToolStrip = new ToolStrip();
+            stagedToolStrip.Dock = DockStyle.Bottom;
+            stagedToolStrip.GripStyle = ToolStripGripStyle.Hidden;
+            stagedToolStrip.Padding = new Padding(5, 2, 5, 2);
 
             stagedListBox = new CheckedListBox();
             stagedListBox.Dock = DockStyle.Fill;
             stagedListBox.Font = new Font("Courier New", 8F);
             stagedListBox.CheckOnClick = true;
+            stagedListBox.ItemCheck += OnStagedListBox_ItemCheck;
 
-            unstageSelectedButton = new Button();
-            unstageSelectedButton.Text = "Unstage Selected";
-            unstageSelectedButton.Location = new Point(10, 5);
-            unstageSelectedButton.Width = 120;
-            unstageSelectedButton.Height = 25;
+            unstageSelectedButton = new ToolStripButton("Unstage Selected");
             unstageSelectedButton.Click += OnUnstageSelectedClick;
 
-            unstageAllButton = new Button();
-            unstageAllButton.Text = "Unstage All";
-            unstageAllButton.Location = new Point(135, 5);
-            unstageAllButton.Width = 100;
-            unstageAllButton.Height = 25;
+            unstageAllButton = new ToolStripButton("Unstage All");
             unstageAllButton.Click += OnUnstageAllClick;
 
-            stagedButtonPanel.Controls.Add(unstageSelectedButton);
-            stagedButtonPanel.Controls.Add(unstageAllButton);
+            stagedToolStrip.Items.Add(unstageSelectedButton);
+            stagedToolStrip.Items.Add(unstageAllButton);
+
             // FIX: Add Fill FIRST, then Bottom (z-order matters in WinForms)
-            stagedGroupBox.Controls.Add(stagedListBox);        // Fill first
-            stagedGroupBox.Controls.Add(stagedButtonPanel);    // Bottom last
+            stagedGroupBox.Controls.Add(stagedListBox);     // Fill first
+            stagedGroupBox.Controls.Add(stagedToolStrip);   // Bottom last
             
             // Add staged groupbox to top panel of splitter
             mainSplitter.Panel1.Controls.Add(stagedGroupBox);
@@ -200,15 +207,17 @@ namespace GitPane
             unstagedGroupBox.Text = "Unstaged Files (0)";
             unstagedGroupBox.Dock = DockStyle.Fill;
 
-            // Panel for buttons at bottom of unstaged group
-            Panel unstagedButtonPanel = new Panel();
-            unstagedButtonPanel.Dock = DockStyle.Bottom;
-            unstagedButtonPanel.Height = 35;
+            // ToolStrip for unstaged file actions
+            unstagedToolStrip = new ToolStrip();
+            unstagedToolStrip.Dock = DockStyle.Bottom;
+            unstagedToolStrip.GripStyle = ToolStripGripStyle.Hidden;
+            unstagedToolStrip.Padding = new Padding(5, 2, 5, 2);
 
             unstagedListBox = new CheckedListBox();
             unstagedListBox.Dock = DockStyle.Fill;
             unstagedListBox.Font = new Font("Courier New", 8F);
             unstagedListBox.CheckOnClick = true;
+            unstagedListBox.ItemCheck += OnUnstagedListBox_ItemCheck;
             unstagedListBox.MouseDown += OnUnstagedListBoxMouseDown;
 
             // Context menu for unstaged files
@@ -225,25 +234,30 @@ namespace GitPane
             unstagedContextMenu.Opening += OnUnstagedContextMenuOpening;
             unstagedListBox.ContextMenuStrip = unstagedContextMenu;
 
-            stageSelectedButton = new Button();
-            stageSelectedButton.Text = "Stage Selected";
-            stageSelectedButton.Location = new Point(10, 5);
-            stageSelectedButton.Width = 120;
-            stageSelectedButton.Height = 25;
+            stageSelectedButton = new ToolStripButton("Stage Selected");
             stageSelectedButton.Click += OnStageSelectedClick;
 
-            stageAllButton = new Button();
-            stageAllButton.Text = "Stage All";
-            stageAllButton.Location = new Point(135, 5);
-            stageAllButton.Width = 100;
-            stageAllButton.Height = 25;
+            stageAllButton = new ToolStripButton("Stage All");
             stageAllButton.Click += OnStageAllClick;
 
-            unstagedButtonPanel.Controls.Add(stageSelectedButton);
-            unstagedButtonPanel.Controls.Add(stageAllButton);
+            ToolStripSeparator unstagedSeparator = new ToolStripSeparator();
+            unstagedSeparator.Margin = new Padding(5, 0, 5, 0);
+
+            discardSelectedButton = new ToolStripButton("Discard Selected");
+            discardSelectedButton.Click += OnDiscardSelectedClick;
+
+            discardAllButton = new ToolStripButton("Discard All");
+            discardAllButton.Click += OnDiscardAllClick;
+
+            unstagedToolStrip.Items.Add(stageSelectedButton);
+            unstagedToolStrip.Items.Add(stageAllButton);
+            unstagedToolStrip.Items.Add(unstagedSeparator);
+            unstagedToolStrip.Items.Add(discardSelectedButton);
+            unstagedToolStrip.Items.Add(discardAllButton);
+
             // FIX: Add Fill FIRST, then Bottom (z-order matters in WinForms)
-            unstagedGroupBox.Controls.Add(unstagedListBox);      // Fill first
-            unstagedGroupBox.Controls.Add(unstagedButtonPanel);  // Bottom last
+            unstagedGroupBox.Controls.Add(unstagedListBox);     // Fill first
+            unstagedGroupBox.Controls.Add(unstagedToolStrip);   // Bottom last
             
             // Add unstaged groupbox to top panel of lower splitter
             lowerSplitter.Panel1.Controls.Add(unstagedGroupBox);
@@ -259,47 +273,37 @@ namespace GitPane
             commitMessageBox.Multiline = true;
             commitMessageBox.Dock = DockStyle.Fill;
             commitMessageBox.ScrollBars = ScrollBars.Vertical;
+            commitMessageBox.TextChanged += OnCommitMessageBox_TextChanged;
 
-            // Panel for commit buttons - docked to bottom of commit container
-            Panel buttonPanel = new Panel();
-            buttonPanel.Dock = DockStyle.Bottom;
-            buttonPanel.Height = 35;
+            // ToolStrip for commit buttons - docked to bottom of commit container
+            commitToolStrip = new ToolStrip();
+            commitToolStrip.Dock = DockStyle.Bottom;
+            commitToolStrip.GripStyle = ToolStripGripStyle.Hidden;
+            commitToolStrip.Padding = new Padding(5, 2, 5, 2);
 
-            // Commit buttons - positioned in button panel
-            commitButton = new Button();
-            commitButton.Text = "Commit";
-            commitButton.Location = new Point(0, 5);
-            commitButton.Width = 80;
-            commitButton.Height = 28;
+            // Commit buttons
+            commitButton = new ToolStripButton("Commit");
             commitButton.Click += OnCommitClick;
 
-            commitPushButton = new Button();
-            commitPushButton.Text = "Commit && Push";
-            commitPushButton.Location = new Point(85, 5);
-            commitPushButton.Width = 110;
-            commitPushButton.Height = 28;
+            commitPushButton = new ToolStripButton("Commit && Push");
             commitPushButton.Click += OnCommitPushClick;
 
             // Push button (for unpushed commits)
-            pushButton = new Button();
-            pushButton.Text = "Push";
-            pushButton.Location = new Point(200, 5);
-            pushButton.Width = 80;
-            pushButton.Height = 28;
+            pushButton = new ToolStripButton("Push");
             pushButton.Click += OnPushClick;
             pushButton.Visible = false;
             
-            buttonPanel.Controls.Add(commitButton);
-            buttonPanel.Controls.Add(commitPushButton);
-            buttonPanel.Controls.Add(pushButton);
+            commitToolStrip.Items.Add(commitButton);
+            commitToolStrip.Items.Add(commitPushButton);
+            commitToolStrip.Items.Add(pushButton);
             
             // Add to commit panel (editor area) - label on top, textbox fills
             commitPanel.Controls.Add(commitMessageBox);   // Fill
             commitPanel.Controls.Add(commitMessageLabel); // Top (added last for z-order)
             
-            // Add editor area (Fill) and buttons (Bottom) to commit container
+            // Add editor area (Fill) and toolbar (Bottom) to commit container
             commitContainer.Controls.Add(commitPanel);    // Fill first
-            commitContainer.Controls.Add(buttonPanel);    // Bottom last
+            commitContainer.Controls.Add(commitToolStrip);    // Bottom last
             
             // Add commit container to bottom panel of lower splitter
             lowerSplitter.Panel2.Controls.Add(commitContainer);
