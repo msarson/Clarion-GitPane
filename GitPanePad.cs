@@ -14,6 +14,7 @@ namespace GitPane
         private Button branchSelectButton;
         private Label remoteLabel;
         private Button addRemoteButton;
+        private Button createGitHubRepoButton;
         private Button initRepoButton;
         private Label statusLabel;
         
@@ -96,17 +97,26 @@ namespace GitPane
 
             // Add Remote button
             addRemoteButton = new Button();
-            addRemoteButton.Text = "Add Remote Origin";
+            addRemoteButton.Text = "Add Remote URL";
             addRemoteButton.Location = new Point(240, 7);
-            addRemoteButton.Width = 130;
+            addRemoteButton.Width = 120;
             addRemoteButton.Height = 23;
             addRemoteButton.Click += OnAddRemoteClick;
             addRemoteButton.Visible = false;
 
+            // Create GitHub Repo button
+            createGitHubRepoButton = new Button();
+            createGitHubRepoButton.Text = "Create on GitHub";
+            createGitHubRepoButton.Location = new Point(365, 7);
+            createGitHubRepoButton.Width = 130;
+            createGitHubRepoButton.Height = 23;
+            createGitHubRepoButton.Click += OnCreateGitHubRepoClick;
+            createGitHubRepoButton.Visible = false;
+
             // Refresh button
             refreshButton = new Button();
             refreshButton.Text = "Refresh";
-            refreshButton.Location = new Point(380, 7);
+            refreshButton.Location = new Point(500, 7);
             refreshButton.Width = 70;
             refreshButton.Height = 23;
             refreshButton.Click += OnRefreshClick;
@@ -234,6 +244,7 @@ namespace GitPane
             contentPanel.Controls.Add(branchSelectButton);
             contentPanel.Controls.Add(remoteLabel);
             contentPanel.Controls.Add(addRemoteButton);
+            contentPanel.Controls.Add(createGitHubRepoButton);
             contentPanel.Controls.Add(refreshButton);
             contentPanel.Controls.Add(stagedGroupBox);
             contentPanel.Controls.Add(unstagedGroupBox);
@@ -310,6 +321,7 @@ namespace GitPane
             branchSelectButton.Visible = false;
             remoteLabel.Visible = false;
             addRemoteButton.Visible = false;
+            createGitHubRepoButton.Visible = false;
             initRepoButton.Visible = false;
             refreshButton.Visible = false;
             stagedGroupBox.Visible = false;
@@ -654,12 +666,17 @@ namespace GitPane
                     remoteLabel.Visible = true;
                 }
                 addRemoteButton.Visible = false;
+                createGitHubRepoButton.Visible = false;
             }
             else
             {
-                // No remote - just show the button, hide the label
+                // No remote - show manual add button
                 remoteLabel.Visible = false;
                 addRemoteButton.Visible = true;
+                
+                // Show GitHub button if CLI is installed and authenticated
+                bool hasGitHubCLI = gitRepo.IsGitHubCLIInstalled() && gitRepo.IsGitHubCLIAuthenticated();
+                createGitHubRepoButton.Visible = hasGitHubCLI;
             }
         }
 
@@ -743,6 +760,127 @@ namespace GitPane
             }
         }
 
+        private void OnCreateGitHubRepoClick(object sender, EventArgs e)
+        {
+            if (gitRepo == null)
+                return;
+
+            // Create dialog for GitHub repo creation
+            var repoDialog = new Form();
+            repoDialog.Text = "Create GitHub Repository";
+            repoDialog.Width = 450;
+            repoDialog.Height = 240;
+            repoDialog.StartPosition = FormStartPosition.CenterParent;
+            repoDialog.FormBorderStyle = FormBorderStyle.FixedDialog;
+            repoDialog.MaximizeBox = false;
+            repoDialog.MinimizeBox = false;
+
+            var nameLabel = new Label();
+            nameLabel.Text = "Repository name:";
+            nameLabel.Location = new Point(10, 15);
+            nameLabel.AutoSize = true;
+            repoDialog.Controls.Add(nameLabel);
+
+            var nameBox = new TextBox();
+            nameBox.Location = new Point(10, 35);
+            nameBox.Width = 410;
+            // Default to current folder name
+            nameBox.Text = System.IO.Path.GetFileName(gitRepo == null ? "" : ProjectService.OpenSolution.Directory);
+            repoDialog.Controls.Add(nameBox);
+
+            var descLabel = new Label();
+            descLabel.Text = "Description (optional):";
+            descLabel.Location = new Point(10, 65);
+            descLabel.AutoSize = true;
+            repoDialog.Controls.Add(descLabel);
+
+            var descBox = new TextBox();
+            descBox.Location = new Point(10, 85);
+            descBox.Width = 410;
+            repoDialog.Controls.Add(descBox);
+
+            var visibilityLabel = new Label();
+            visibilityLabel.Text = "Visibility:";
+            visibilityLabel.Location = new Point(10, 115);
+            visibilityLabel.AutoSize = true;
+            repoDialog.Controls.Add(visibilityLabel);
+
+            var publicRadio = new RadioButton();
+            publicRadio.Text = "Public";
+            publicRadio.Location = new Point(10, 135);
+            publicRadio.AutoSize = true;
+            repoDialog.Controls.Add(publicRadio);
+
+            var privateRadio = new RadioButton();
+            privateRadio.Text = "Private";
+            privateRadio.Location = new Point(100, 135);
+            privateRadio.Checked = true; // Default to private
+            privateRadio.AutoSize = true;
+            repoDialog.Controls.Add(privateRadio);
+
+            var createButton = new Button();
+            createButton.Text = "Create";
+            createButton.DialogResult = DialogResult.OK;
+            createButton.Location = new Point(250, 170);
+            createButton.Width = 80;
+            repoDialog.Controls.Add(createButton);
+
+            var cancelButton = new Button();
+            cancelButton.Text = "Cancel";
+            cancelButton.DialogResult = DialogResult.Cancel;
+            cancelButton.Location = new Point(340, 170);
+            cancelButton.Width = 80;
+            repoDialog.Controls.Add(cancelButton);
+
+            repoDialog.AcceptButton = createButton;
+            repoDialog.CancelButton = cancelButton;
+
+            if (repoDialog.ShowDialog() == DialogResult.OK)
+            {
+                string repoName = nameBox.Text.Trim();
+                string description = descBox.Text.Trim();
+                bool isPrivate = privateRadio.Checked;
+
+                if (string.IsNullOrEmpty(repoName))
+                {
+                    MessageBox.Show("Repository name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Show progress message
+                var progressForm = new Form();
+                progressForm.Text = "Creating Repository...";
+                progressForm.Width = 300;
+                progressForm.Height = 100;
+                progressForm.StartPosition = FormStartPosition.CenterParent;
+                progressForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                progressForm.ControlBox = false;
+                var progressLabel = new Label();
+                progressLabel.Text = "Creating repository on GitHub...\nPlease wait.";
+                progressLabel.Location = new Point(20, 20);
+                progressLabel.AutoSize = true;
+                progressForm.Controls.Add(progressLabel);
+                progressForm.Show();
+                progressForm.Refresh();
+
+                // Create repo
+                var result = gitRepo.CreateGitHubRepo(repoName, isPrivate, description);
+                progressForm.Close();
+
+                if (result.ExitCode == 0)
+                {
+                    MessageBox.Show($"Repository '{repoName}' created successfully on GitHub!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    UpdateRemoteStatus();
+                    UpdateStatus();
+                }
+                else
+                {
+                    string errorMsg = !string.IsNullOrEmpty(result.Error) ? result.Error : result.Output;
+                    MessageBox.Show($"Failed to create repository:\n\n{errorMsg}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
         private void OnInitRepoClick(object sender, EventArgs e)
         {
             if (ProjectService.OpenSolution == null)
@@ -798,11 +936,20 @@ namespace GitPane
             int rightMargin = 20; // Extra padding on right since IDE has no border
             int availableWidth = panelWidth - margin - rightMargin;
 
-            // Position top-right controls (remoteLabel, addRemoteButton, refreshButton)
+            // Position top-right controls (remoteLabel, addRemoteButton, createGitHubRepoButton, refreshButton)
             // Work backwards from right edge with proper margin
             refreshButton.Left = panelWidth - rightMargin - refreshButton.Width;
 
-            if (addRemoteButton.Visible)
+            if (createGitHubRepoButton.Visible)
+            {
+                createGitHubRepoButton.Left = refreshButton.Left - margin - createGitHubRepoButton.Width;
+                
+                if (addRemoteButton.Visible)
+                {
+                    addRemoteButton.Left = createGitHubRepoButton.Left - margin - addRemoteButton.Width;
+                }
+            }
+            else if (addRemoteButton.Visible)
             {
                 addRemoteButton.Left = refreshButton.Left - margin - addRemoteButton.Width;
             }

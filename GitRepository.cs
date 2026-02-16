@@ -319,6 +319,108 @@ namespace GitPane
             }
         }
 
+        public bool IsGitHubCLIInstalled()
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "gh",
+                    Arguments = "--version",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(psi))
+                {
+                    process.WaitForExit();
+                    return process.ExitCode == 0;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool IsGitHubCLIAuthenticated()
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "gh",
+                    Arguments = "auth status",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(psi))
+                {
+                    process.WaitForExit();
+                    return process.ExitCode == 0;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public GitCommandResult CreateGitHubRepo(string repoName, bool isPrivate, string description = "")
+        {
+            string visibility = isPrivate ? "--private" : "--public";
+            string descArg = string.IsNullOrEmpty(description) ? "" : $"--description \"{description}\"";
+            
+            // Create repo and set as remote origin
+            string arguments = $"repo create {repoName} {visibility} {descArg} --source=. --remote=origin";
+            
+            return ExecuteGitHubCLICommand(arguments);
+        }
+
+        private GitCommandResult ExecuteGitHubCLICommand(string arguments)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "gh",
+                    Arguments = arguments,
+                    WorkingDirectory = workingDirectory,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(psi))
+                {
+                    var output = process.StandardOutput.ReadToEnd();
+                    var error = process.StandardError.ReadToEnd();
+                    process.WaitForExit();
+
+                    return new GitCommandResult
+                    {
+                        ExitCode = process.ExitCode,
+                        Output = output,
+                        Error = error
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new GitCommandResult 
+                { 
+                    ExitCode = -1,
+                    Error = ex.Message
+                };
+            }
+        }
+
         private GitCommandResult ExecuteGitCommand(string arguments)
         {
             try
@@ -354,7 +456,7 @@ namespace GitPane
             }
         }
 
-        private class GitCommandResult
+        public class GitCommandResult
         {
             public int ExitCode { get; set; }
             public string Output { get; set; }
