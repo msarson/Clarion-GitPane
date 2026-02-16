@@ -564,8 +564,44 @@ namespace GitPane
 
             if (stagedListBox.Items.Count == 0)
             {
-                MessageBox.Show("No files staged for commit.", "Nothing to Commit", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
+                // Check if there are unstaged files to stage
+                if (unstagedListBox.Items.Count > 0)
+                {
+                    var result = MessageBox.Show(
+                        "No files are staged for commit.\n\nWould you like to stage all files and commit?",
+                        "Nothing Staged",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question);
+                    
+                    if (result == DialogResult.Yes)
+                    {
+                        // Stage all files first
+                        if (!gitRepo.StageAllFiles())
+                        {
+                            MessageBox.Show("Failed to stage files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+                        
+                        // Refresh to update staged list
+                        RefreshFileList();
+                        
+                        // Continue with commit (check again after staging)
+                        if (stagedListBox.Items.Count == 0)
+                        {
+                            MessageBox.Show("No files to commit.", "Nothing to Commit", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        return; // User cancelled
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("No files to commit.", "Nothing to Commit", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
             }
 
             if (gitRepo.CommitChanges(message))
