@@ -12,6 +12,8 @@ namespace GitPane
         private Label branchLabel;
         private Label branchValueLabel;
         private Button branchSelectButton;
+        private Label remoteLabel;
+        private Button addRemoteButton;
         private Label statusLabel;
         
         // Commit workflow controls
@@ -75,10 +77,27 @@ namespace GitPane
             branchSelectButton.Location = new Point(200, 7);
             branchSelectButton.Click += OnBranchSelectClick;
 
+            // Remote label
+            remoteLabel = new Label();
+            remoteLabel.AutoSize = true;
+            remoteLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 8F);
+            remoteLabel.ForeColor = SystemColors.GrayText;
+            remoteLabel.Location = new Point(240, 12);
+            remoteLabel.Text = "";
+
+            // Add Remote button
+            addRemoteButton = new Button();
+            addRemoteButton.Text = "Add Remote Origin";
+            addRemoteButton.Location = new Point(240, 7);
+            addRemoteButton.Width = 130;
+            addRemoteButton.Height = 23;
+            addRemoteButton.Click += OnAddRemoteClick;
+            addRemoteButton.Visible = false;
+
             // Refresh button
             refreshButton = new Button();
             refreshButton.Text = "Refresh";
-            refreshButton.Location = new Point(240, 7);
+            refreshButton.Location = new Point(380, 7);
             refreshButton.Width = 70;
             refreshButton.Height = 23;
             refreshButton.Click += OnRefreshClick;
@@ -166,6 +185,8 @@ namespace GitPane
             contentPanel.Controls.Add(branchLabel);
             contentPanel.Controls.Add(branchValueLabel);
             contentPanel.Controls.Add(branchSelectButton);
+            contentPanel.Controls.Add(remoteLabel);
+            contentPanel.Controls.Add(addRemoteButton);
             contentPanel.Controls.Add(refreshButton);
             contentPanel.Controls.Add(stagedGroupBox);
             contentPanel.Controls.Add(unstagedGroupBox);
@@ -198,6 +219,9 @@ namespace GitPane
                     branchSelectButton.Visible = true;
                     refreshButton.Visible = true;
                     statusLabel.Visible = false;
+                    
+                    // Check remote status
+                    UpdateRemoteStatus();
                     
                     // Show commit workflow controls
                     stagedGroupBox.Visible = true;
@@ -234,6 +258,8 @@ namespace GitPane
             branchLabel.Visible = false;
             branchValueLabel.Visible = false;
             branchSelectButton.Visible = false;
+            remoteLabel.Visible = false;
+            addRemoteButton.Visible = false;
             refreshButton.Visible = false;
             stagedGroupBox.Visible = false;
             unstagedGroupBox.Visible = false;
@@ -411,6 +437,116 @@ namespace GitPane
             else
             {
                 MessageBox.Show("Failed to commit changes.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void UpdateRemoteStatus()
+        {
+            if (gitRepo == null)
+                return;
+
+            bool hasRemote = gitRepo.HasRemote();
+            
+            if (hasRemote)
+            {
+                string remoteUrl = gitRepo.GetRemoteUrl();
+                if (!string.IsNullOrEmpty(remoteUrl))
+                {
+                    // Show shortened remote URL
+                    string displayUrl = remoteUrl;
+                    if (displayUrl.Length > 40)
+                        displayUrl = displayUrl.Substring(0, 37) + "...";
+                    
+                    remoteLabel.Text = $"Remote: {displayUrl}";
+                    remoteLabel.Visible = true;
+                }
+                addRemoteButton.Visible = false;
+            }
+            else
+            {
+                remoteLabel.Text = "Local repository only";
+                remoteLabel.Visible = true;
+                addRemoteButton.Visible = true;
+            }
+        }
+
+        private void OnAddRemoteClick(object sender, EventArgs e)
+        {
+            // Prompt for remote URL
+            var urlDialog = new Form();
+            urlDialog.Text = "Add Remote Origin";
+            urlDialog.Width = 500;
+            urlDialog.Height = 160;
+            urlDialog.StartPosition = FormStartPosition.CenterParent;
+            urlDialog.FormBorderStyle = FormBorderStyle.FixedDialog;
+            urlDialog.MaximizeBox = false;
+            urlDialog.MinimizeBox = false;
+
+            var label = new Label();
+            label.Text = "Enter remote URL (HTTPS or SSH):";
+            label.Location = new Point(10, 10);
+            label.AutoSize = true;
+            urlDialog.Controls.Add(label);
+
+            var urlBox = new TextBox();
+            urlBox.Location = new Point(10, 35);
+            urlBox.Width = 460;
+            urlDialog.Controls.Add(urlBox);
+
+            var exampleLabel = new Label();
+            exampleLabel.Text = "Example: https://github.com/user/repo.git";
+            exampleLabel.Location = new Point(10, 60);
+            exampleLabel.AutoSize = true;
+            exampleLabel.ForeColor = SystemColors.GrayText;
+            urlDialog.Controls.Add(exampleLabel);
+
+            var okButton = new Button();
+            okButton.Text = "Add";
+            okButton.DialogResult = DialogResult.OK;
+            okButton.Location = new Point(310, 85);
+            okButton.Width = 75;
+            urlDialog.Controls.Add(okButton);
+
+            var cancelButton = new Button();
+            cancelButton.Text = "Cancel";
+            cancelButton.DialogResult = DialogResult.Cancel;
+            cancelButton.Location = new Point(395, 85);
+            cancelButton.Width = 75;
+            urlDialog.Controls.Add(cancelButton);
+
+            urlDialog.AcceptButton = okButton;
+            urlDialog.CancelButton = cancelButton;
+
+            if (urlDialog.ShowDialog() == DialogResult.OK)
+            {
+                string url = urlBox.Text.Trim();
+                
+                if (string.IsNullOrEmpty(url))
+                {
+                    MessageBox.Show("URL cannot be empty.", "Invalid URL", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Basic validation
+                if (!url.StartsWith("http://") && !url.StartsWith("https://") && 
+                    !url.StartsWith("git@") && !url.StartsWith("ssh://"))
+                {
+                    MessageBox.Show("URL must start with http://, https://, git@, or ssh://", 
+                        "Invalid URL", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (gitRepo.AddRemote("origin", url))
+                {
+                    MessageBox.Show("Remote origin added successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    UpdateRemoteStatus();
+                    UpdateStatus(); // Refresh to update repo name if it changed
+                }
+                else
+                {
+                    MessageBox.Show("Failed to add remote. The remote may already exist or the URL is invalid.", 
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 

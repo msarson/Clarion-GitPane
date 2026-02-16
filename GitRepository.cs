@@ -253,6 +253,24 @@ namespace GitPane
             return Path.GetFileName(workingDirectory);
         }
 
+        public bool HasRemote(string remoteName = "origin")
+        {
+            var result = ExecuteGitCommand("remote -v");
+            return result.ExitCode == 0 && result.Output.Contains(remoteName);
+        }
+
+        public string GetRemoteUrl(string remoteName = "origin")
+        {
+            var result = ExecuteGitCommand($"config --get remote.{remoteName}.url");
+            return result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output) ? result.Output.Trim() : null;
+        }
+
+        public bool AddRemote(string remoteName, string url)
+        {
+            var result = ExecuteGitCommand($"remote add {remoteName} \"{url}\"");
+            return result.ExitCode == 0;
+        }
+
         private GitCommandResult ExecuteGitCommand(string arguments)
         {
             try
