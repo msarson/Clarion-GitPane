@@ -280,6 +280,45 @@ namespace GitPane
             return result.ExitCode == 0;
         }
 
+        public bool AddToGitignore(string pattern)
+        {
+            try
+            {
+                string gitignorePath = Path.Combine(workingDirectory, ".gitignore");
+                
+                // Read existing content to check for duplicates
+                string existingContent = "";
+                if (File.Exists(gitignorePath))
+                {
+                    existingContent = File.ReadAllText(gitignorePath);
+                    
+                    // Check if pattern already exists
+                    var lines = existingContent.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var line in lines)
+                    {
+                        if (line.Trim() == pattern.Trim())
+                            return true; // Already exists, consider it success
+                    }
+                }
+                
+                // Append pattern
+                using (var writer = File.AppendText(gitignorePath))
+                {
+                    // Add newline before if file exists and doesn't end with newline
+                    if (!string.IsNullOrEmpty(existingContent) && !existingContent.EndsWith("\n"))
+                        writer.WriteLine();
+                    
+                    writer.WriteLine(pattern);
+                }
+                
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private GitCommandResult ExecuteGitCommand(string arguments)
         {
             try

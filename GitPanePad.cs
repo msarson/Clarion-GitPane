@@ -25,6 +25,7 @@ namespace GitPane
         
         private GroupBox unstagedGroupBox;
         private CheckedListBox unstagedListBox;
+        private ContextMenuStrip unstagedContextMenu;
         private Button stageSelectedButton;
         private Button stageAllButton;
         
@@ -151,6 +152,19 @@ namespace GitPane
             unstagedListBox.Size = new Size(440, 115);
             unstagedListBox.Font = new Font("Courier New", 8F);
             unstagedListBox.CheckOnClick = true;
+
+            // Context menu for unstaged files
+            unstagedContextMenu = new ContextMenuStrip();
+            var ignoreFileItem = new ToolStripMenuItem("Ignore this file");
+            ignoreFileItem.Click += OnIgnoreFileClick;
+            var ignoreExtensionItem = new ToolStripMenuItem("Ignore file type (*.[ext])");
+            ignoreExtensionItem.Click += OnIgnoreExtensionClick;
+            var ignoreDirectoryItem = new ToolStripMenuItem("Ignore directory");
+            ignoreDirectoryItem.Click += OnIgnoreDirectoryClick;
+            unstagedContextMenu.Items.Add(ignoreFileItem);
+            unstagedContextMenu.Items.Add(ignoreExtensionItem);
+            unstagedContextMenu.Items.Add(ignoreDirectoryItem);
+            unstagedListBox.ContextMenuStrip = unstagedContextMenu;
 
             stageSelectedButton = new Button();
             stageSelectedButton.Text = "Stage Selected";
@@ -393,6 +407,83 @@ namespace GitPane
             else
             {
                 MessageBox.Show("Failed to unstage all files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void OnIgnoreFileClick(object sender, EventArgs e)
+        {
+            if (unstagedListBox.SelectedItem == null)
+                return;
+
+            var item = unstagedListBox.SelectedItem.ToString();
+            var parts = item.Split('\t');
+            var filePath = parts.Length > 1 ? parts[1] : item;
+
+            if (gitRepo.AddToGitignore(filePath))
+            {
+                MessageBox.Show($"Added '{filePath}' to .gitignore", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                RefreshFileList();
+            }
+            else
+            {
+                MessageBox.Show("Failed to update .gitignore", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void OnIgnoreExtensionClick(object sender, EventArgs e)
+        {
+            if (unstagedListBox.SelectedItem == null)
+                return;
+
+            var item = unstagedListBox.SelectedItem.ToString();
+            var parts = item.Split('\t');
+            var filePath = parts.Length > 1 ? parts[1] : item;
+
+            string extension = System.IO.Path.GetExtension(filePath);
+            if (string.IsNullOrEmpty(extension))
+            {
+                MessageBox.Show("File has no extension to ignore.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            string pattern = $"*{extension}";
+            if (gitRepo.AddToGitignore(pattern))
+            {
+                MessageBox.Show($"Added '{pattern}' to .gitignore", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                RefreshFileList();
+            }
+            else
+            {
+                MessageBox.Show("Failed to update .gitignore", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void OnIgnoreDirectoryClick(object sender, EventArgs e)
+        {
+            if (unstagedListBox.SelectedItem == null)
+                return;
+
+            var item = unstagedListBox.SelectedItem.ToString();
+            var parts = item.Split('\t');
+            var filePath = parts.Length > 1 ? parts[1] : item;
+
+            string directory = System.IO.Path.GetDirectoryName(filePath);
+            if (string.IsNullOrEmpty(directory))
+            {
+                MessageBox.Show("File is in root directory.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // Normalize path separators to forward slashes for .gitignore
+            string pattern = directory.Replace('\\', '/') + "/";
+            if (gitRepo.AddToGitignore(pattern))
+            {
+                MessageBox.Show($"Added '{pattern}' to .gitignore", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                RefreshFileList();
+            }
+            else
+            {
+                MessageBox.Show("Failed to update .gitignore", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
