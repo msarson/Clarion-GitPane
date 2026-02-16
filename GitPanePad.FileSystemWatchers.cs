@@ -112,7 +112,7 @@ namespace GitPane
                 {
                     try
                     {
-                        contentPanel.Invoke(new Action(UpdateRemoteStatus));
+                        contentPanel.Invoke(new Action(UpdateMenuStates));
                     }
                     catch
                     {
@@ -121,7 +121,7 @@ namespace GitPane
                 }
                 else
                 {
-                    UpdateRemoteStatus();
+                    UpdateMenuStates();
                 }
             }, null, 500, System.Threading.Timeout.Infinite);
         }

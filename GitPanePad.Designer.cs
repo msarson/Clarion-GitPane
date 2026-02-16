@@ -22,12 +22,20 @@ namespace GitPane
         private ToolStrip toolStrip;
         private Label branchValueLabel;
         private ToolStripButton branchSelectButton;
-        private Label remoteLabel;
-        private ToolStripButton removeRemoteButton;
-        private ToolStripButton addRemoteButton;
-        private ToolStripButton createGitHubRepoButton;
-        private ToolStripButton historyButton;
-        private ToolStripButton refreshButton;
+        
+        // Menu items that need context-aware visibility
+        private ToolStripMenuItem initRepoMenuItem;
+        private ToolStripMenuItem fetchMenuItem;
+        private ToolStripMenuItem pullMenuItem;
+        private ToolStripMenuItem pushMenuItem;
+        private ToolStripMenuItem viewOnRemoteMenuItem;
+        private ToolStripMenuItem createGitHubMenuItem;
+        private ToolStripMenuItem addRemoteMenuItem;
+        private ToolStripMenuItem removeRemoteMenuItem;
+        private ToolStripMenuItem switchBranchMenuItem;
+        private ToolStripMenuItem createBranchMenuItem;
+        private ToolStripMenuItem deleteBranchMenuItem;
+        private ToolStripMenuItem mergeBranchMenuItem;
         
         // Main layout containers
         private SplitContainer mainSplitter;
@@ -79,7 +87,7 @@ namespace GitPane
             
             // File menu
             var fileMenu = new ToolStripMenuItem("&File");
-            var initRepoMenuItem = new ToolStripMenuItem("Initialize Repository...");
+            initRepoMenuItem = new ToolStripMenuItem("Initialize Repository...");
             initRepoMenuItem.Click += OnInitRepoClick;
             var openExternalMenu = new ToolStripMenuItem("Open in External Tool");
             var openGitHubDesktopMenuItem = new ToolStripMenuItem("GitHub Desktop");
@@ -99,19 +107,19 @@ namespace GitPane
             var repoMenu = new ToolStripMenuItem("&Repository");
             var refreshMenuItem = new ToolStripMenuItem("Refresh");
             refreshMenuItem.Click += OnRefreshClick;
-            var fetchMenuItem = new ToolStripMenuItem("Fetch");
+            fetchMenuItem = new ToolStripMenuItem("Fetch");
             fetchMenuItem.Click += OnFetchClick;
-            var pullMenuItem = new ToolStripMenuItem("Pull");
+            pullMenuItem = new ToolStripMenuItem("Pull");
             pullMenuItem.Click += OnPullClick;
-            var pushMenuItem = new ToolStripMenuItem("Push");
+            pushMenuItem = new ToolStripMenuItem("Push");
             pushMenuItem.Click += OnPushClick;
             var historyMenuItem = new ToolStripMenuItem("View History...");
             historyMenuItem.Click += OnHistoryClick;
-            var createGitHubMenuItem = new ToolStripMenuItem("Create GitHub Repository...");
+            createGitHubMenuItem = new ToolStripMenuItem("Create GitHub Repository...");
             createGitHubMenuItem.Click += OnCreateGitHubRepoClick;
-            var addRemoteMenuItem = new ToolStripMenuItem("Add Remote...");
+            addRemoteMenuItem = new ToolStripMenuItem("Add Remote...");
             addRemoteMenuItem.Click += OnAddRemoteClick;
-            var removeRemoteMenuItem = new ToolStripMenuItem("Remove Remote...");
+            removeRemoteMenuItem = new ToolStripMenuItem("Remove Remote...");
             removeRemoteMenuItem.Click += OnRemoveRemoteClick;
             repoMenu.DropDownItems.Add(refreshMenuItem);
             repoMenu.DropDownItems.Add(fetchMenuItem);
@@ -119,19 +127,23 @@ namespace GitPane
             repoMenu.DropDownItems.Add(pushMenuItem);
             repoMenu.DropDownItems.Add(historyMenuItem);
             repoMenu.DropDownItems.Add(new ToolStripSeparator());
+            viewOnRemoteMenuItem = new ToolStripMenuItem("View on Remote");
+            viewOnRemoteMenuItem.Click += OnViewOnRemoteClick;
+            repoMenu.DropDownItems.Add(viewOnRemoteMenuItem);
+            repoMenu.DropDownItems.Add(new ToolStripSeparator());
             repoMenu.DropDownItems.Add(createGitHubMenuItem);
             repoMenu.DropDownItems.Add(addRemoteMenuItem);
             repoMenu.DropDownItems.Add(removeRemoteMenuItem);
             
             // Branch menu
             var branchMenu = new ToolStripMenuItem("&Branch");
-            var switchBranchMenuItem = new ToolStripMenuItem("Switch Branch...");
+            switchBranchMenuItem = new ToolStripMenuItem("Switch Branch...");
             switchBranchMenuItem.Click += OnBranchSelectClick;
-            var createBranchMenuItem = new ToolStripMenuItem("Create Branch...");
+            createBranchMenuItem = new ToolStripMenuItem("Create Branch...");
             createBranchMenuItem.Click += OnCreateBranchClick;
-            var deleteBranchMenuItem = new ToolStripMenuItem("Delete Branch...");
+            deleteBranchMenuItem = new ToolStripMenuItem("Delete Branch...");
             deleteBranchMenuItem.Click += OnDeleteBranchClick;
-            var mergeBranchMenuItem = new ToolStripMenuItem("Merge...");
+            mergeBranchMenuItem = new ToolStripMenuItem("Merge...");
             mergeBranchMenuItem.Click += OnMergeBranchClick;
             branchMenu.DropDownItems.Add(switchBranchMenuItem);
             branchMenu.DropDownItems.Add(createBranchMenuItem);
@@ -188,62 +200,10 @@ namespace GitPane
             branchSelectButton.Click += OnBranchSelectClick;
             branchSelectButton.Margin = new Padding(0, 1, 3, 2);
             
-            // Separator
-            ToolStripSeparator separator1 = new ToolStripSeparator();
-            separator1.Margin = new Padding(5, 0, 5, 0);
-            
-            // Remote info
-            remoteLabel = new Label();
-            remoteLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 8F);
-            remoteLabel.ForeColor = SystemColors.GrayText;
-            remoteLabel.AutoSize = true;
-            remoteLabel.MaximumSize = new Size(300, 0);
-            remoteLabel.Margin = new Padding(0, 0, 5, 0);
-            ToolStripControlHost remoteLabelHost = new ToolStripControlHost(remoteLabel);
-            
-            // Remote buttons
-            removeRemoteButton = new ToolStripButton("×");
-            removeRemoteButton.Font = new Font(SystemFonts.DefaultFont.FontFamily, 10F, FontStyle.Bold);
-            removeRemoteButton.Click += OnRemoveRemoteClick;
-            removeRemoteButton.Visible = false;
-            removeRemoteButton.Margin = new Padding(0, 1, 3, 2);
-            
-            addRemoteButton = new ToolStripButton("Add Remote");
-            addRemoteButton.Click += OnAddRemoteClick;
-            addRemoteButton.Visible = false;
-            addRemoteButton.Margin = new Padding(0, 1, 3, 2);
-            
-            createGitHubRepoButton = new ToolStripButton("Create on GitHub");
-            createGitHubRepoButton.Click += OnCreateGitHubRepoClick;
-            createGitHubRepoButton.Visible = false;
-            createGitHubRepoButton.Margin = new Padding(0, 1, 3, 2);
-            
-            // Separator
-            ToolStripSeparator separator2 = new ToolStripSeparator();
-            separator2.Margin = new Padding(5, 0, 5, 0);
-            
-            // History button
-            historyButton = new ToolStripButton("History");
-            historyButton.Click += OnHistoryClick;
-            historyButton.Margin = new Padding(0, 1, 3, 2);
-            
-            // Refresh button
-            refreshButton = new ToolStripButton("Refresh");
-            refreshButton.Click += OnRefreshClick;
-            refreshButton.Margin = new Padding(0, 1, 3, 2);
-            
-            // Add items to toolbar
+            // Add items to toolbar (simple: just branch info)
             toolStrip.Items.Add(branchToolLabel);
             toolStrip.Items.Add(branchValueHost);
             toolStrip.Items.Add(branchSelectButton);
-            toolStrip.Items.Add(separator1);
-            toolStrip.Items.Add(remoteLabelHost);
-            toolStrip.Items.Add(removeRemoteButton);
-            toolStrip.Items.Add(addRemoteButton);
-            toolStrip.Items.Add(createGitHubRepoButton);
-            toolStrip.Items.Add(separator2);
-            toolStrip.Items.Add(historyButton);
-            toolStrip.Items.Add(refreshButton);
             
             // Commit container - holds editor area and buttons in lower splitter
             commitContainer = new Panel();

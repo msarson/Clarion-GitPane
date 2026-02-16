@@ -63,11 +63,6 @@ namespace GitPane
                     
                     branchValueLabel.Visible = true;
                     branchSelectButton.Visible = true;
-                    historyButton.Visible = true;
-                    refreshButton.Visible = true;
-                    
-                    // Check remote status
-                    UpdateRemoteStatus();
                     
                     // Show commit workflow controls
                     stagedGroupBox.Visible = true;
@@ -85,6 +80,7 @@ namespace GitPane
                     
                     RefreshFileList();
                     StartFileWatcher(solutionDir);
+                    UpdateMenuStates(); // Update menu items based on repo state
                 }
                 else
                 {
@@ -94,6 +90,7 @@ namespace GitPane
                     statusLabel.Text = "Not a Git repository";
                     statusLabel.Visible = true;
                     initRepoButton.Visible = true; // Show init button
+                    UpdateMenuStates(); // Update menu items for non-repo state
                 }
             }
             else
@@ -104,6 +101,7 @@ namespace GitPane
                 statusLabel.Text = "No solution opened";
                 statusLabel.Visible = true;
                 initRepoButton.Visible = false; // Hide init button - no solution
+                UpdateMenuStates(); // Update menu items for no solution state
             }
         }
 
@@ -117,13 +115,7 @@ namespace GitPane
             // Hide individual controls
             branchValueLabel.Visible = false;
             branchSelectButton.Visible = false;
-            historyButton.Visible = false;
-            remoteLabel.Visible = false;
-            removeRemoteButton.Visible = false;
-            addRemoteButton.Visible = false;
-            createGitHubRepoButton.Visible = false;
             initRepoButton.Visible = false;
-            refreshButton.Visible = false;
             stagedGroupBox.Visible = false;
             unstagedGroupBox.Visible = false;
             commitMessageLabel.Visible = false;
@@ -187,14 +179,10 @@ namespace GitPane
                 commitPushButton.Enabled = false;
                 pushButton.Enabled = false;
                 branchSelectButton.Enabled = false;
-                historyButton.Enabled = false;
-                refreshButton.Enabled = false;
                 return;
             }
             
-            // Enable refresh, history, and branch buttons when repo exists
-            refreshButton.Enabled = true;
-            historyButton.Enabled = true;
+            // Enable branch button when repo exists
             branchSelectButton.Enabled = true;
             
             // Stage buttons - enabled when unstaged files exist or are checked
@@ -226,6 +214,31 @@ namespace GitPane
             commitPushButton.Enabled = canCommit && hasRemote;
             
             // Push button visibility/enabled already handled by UpdatePushButtonVisibility()
+        }
+
+        private void UpdateMenuStates()
+        {
+            bool hasRepo = gitRepo != null && gitRepo.IsRepository();
+            bool hasSolution = ProjectService.OpenSolution != null;
+            bool hasRemote = hasRepo && gitRepo.HasRemote();
+            
+            // File menu
+            initRepoMenuItem.Visible = hasSolution && !hasRepo;
+            
+            // Repository menu items
+            fetchMenuItem.Enabled = hasRemote;
+            pullMenuItem.Enabled = hasRemote;
+            pushMenuItem.Enabled = hasRemote;
+            viewOnRemoteMenuItem.Enabled = hasRemote;
+            createGitHubMenuItem.Enabled = hasRepo && !hasRemote;
+            addRemoteMenuItem.Enabled = hasRepo && !hasRemote;
+            removeRemoteMenuItem.Enabled = hasRemote;
+            
+            // Branch menu items
+            switchBranchMenuItem.Enabled = hasRepo;
+            createBranchMenuItem.Enabled = hasRepo;
+            deleteBranchMenuItem.Enabled = hasRepo;
+            mergeBranchMenuItem.Enabled = hasRepo;
         }
 
         private void UpdatePushButtonVisibility()
@@ -266,7 +279,6 @@ namespace GitPane
         private void OnRefreshClick(object sender, EventArgs e)
         {
             RefreshFileList();
-            UpdateRemoteStatus(); // Check if remote still exists
         }
 
         private void OnStageSelectedClick(object sender, EventArgs e)
@@ -530,52 +542,360 @@ namespace GitPane
         // File menu
         private void OnOpenGitHubDesktopClick(object sender, EventArgs e)
         {
-            // TODO: Implement open in GitHub Desktop
-            MessageBox.Show("Open in GitHub Desktop - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (gitRepo == null || !gitRepo.IsRepository())
+            {
+                MessageBox.Show("No Git repository is open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                string repoPath = gitRepo.GetWorkingDirectory();
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "github",
+                    Arguments = repoPath,
+                    UseShellExecute = true
+                };
+                System.Diagnostics.Process.Start(psi);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to open GitHub Desktop.\n\nMake sure GitHub Desktop is installed.\n\nError: {ex.Message}", 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void OnOpenGitKrakenClick(object sender, EventArgs e)
         {
-            // TODO: Implement open in GitKraken
-            MessageBox.Show("Open in GitKraken - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (gitRepo == null || !gitRepo.IsRepository())
+            {
+                MessageBox.Show("No Git repository is open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                string repoPath = gitRepo.GetWorkingDirectory();
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "gitkraken",
+                    Arguments = $"--path \"{repoPath}\"",
+                    UseShellExecute = true
+                };
+                System.Diagnostics.Process.Start(psi);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to open GitKraken.\n\nMake sure GitKraken is installed.\n\nError: {ex.Message}", 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void OnClosePaneClick(object sender, EventArgs e)
         {
-            // TODO: Implement close pane
-            MessageBox.Show("Close Git Pane - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            // Close the pad by closing its parent form
+            var parentForm = this.Control.FindForm();
+            if (parentForm != null)
+            {
+                parentForm.Close();
+            }
         }
 
         // Repository menu
         private void OnFetchClick(object sender, EventArgs e)
         {
-            // TODO: Implement fetch
-            MessageBox.Show("Fetch - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (gitRepo == null || !gitRepo.IsRepository())
+            {
+                MessageBox.Show("No Git repository is open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!gitRepo.HasRemote())
+            {
+                MessageBox.Show("No remote configured for this repository.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var result = gitRepo.Fetch();
+            if (result.ExitCode == 0)
+            {
+                MessageBox.Show("Fetch completed successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                RefreshFileList();
+            }
+            else
+            {
+                MessageBox.Show($"Fetch failed.\n\nError: {result.Error}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void OnPullClick(object sender, EventArgs e)
         {
-            // TODO: Implement pull
-            MessageBox.Show("Pull - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (gitRepo == null || !gitRepo.IsRepository())
+            {
+                MessageBox.Show("No Git repository is open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!gitRepo.HasRemote())
+            {
+                MessageBox.Show("No remote configured for this repository.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (gitRepo.HasUncommittedChanges())
+            {
+                var result = MessageBox.Show(
+                    "You have uncommitted changes. Pull may fail or cause conflicts.\n\nDo you want to continue?",
+                    "Uncommitted Changes",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+                
+                if (result != DialogResult.Yes)
+                    return;
+            }
+
+            var pullResult = gitRepo.Pull();
+            if (pullResult.ExitCode == 0)
+            {
+                MessageBox.Show($"Pull completed successfully.\n\n{pullResult.Output}", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                RefreshFileList();
+            }
+            else
+            {
+                MessageBox.Show($"Pull failed.\n\nError: {pullResult.Error}\n\n{pullResult.Output}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void OnViewOnRemoteClick(object sender, EventArgs e)
+        {
+            if (gitRepo == null || !gitRepo.IsRepository())
+            {
+                MessageBox.Show("No Git repository is open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!gitRepo.HasRemote())
+            {
+                MessageBox.Show("No remote configured for this repository.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string remoteUrl = gitRepo.GetRemoteUrl();
+            if (string.IsNullOrEmpty(remoteUrl))
+            {
+                MessageBox.Show("Could not retrieve remote URL.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Convert SSH URLs to HTTPS for browser
+            string browserUrl = remoteUrl;
+            if (browserUrl.StartsWith("git@"))
+            {
+                // Convert git@github.com:user/repo.git to https://github.com/user/repo
+                browserUrl = browserUrl.Replace("git@", "https://");
+                browserUrl = browserUrl.Replace(".com:", ".com/");
+            }
+            
+            // Remove .git suffix
+            if (browserUrl.EndsWith(".git"))
+            {
+                browserUrl = browserUrl.Substring(0, browserUrl.Length - 4);
+            }
+
+            try
+            {
+                System.Diagnostics.Process.Start(browserUrl);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to open browser.\n\nURL: {browserUrl}\n\nError: {ex.Message}", 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         // Branch menu
         private void OnCreateBranchClick(object sender, EventArgs e)
         {
-            // TODO: Implement create branch
-            MessageBox.Show("Create Branch - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (gitRepo == null || !gitRepo.IsRepository())
+            {
+                MessageBox.Show("No Git repository is open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Simple input dialog for branch name
+            var branchName = Microsoft.VisualBasic.Interaction.InputBox(
+                "Enter new branch name:",
+                "Create Branch",
+                "");
+
+            if (string.IsNullOrWhiteSpace(branchName))
+                return;
+
+            // Validate branch name (basic check)
+            if (branchName.Contains(" ") || branchName.Contains(".."))
+            {
+                MessageBox.Show("Invalid branch name. Branch names cannot contain spaces or '..'", 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var result = gitRepo.CreateBranch(branchName, checkout: true);
+            if (result.ExitCode == 0)
+            {
+                MessageBox.Show($"Branch '{branchName}' created and checked out.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                UpdateStatus();
+            }
+            else
+            {
+                MessageBox.Show($"Failed to create branch.\n\nError: {result.Error}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void OnDeleteBranchClick(object sender, EventArgs e)
         {
-            // TODO: Implement delete branch
-            MessageBox.Show("Delete Branch - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (gitRepo == null || !gitRepo.IsRepository())
+            {
+                MessageBox.Show("No Git repository is open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var branches = gitRepo.GetAllBranchesWithInfo();
+            var currentBranch = gitRepo.GetCurrentBranch();
+
+            // Filter out current branch and remote branches
+            var deletableBranches = new System.Collections.Generic.List<string>();
+            foreach (var branch in branches)
+            {
+                if (!branch.IsCurrent && !branch.IsRemote)
+                {
+                    deletableBranches.Add(branch.Name);
+                }
+            }
+
+            if (deletableBranches.Count == 0)
+            {
+                MessageBox.Show("No local branches available to delete.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // Create BranchInfo array for dialog (only deletable branches)
+            var deletableBranchInfos = new System.Collections.Generic.List<BranchInfo>();
+            foreach (var branch in branches)
+            {
+                if (!branch.IsCurrent && !branch.IsRemote)
+                {
+                    deletableBranchInfos.Add(branch);
+                }
+            }
+
+            // Show branch selector dialog
+            using (var dialog = new BranchSelectorDialog(deletableBranchInfos.ToArray(), currentBranch))
+            {
+                dialog.Text = "Delete Branch";
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    var branchToDelete = dialog.SelectedBranch;
+                    
+                    var confirmResult = MessageBox.Show(
+                        $"Are you sure you want to delete branch '{branchToDelete}'?",
+                        "Confirm Delete",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning);
+
+                    if (confirmResult == DialogResult.Yes)
+                    {
+                        var result = gitRepo.DeleteBranch(branchToDelete, force: false);
+                        if (result.ExitCode == 0)
+                        {
+                            MessageBox.Show($"Branch '{branchToDelete}' deleted.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            UpdateStatus();
+                        }
+                        else
+                        {
+                            // Try force delete if normal delete failed
+                            var forceResult = MessageBox.Show(
+                                $"Failed to delete branch.\n\n{result.Error}\n\nDo you want to force delete?",
+                                "Delete Failed",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Warning);
+
+                            if (forceResult == DialogResult.Yes)
+                            {
+                                var forceDeleteResult = gitRepo.DeleteBranch(branchToDelete, force: true);
+                                if (forceDeleteResult.ExitCode == 0)
+                                {
+                                    MessageBox.Show($"Branch '{branchToDelete}' force deleted.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                    UpdateStatus();
+                                }
+                                else
+                                {
+                                    MessageBox.Show($"Failed to force delete branch.\n\nError: {forceDeleteResult.Error}", 
+                                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private void OnMergeBranchClick(object sender, EventArgs e)
         {
-            // TODO: Implement merge branch
-            MessageBox.Show("Merge Branch - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (gitRepo == null || !gitRepo.IsRepository())
+            {
+                MessageBox.Show("No Git repository is open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (gitRepo.HasUncommittedChanges())
+            {
+                MessageBox.Show("You have uncommitted changes. Please commit or discard them before merging.", 
+                    "Uncommitted Changes", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var branches = gitRepo.GetAllBranchesWithInfo();
+            var currentBranch = gitRepo.GetCurrentBranch();
+
+            // Filter out current branch
+            var mergeableBranches = new System.Collections.Generic.List<BranchInfo>();
+            foreach (var branch in branches)
+            {
+                if (!branch.IsCurrent)
+                {
+                    mergeableBranches.Add(branch);
+                }
+            }
+
+            if (mergeableBranches.Count == 0)
+            {
+                MessageBox.Show("No branches available to merge.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // Show branch selector dialog
+            using (var dialog = new BranchSelectorDialog(mergeableBranches.ToArray(), currentBranch))
+            {
+                dialog.Text = "Merge Branch";
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    var branchToMerge = dialog.SelectedBranch;
+                    
+                    var result = gitRepo.MergeBranch(branchToMerge);
+                    if (result.ExitCode == 0)
+                    {
+                        MessageBox.Show($"Branch '{branchToMerge}' merged into '{currentBranch}'.\n\n{result.Output}", 
+                            "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        RefreshFileList();
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Merge failed.\n\nError: {result.Error}\n\n{result.Output}", 
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
         }
 
         // View menu

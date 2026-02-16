@@ -13,43 +13,6 @@ namespace GitPane
     {
         #region Remote Management
 
-        private void UpdateRemoteStatus()
-        {
-            if (gitRepo == null)
-                return;
-
-            bool hasRemote = gitRepo.HasRemote();
-            
-            if (hasRemote)
-            {
-                string remoteUrl = gitRepo.GetRemoteUrl();
-                if (!string.IsNullOrEmpty(remoteUrl))
-                {
-                    // Show shortened remote URL
-                    string displayUrl = remoteUrl;
-                    if (displayUrl.Length > 40)
-                        displayUrl = displayUrl.Substring(0, 37) + "...";
-                    
-                    remoteLabel.Text = $"Remote: {displayUrl}";
-                    remoteLabel.Visible = true;
-                    removeRemoteButton.Visible = true;
-                }
-                addRemoteButton.Visible = false;
-                createGitHubRepoButton.Visible = false;
-            }
-            else
-            {
-                // No remote - show manual add button
-                remoteLabel.Visible = false;
-                removeRemoteButton.Visible = false;
-                addRemoteButton.Visible = true;
-                
-                // Show GitHub button if CLI is installed and authenticated
-                bool hasGitHubCLI = gitRepo.IsGitHubCLIInstalled() && gitRepo.IsGitHubCLIAuthenticated();
-                createGitHubRepoButton.Visible = hasGitHubCLI;
-            }
-        }
-
         private void OnAddRemoteClick(object sender, EventArgs e)
         {
             // Prompt for remote URL
@@ -119,7 +82,7 @@ namespace GitPane
                 if (gitRepo.AddRemote("origin", url))
                 {
                     MessageBox.Show("Remote origin added successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    UpdateRemoteStatus();
+                    UpdateMenuStates();
                     UpdateStatus(); // Refresh to update repo name if it changed
                 }
                 else
@@ -148,7 +111,7 @@ namespace GitPane
                 if (gitRepo.RemoveRemote("origin"))
                 {
                     MessageBox.Show("Remote 'origin' removed successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    UpdateRemoteStatus();
+                    UpdateMenuStates();
                     UpdateStatus(); // Refresh to update repo name
                 }
                 else

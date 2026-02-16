@@ -165,5 +165,6 @@ namespace GitPane
         public string Name { get; set; }
         public string LastCommit { get; set; }
         public bool IsRemote { get; set; }
+        public bool IsCurrent { get; set; }
     }
 }

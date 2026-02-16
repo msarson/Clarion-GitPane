@@ -13,6 +13,11 @@ namespace GitPane
             workingDirectory = directory;
         }
 
+        public string GetWorkingDirectory()
+        {
+            return workingDirectory;
+        }
+
         public bool IsRepository()
         {
             if (string.IsNullOrEmpty(workingDirectory) || !Directory.Exists(workingDirectory))
@@ -103,6 +108,8 @@ namespace GitPane
 
         public BranchInfo[] GetAllBranchesWithInfo()
         {
+            var currentBranch = GetCurrentBranch();
+            
             // Get all branches sorted by last commit date
             var result = ExecuteGitCommand("for-each-ref --sort=-committerdate --format=%(refname:short)|%(committerdate:relative) refs/heads/ refs/remotes/");
             if (result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output))
@@ -123,7 +130,8 @@ namespace GitPane
                         {
                             Name = branchName,
                             LastCommit = lastCommit,
-                            IsRemote = isRemote
+                            IsRemote = isRemote,
+                            IsCurrent = branchName == currentBranch
                         });
                     }
                 }
@@ -150,6 +158,29 @@ namespace GitPane
             
             var checkoutResult = ExecuteGitCommand($"checkout \"{branchName}\"");
             return checkoutResult.ExitCode == 0;
+        }
+
+        public GitCommandResult CreateBranch(string branchName, bool checkout = true)
+        {
+            if (checkout)
+            {
+                return ExecuteGitCommand($"checkout -b \"{branchName}\"");
+            }
+            else
+            {
+                return ExecuteGitCommand($"branch \"{branchName}\"");
+            }
+        }
+
+        public GitCommandResult DeleteBranch(string branchName, bool force = false)
+        {
+            string flag = force ? "-D" : "-d";
+            return ExecuteGitCommand($"branch {flag} \"{branchName}\"");
+        }
+
+        public GitCommandResult MergeBranch(string branchName)
+        {
+            return ExecuteGitCommand($"merge \"{branchName}\"");
         }
 
         public bool HasUncommittedChanges()
@@ -196,6 +227,16 @@ namespace GitPane
             // Try push with upstream set (works for first push and subsequent pushes)
             var result = ExecuteGitCommand($"push -u origin {branch}");
             return result.ExitCode == 0;
+        }
+
+        public GitCommandResult Fetch()
+        {
+            return ExecuteGitCommand("fetch");
+        }
+
+        public GitCommandResult Pull()
+        {
+            return ExecuteGitCommand("pull");
         }
 
         public bool DiscardChanges()

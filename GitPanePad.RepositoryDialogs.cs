@@ -155,7 +155,7 @@ namespace GitPane
 
                 if (result.ExitCode == 0)
                 {
-                    UpdateRemoteStatus();
+                    UpdateMenuStates();
                     UpdateStatus();
                     
                     // Offer to push if there are commits
