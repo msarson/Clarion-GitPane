@@ -96,7 +96,6 @@ namespace GitPane
                     // FIX: Hide non-repo controls, show repo UI
                     statusLabel.Visible = false;
                     initRepoButton.Visible = false;
-                    menuStrip.Visible = true;
                     toolStrip.Visible = true;
                     mainSplitter.Visible = true;
                     commitPanel.Visible = true;
@@ -147,7 +146,6 @@ namespace GitPane
         private void HideCommitControls()
         {
             // Hide main UI containers
-            menuStrip.Visible = false;
             toolStrip.Visible = false;
             mainSplitter.Visible = false;
             

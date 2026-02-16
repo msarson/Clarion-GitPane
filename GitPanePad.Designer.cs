@@ -17,8 +17,7 @@ namespace GitPane
         
         private Panel contentPanel;
         
-        // Menu and toolbar controls
-        private MenuStrip menuStrip;
+        // Menu and toolbar controls (MenuStrip removed - caused reparenting issues in SharpDevelop host)
         private ToolStrip toolStrip;
         private ToolStripDropDownButton branchDropDown;
         
@@ -81,12 +80,14 @@ namespace GitPane
             contentPanel.Padding = new Padding(10);
             contentPanel.AutoScroll = false; // FIX: Disable AutoScroll - incompatible with Dock.Fill SplitContainer
 
-            // MenuStrip for main menu
-            menuStrip = new MenuStrip();
-            menuStrip.Dock = DockStyle.Top;
+            // ToolStrip for menu and toolbar - MenuStrip removed due to SharpDevelop host reparenting issues
+            toolStrip = new ToolStrip();
+            toolStrip.Dock = DockStyle.Top;
+            toolStrip.GripStyle = ToolStripGripStyle.Hidden;
+            toolStrip.Padding = new Padding(5, 2, 5, 6); // Extra bottom padding to separate from staged group
             
             // File menu
-            var fileMenu = new ToolStripMenuItem("&File");
+            var fileMenu = new ToolStripDropDownButton("File");
             initRepoMenuItem = new ToolStripMenuItem("Initialize Repository...");
             initRepoMenuItem.Click += OnInitRepoClick;
             var openExternalMenu = new ToolStripMenuItem("Open in External Tool");
@@ -104,7 +105,7 @@ namespace GitPane
             fileMenu.DropDownItems.Add(closePaneMenuItem);
             
             // Repository menu
-            var repoMenu = new ToolStripMenuItem("&Repository");
+            var repoMenu = new ToolStripDropDownButton("Repository");
             var refreshMenuItem = new ToolStripMenuItem("Refresh");
             refreshMenuItem.Click += OnRefreshClick;
             fetchMenuItem = new ToolStripMenuItem("Fetch");
@@ -136,7 +137,7 @@ namespace GitPane
             repoMenu.DropDownItems.Add(removeRemoteMenuItem);
             
             // Branch menu
-            var branchMenu = new ToolStripMenuItem("&Branch");
+            var branchMenu = new ToolStripDropDownButton("Branch");
             switchBranchMenuItem = new ToolStripMenuItem("Switch Branch...");
             switchBranchMenuItem.Click += OnBranchSelectClick;
             createBranchMenuItem = new ToolStripMenuItem("Create Branch...");
@@ -152,7 +153,7 @@ namespace GitPane
             branchMenu.DropDownItems.Add(mergeBranchMenuItem);
             
             // View menu
-            var viewMenu = new ToolStripMenuItem("&View");
+            var viewMenu = new ToolStripDropDownButton("View");
             var showToolbarMenuItem = new ToolStripMenuItem("Show Toolbar");
             showToolbarMenuItem.CheckOnClick = true;
             showToolbarMenuItem.Checked = true;
@@ -169,25 +170,20 @@ namespace GitPane
             viewMenu.DropDownItems.Add(resetLayoutMenuItem);
             
             // Help menu
-            var helpMenu = new ToolStripMenuItem("&Help");
+            var helpMenu = new ToolStripDropDownButton("Help");
             var aboutMenuItem = new ToolStripMenuItem("About GitPane");
             aboutMenuItem.Click += OnAboutClick;
             helpMenu.DropDownItems.Add(aboutMenuItem);
             
-            // Add menus to MenuStrip
-            menuStrip.Items.Add(fileMenu);
-            menuStrip.Items.Add(repoMenu);
-            menuStrip.Items.Add(branchMenu);
-            menuStrip.Items.Add(viewMenu);
-            menuStrip.Items.Add(helpMenu);
-
-            // ToolStrip for top controls - professional layout
-            toolStrip = new ToolStrip();
-            toolStrip.Dock = DockStyle.Top;
-            toolStrip.GripStyle = ToolStripGripStyle.Hidden;
-            toolStrip.Padding = new Padding(5, 2, 5, 6); // Extra bottom padding to separate from staged group
+            // Add menu dropdowns to ToolStrip
+            toolStrip.Items.Add(fileMenu);
+            toolStrip.Items.Add(repoMenu);
+            toolStrip.Items.Add(branchMenu);
+            toolStrip.Items.Add(viewMenu);
+            toolStrip.Items.Add(helpMenu);
+            toolStrip.Items.Add(new ToolStripSeparator());
             
-            // Branch dropdown button
+            // Branch dropdown button (with separator for visual grouping)
             branchDropDown = new ToolStripDropDownButton();
             branchDropDown.Text = "No branch";
             branchDropDown.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F, FontStyle.Bold);
@@ -195,7 +191,7 @@ namespace GitPane
             branchDropDown.DisplayStyle = ToolStripItemDisplayStyle.Text;
             branchDropDown.DropDownOpening += OnBranchDropDownOpening;
             
-            // Add items to toolbar
+            // Add branch dropdown to toolbar
             toolStrip.Items.Add(branchDropDown);
             
             // Inert spacer panel for WinForms docking stability
@@ -383,12 +379,10 @@ namespace GitPane
             initRepoButton.Visible = false;
 
             // Add controls to contentPanel in correct docking order
-            // MenuStrip MUST be added last to appear topmost (WinForms requirement)
             // Dock.Fill first, then Dock.Top in reverse visual order (last added = top position)
             contentPanel.Controls.Add(mainSplitter);   // Dock.Fill - fills remaining space
             contentPanel.Controls.Add(topSpacerPanel); // Dock.Top - visual separator (appears below toolStrip)
-            contentPanel.Controls.Add(toolStrip);      // Dock.Top - branch selector (appears below menuStrip)
-            contentPanel.Controls.Add(menuStrip);      // Dock.Top - MUST be added last for proper MenuStrip behavior
+            contentPanel.Controls.Add(toolStrip);      // Dock.Top - combined menu and toolbar
             contentPanel.Controls.Add(statusLabel);
             contentPanel.Controls.Add(initRepoButton);
         }
