@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <Compile Include="GitPanePad.cs" />
+    <Compile Include="GitPanePad.Designer.cs" />
     <Compile Include="GitPanePad.BranchManagement.cs" />
     <Compile Include="GitPanePad.CommitOperations.cs" />
     <Compile Include="GitPanePad.FileSystemWatchers.cs" />
