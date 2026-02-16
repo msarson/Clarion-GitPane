@@ -56,6 +56,7 @@ namespace GitPane
                     // FIX: Hide non-repo controls, show repo UI
                     statusLabel.Visible = false;
                     initRepoButton.Visible = false;
+                    menuStrip.Visible = true;
                     toolStrip.Visible = true;
                     mainSplitter.Visible = true;
                     commitPanel.Visible = true;
@@ -109,6 +110,7 @@ namespace GitPane
         private void HideCommitControls()
         {
             // Hide main UI containers
+            menuStrip.Visible = false;
             toolStrip.Visible = false;
             mainSplitter.Visible = false;
             
@@ -519,6 +521,114 @@ namespace GitPane
             {
                 MessageBox.Show("Failed to update .gitignore", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        #endregion
+
+        #region Event Handlers - Menu Items
+
+        // File menu
+        private void OnOpenGitHubDesktopClick(object sender, EventArgs e)
+        {
+            // TODO: Implement open in GitHub Desktop
+            MessageBox.Show("Open in GitHub Desktop - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void OnOpenGitKrakenClick(object sender, EventArgs e)
+        {
+            // TODO: Implement open in GitKraken
+            MessageBox.Show("Open in GitKraken - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void OnClosePaneClick(object sender, EventArgs e)
+        {
+            // TODO: Implement close pane
+            MessageBox.Show("Close Git Pane - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        // Repository menu
+        private void OnFetchClick(object sender, EventArgs e)
+        {
+            // TODO: Implement fetch
+            MessageBox.Show("Fetch - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void OnPullClick(object sender, EventArgs e)
+        {
+            // TODO: Implement pull
+            MessageBox.Show("Pull - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        // Branch menu
+        private void OnCreateBranchClick(object sender, EventArgs e)
+        {
+            // TODO: Implement create branch
+            MessageBox.Show("Create Branch - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void OnDeleteBranchClick(object sender, EventArgs e)
+        {
+            // TODO: Implement delete branch
+            MessageBox.Show("Delete Branch - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void OnMergeBranchClick(object sender, EventArgs e)
+        {
+            // TODO: Implement merge branch
+            MessageBox.Show("Merge Branch - Not yet implemented", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        // View menu
+        private void OnShowToolbarClick(object sender, EventArgs e)
+        {
+            var menuItem = sender as ToolStripMenuItem;
+            if (menuItem != null)
+            {
+                toolStrip.Visible = menuItem.Checked;
+            }
+        }
+
+        private void OnShowCommitAreaClick(object sender, EventArgs e)
+        {
+            var menuItem = sender as ToolStripMenuItem;
+            if (menuItem != null)
+            {
+                // Toggle visibility of commit container
+                if (commitContainer != null)
+                {
+                    commitContainer.Visible = menuItem.Checked;
+                }
+            }
+        }
+
+        private void OnResetLayoutClick(object sender, EventArgs e)
+        {
+            // Reset splitter distances to default
+            if (mainSplitter.Height > 0)
+            {
+                mainSplitter.SplitterDistance = mainSplitter.Height / 2;
+            }
+            if (lowerSplitter.Height > 0)
+            {
+                lowerSplitter.SplitterDistance = (lowerSplitter.Height * 2) / 3;
+            }
+        }
+
+        // Help menu
+        private void OnAboutClick(object sender, EventArgs e)
+        {
+            MessageBox.Show(
+                "GitPane - Git Integration for Clarion IDE\n\n" +
+                "A visual Git client integrated into the Clarion IDE.\n\n" +
+                "Features:\n" +
+                "- Stage, unstage, and commit changes\n" +
+                "- Branch management\n" +
+                "- Remote operations\n" +
+                "- Commit history viewer\n" +
+                "- GitHub integration",
+                "About GitPane",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
         }
 
         #endregion

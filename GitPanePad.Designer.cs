@@ -17,7 +17,8 @@ namespace GitPane
         
         private Panel contentPanel;
         
-        // Toolbar controls
+        // Menu and toolbar controls
+        private MenuStrip menuStrip;
         private ToolStrip toolStrip;
         private Label branchValueLabel;
         private ToolStripButton branchSelectButton;
@@ -71,6 +72,102 @@ namespace GitPane
             contentPanel.BackColor = SystemColors.Window;
             contentPanel.Padding = new Padding(10);
             contentPanel.AutoScroll = false; // FIX: Disable AutoScroll - incompatible with Dock.Fill SplitContainer
+
+            // MenuStrip for main menu
+            menuStrip = new MenuStrip();
+            menuStrip.Dock = DockStyle.Top;
+            
+            // File menu
+            var fileMenu = new ToolStripMenuItem("&File");
+            var initRepoMenuItem = new ToolStripMenuItem("Initialize Repository...");
+            initRepoMenuItem.Click += OnInitRepoClick;
+            var openExternalMenu = new ToolStripMenuItem("Open in External Tool");
+            var openGitHubDesktopMenuItem = new ToolStripMenuItem("GitHub Desktop");
+            openGitHubDesktopMenuItem.Click += OnOpenGitHubDesktopClick;
+            var openGitKrakenMenuItem = new ToolStripMenuItem("GitKraken");
+            openGitKrakenMenuItem.Click += OnOpenGitKrakenClick;
+            openExternalMenu.DropDownItems.Add(openGitHubDesktopMenuItem);
+            openExternalMenu.DropDownItems.Add(openGitKrakenMenuItem);
+            var closePaneMenuItem = new ToolStripMenuItem("Close Git Pane");
+            closePaneMenuItem.Click += OnClosePaneClick;
+            fileMenu.DropDownItems.Add(initRepoMenuItem);
+            fileMenu.DropDownItems.Add(openExternalMenu);
+            fileMenu.DropDownItems.Add(new ToolStripSeparator());
+            fileMenu.DropDownItems.Add(closePaneMenuItem);
+            
+            // Repository menu
+            var repoMenu = new ToolStripMenuItem("&Repository");
+            var refreshMenuItem = new ToolStripMenuItem("Refresh");
+            refreshMenuItem.Click += OnRefreshClick;
+            var fetchMenuItem = new ToolStripMenuItem("Fetch");
+            fetchMenuItem.Click += OnFetchClick;
+            var pullMenuItem = new ToolStripMenuItem("Pull");
+            pullMenuItem.Click += OnPullClick;
+            var pushMenuItem = new ToolStripMenuItem("Push");
+            pushMenuItem.Click += OnPushClick;
+            var historyMenuItem = new ToolStripMenuItem("View History...");
+            historyMenuItem.Click += OnHistoryClick;
+            var createGitHubMenuItem = new ToolStripMenuItem("Create GitHub Repository...");
+            createGitHubMenuItem.Click += OnCreateGitHubRepoClick;
+            var addRemoteMenuItem = new ToolStripMenuItem("Add Remote...");
+            addRemoteMenuItem.Click += OnAddRemoteClick;
+            var removeRemoteMenuItem = new ToolStripMenuItem("Remove Remote...");
+            removeRemoteMenuItem.Click += OnRemoveRemoteClick;
+            repoMenu.DropDownItems.Add(refreshMenuItem);
+            repoMenu.DropDownItems.Add(fetchMenuItem);
+            repoMenu.DropDownItems.Add(pullMenuItem);
+            repoMenu.DropDownItems.Add(pushMenuItem);
+            repoMenu.DropDownItems.Add(historyMenuItem);
+            repoMenu.DropDownItems.Add(new ToolStripSeparator());
+            repoMenu.DropDownItems.Add(createGitHubMenuItem);
+            repoMenu.DropDownItems.Add(addRemoteMenuItem);
+            repoMenu.DropDownItems.Add(removeRemoteMenuItem);
+            
+            // Branch menu
+            var branchMenu = new ToolStripMenuItem("&Branch");
+            var switchBranchMenuItem = new ToolStripMenuItem("Switch Branch...");
+            switchBranchMenuItem.Click += OnBranchSelectClick;
+            var createBranchMenuItem = new ToolStripMenuItem("Create Branch...");
+            createBranchMenuItem.Click += OnCreateBranchClick;
+            var deleteBranchMenuItem = new ToolStripMenuItem("Delete Branch...");
+            deleteBranchMenuItem.Click += OnDeleteBranchClick;
+            var mergeBranchMenuItem = new ToolStripMenuItem("Merge...");
+            mergeBranchMenuItem.Click += OnMergeBranchClick;
+            branchMenu.DropDownItems.Add(switchBranchMenuItem);
+            branchMenu.DropDownItems.Add(createBranchMenuItem);
+            branchMenu.DropDownItems.Add(deleteBranchMenuItem);
+            branchMenu.DropDownItems.Add(new ToolStripSeparator());
+            branchMenu.DropDownItems.Add(mergeBranchMenuItem);
+            
+            // View menu
+            var viewMenu = new ToolStripMenuItem("&View");
+            var showToolbarMenuItem = new ToolStripMenuItem("Show Toolbar");
+            showToolbarMenuItem.CheckOnClick = true;
+            showToolbarMenuItem.Checked = true;
+            showToolbarMenuItem.Click += OnShowToolbarClick;
+            var showCommitAreaMenuItem = new ToolStripMenuItem("Show Commit Area");
+            showCommitAreaMenuItem.CheckOnClick = true;
+            showCommitAreaMenuItem.Checked = true;
+            showCommitAreaMenuItem.Click += OnShowCommitAreaClick;
+            var resetLayoutMenuItem = new ToolStripMenuItem("Reset Split Layout");
+            resetLayoutMenuItem.Click += OnResetLayoutClick;
+            viewMenu.DropDownItems.Add(showToolbarMenuItem);
+            viewMenu.DropDownItems.Add(showCommitAreaMenuItem);
+            viewMenu.DropDownItems.Add(new ToolStripSeparator());
+            viewMenu.DropDownItems.Add(resetLayoutMenuItem);
+            
+            // Help menu
+            var helpMenu = new ToolStripMenuItem("&Help");
+            var aboutMenuItem = new ToolStripMenuItem("About GitPane");
+            aboutMenuItem.Click += OnAboutClick;
+            helpMenu.DropDownItems.Add(aboutMenuItem);
+            
+            // Add menus to MenuStrip
+            menuStrip.Items.Add(fileMenu);
+            menuStrip.Items.Add(repoMenu);
+            menuStrip.Items.Add(branchMenu);
+            menuStrip.Items.Add(viewMenu);
+            menuStrip.Items.Add(helpMenu);
 
             // ToolStrip for top controls - professional layout
             toolStrip = new ToolStrip();
@@ -328,9 +425,10 @@ namespace GitPane
             initRepoButton.Visible = false;
 
             // Add controls to contentPanel in correct docking order
-            // Fill first, then Top
+            // Fill first, then Top (multiple Top items dock in reverse order)
             contentPanel.Controls.Add(mainSplitter);  // Dock.Fill - nested splitters (staged / unstaged / commit)
-            contentPanel.Controls.Add(toolStrip);     // Dock.Top - toolbar at top
+            contentPanel.Controls.Add(toolStrip);     // Dock.Top - toolbar
+            contentPanel.Controls.Add(menuStrip);     // Dock.Top - menu (added last, appears at top)
             contentPanel.Controls.Add(statusLabel);
             contentPanel.Controls.Add(initRepoButton);
         }
