@@ -34,10 +34,12 @@
     <Reference Include="ICSharpCode.Core">
       <HintPath>$(CLARION_ROOT)\bin\ICSharpCode.Core.dll</HintPath>
       <Private>false</Private>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
     <Reference Include="ICSharpCode.SharpDevelop">
       <HintPath>$(CLARION_ROOT)\bin\ICSharpCode.SharpDevelop.dll</HintPath>
       <Private>false</Private>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
   </ItemGroup>
 </Project>
