@@ -60,3 +60,8 @@ $RECYCLE.BIN/
 
 # Decompiled source - for reference only, not tracked
 decompiled/
+
+# Documentation and research - local use only
+documentation/
+ide-research/
+images/
