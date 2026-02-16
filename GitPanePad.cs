@@ -53,6 +53,7 @@ namespace GitPane
             contentPanel.BackColor = SystemColors.Window;
             contentPanel.Padding = new Padding(10);
             contentPanel.AutoScroll = true;
+            contentPanel.Resize += OnPanelResize;
 
             // Branch label
             branchLabel = new Label();
@@ -107,6 +108,7 @@ namespace GitPane
             stagedGroupBox.Text = "Staged Files (0)";
             stagedGroupBox.Location = new Point(10, 40);
             stagedGroupBox.Size = new Size(460, 170);
+            stagedGroupBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
             stagedListBox = new CheckedListBox();
             stagedListBox.Location = new Point(10, 20);
@@ -114,6 +116,7 @@ namespace GitPane
             stagedListBox.Font = new Font("Courier New", 8F);
             stagedListBox.CheckOnClick = true;
             stagedListBox.ItemCheck += OnStagedItemCheck;
+            stagedListBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
             unstageAllButton = new Button();
             unstageAllButton.Text = "Unstage All";
@@ -130,6 +133,7 @@ namespace GitPane
             unstagedGroupBox.Text = "Unstaged Files (0)";
             unstagedGroupBox.Location = new Point(10, 220);
             unstagedGroupBox.Size = new Size(460, 170);
+            unstagedGroupBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
             unstagedListBox = new CheckedListBox();
             unstagedListBox.Location = new Point(10, 20);
@@ -137,6 +141,7 @@ namespace GitPane
             unstagedListBox.Font = new Font("Courier New", 8F);
             unstagedListBox.CheckOnClick = true;
             unstagedListBox.ItemCheck += OnUnstagedItemCheck;
+            unstagedListBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
             stageAllButton = new Button();
             stageAllButton.Text = "Stage All";
@@ -159,6 +164,7 @@ namespace GitPane
             commitMessageBox.Location = new Point(10, 420);
             commitMessageBox.Size = new Size(460, 60);
             commitMessageBox.ScrollBars = ScrollBars.Vertical;
+            commitMessageBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
             // Commit buttons
             commitButton = new Button();
@@ -563,6 +569,32 @@ namespace GitPane
                 }
                 parent = parent.Parent;
             }
+        }
+
+        private void OnPanelResize(object sender, EventArgs e)
+        {
+            // Dynamically reposition controls based on panel width
+            int panelWidth = contentPanel.Width;
+            int margin = 10;
+            int availableWidth = panelWidth - (margin * 2);
+
+            // Position top-right controls (remoteLabel, addRemoteButton, refreshButton)
+            // Work backwards from right edge
+            refreshButton.Left = panelWidth - margin - refreshButton.Width - 17; // -17 for scrollbar
+
+            if (addRemoteButton.Visible)
+            {
+                addRemoteButton.Left = refreshButton.Left - margin - addRemoteButton.Width;
+            }
+            
+            if (remoteLabel.Visible)
+            {
+                // Position remote label to the left of refresh button
+                remoteLabel.Left = refreshButton.Left - margin - remoteLabel.Width;
+            }
+
+            // GroupBoxes and listboxes resize automatically via Anchor property
+            // Buttons inside groupboxes stay in place (left-aligned)
         }
 
         private void OnBranchSelectClick(object sender, EventArgs e)
