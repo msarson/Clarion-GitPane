@@ -20,8 +20,7 @@ namespace GitPane
         // Menu and toolbar controls
         private MenuStrip menuStrip;
         private ToolStrip toolStrip;
-        private Label branchValueLabel;
-        private ToolStripButton branchSelectButton;
+        private ToolStripDropDownButton branchDropDown;
         
         // Menu items that need context-aware visibility
         private ToolStripMenuItem initRepoMenuItem;
@@ -187,23 +186,16 @@ namespace GitPane
             toolStrip.GripStyle = ToolStripGripStyle.Hidden;
             toolStrip.Padding = new Padding(5, 2, 5, 2);
             
-            // Branch info
-            ToolStripLabel branchToolLabel = new ToolStripLabel("Branch:");
-            branchValueLabel = new Label();
-            branchValueLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F, FontStyle.Bold);
-            branchValueLabel.ForeColor = Color.DarkBlue;
-            branchValueLabel.AutoSize = true;
-            branchValueLabel.Margin = new Padding(0, 0, 5, 0);
-            ToolStripControlHost branchValueHost = new ToolStripControlHost(branchValueLabel);
+            // Branch dropdown button
+            branchDropDown = new ToolStripDropDownButton();
+            branchDropDown.Text = "No branch";
+            branchDropDown.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F, FontStyle.Bold);
+            branchDropDown.ForeColor = Color.DarkBlue;
+            branchDropDown.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            branchDropDown.DropDownOpening += OnBranchDropDownOpening;
             
-            branchSelectButton = new ToolStripButton("...");
-            branchSelectButton.Click += OnBranchSelectClick;
-            branchSelectButton.Margin = new Padding(0, 1, 3, 2);
-            
-            // Add items to toolbar (simple: just branch info)
-            toolStrip.Items.Add(branchToolLabel);
-            toolStrip.Items.Add(branchValueHost);
-            toolStrip.Items.Add(branchSelectButton);
+            // Add items to toolbar
+            toolStrip.Items.Add(branchDropDown);
             
             // Commit container - holds editor area and buttons in lower splitter
             commitContainer = new Panel();

@@ -51,7 +51,7 @@ namespace GitPane
                     // Update title to include repo name and path
                     UpdatePadTitle($"{repoName} - {solutionDir}");
 
-                    branchValueLabel.Text = currentBranch ?? "unknown";
+                    branchDropDown.Text = currentBranch ?? "unknown";
 
                     // FIX: Hide non-repo controls, show repo UI
                     statusLabel.Visible = false;
@@ -61,8 +61,7 @@ namespace GitPane
                     mainSplitter.Visible = true;
                     commitPanel.Visible = true;
                     
-                    branchValueLabel.Visible = true;
-                    branchSelectButton.Visible = true;
+                    branchDropDown.Visible = true;
                     
                     // Show commit workflow controls
                     stagedGroupBox.Visible = true;
@@ -113,8 +112,7 @@ namespace GitPane
             mainSplitter.Visible = false;
             
             // Hide individual controls
-            branchValueLabel.Visible = false;
-            branchSelectButton.Visible = false;
+            branchDropDown.Visible = false;
             initRepoButton.Visible = false;
             stagedGroupBox.Visible = false;
             unstagedGroupBox.Visible = false;
@@ -178,12 +176,12 @@ namespace GitPane
                 commitButton.Enabled = false;
                 commitPushButton.Enabled = false;
                 pushButton.Enabled = false;
-                branchSelectButton.Enabled = false;
+                branchDropDown.Enabled = false;
                 return;
             }
             
-            // Enable branch button when repo exists
-            branchSelectButton.Enabled = true;
+            // Enable branch dropdown when repo exists
+            branchDropDown.Enabled = true;
             
             // Stage buttons - enabled when unstaged files exist or are checked
             int unstagedCount = unstagedListBox.Items.Count;
@@ -264,6 +262,86 @@ namespace GitPane
         #endregion
 
         #region Event Handlers - Basic Actions
+
+        private void OnBranchDropDownOpening(object sender, EventArgs e)
+        {
+            if (gitRepo == null || !gitRepo.IsRepository())
+                return;
+
+            // Clear existing items
+            branchDropDown.DropDownItems.Clear();
+
+            // Get all branches
+            var branches = gitRepo.GetAllBranchesWithInfo();
+            var currentBranch = gitRepo.GetCurrentBranch();
+
+            // Add branch items
+            foreach (var branch in branches)
+            {
+                var item = new ToolStripMenuItem(branch.Name);
+                item.Tag = branch;
+                
+                // Mark current branch
+                if (branch.IsCurrent)
+                {
+                    item.Checked = true;
+                    item.Font = new Font(item.Font, FontStyle.Bold);
+                }
+                
+                // Show remote branches in gray
+                if (branch.IsRemote)
+                {
+                    item.ForeColor = SystemColors.GrayText;
+                }
+                
+                // Show last commit info in tooltip
+                if (!string.IsNullOrEmpty(branch.LastCommit))
+                {
+                    item.ToolTipText = $"Last commit: {branch.LastCommit}";
+                }
+                
+                item.Click += OnBranchDropDownItemClick;
+                branchDropDown.DropDownItems.Add(item);
+            }
+
+            // Add separator and "More..." option
+            if (branches.Length > 0)
+            {
+                branchDropDown.DropDownItems.Add(new ToolStripSeparator());
+                var moreItem = new ToolStripMenuItem("More branch options...");
+                moreItem.Click += OnBranchSelectClick;
+                branchDropDown.DropDownItems.Add(moreItem);
+            }
+        }
+
+        private void OnBranchDropDownItemClick(object sender, EventArgs e)
+        {
+            var menuItem = sender as ToolStripMenuItem;
+            if (menuItem == null)
+                return;
+
+            var branchInfo = menuItem.Tag as BranchInfo;
+            if (branchInfo == null || branchInfo.IsCurrent)
+                return;
+
+            // Check for uncommitted changes before switching
+            if (gitRepo.HasUncommittedChanges())
+            {
+                HandleUncommittedChanges(branchInfo.Name);
+            }
+            else
+            {
+                // Switch branch
+                if (gitRepo.CheckoutBranch(branchInfo.Name))
+                {
+                    UpdateStatus();
+                }
+                else
+                {
+                    MessageBox.Show($"Failed to switch to branch '{branchInfo.Name}'.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
 
         private void OnHistoryClick(object sender, EventArgs e)
         {
