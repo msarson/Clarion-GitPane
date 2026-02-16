@@ -40,6 +40,48 @@ Clarion-GitPane adds a dockable pane to the Clarion IDE that enables essential G
 - **Git** installed on your system (available in PATH)
 - **Windows** operating system
 
+## Authentication with GitHub and Other Git Hosts
+
+GitPane uses Git directly and cannot prompt for credentials interactively. If you see authentication errors when pushing, pulling, or fetching, this is likely because Git needs credentials to be configured.
+
+### Why Authentication May Fail
+
+Other Git tools (GitHub Desktop, Visual Studio, etc.) may work fine because they have credentials stored and supply them automatically. GitPane cannot prompt for credentials, so Git must have access to them through one of these methods:
+
+### Recommended Solutions
+
+1. **GitHub CLI (Easiest for GitHub users)**
+   ```bash
+   gh auth login
+   ```
+   This configures credentials once and Git will use them automatically.
+
+2. **SSH Keys (Recommended for all Git hosts)**
+   - Generate an SSH key: `ssh-keygen -t ed25519`
+   - Add the public key to your GitHub/GitLab/Bitbucket account
+   - Clone/configure repositories with SSH URLs (`git@github.com:user/repo.git`)
+   - Or convert existing HTTPS repos to SSH:
+     ```bash
+     git remote set-url origin git@github.com:user/repo.git
+     ```
+
+3. **Personal Access Token (PAT)**
+   - Generate a token in your Git host settings (GitHub: Settings → Developer settings → Personal access tokens)
+   - Use the token as your password when Git prompts (first time only if using credential storage)
+
+4. **Git Credential Manager**
+   - Download from: https://github.com/git-ecosystem/git-credential-manager
+   - Stores credentials securely and supplies them automatically
+
+### Testing Your Configuration
+
+After configuring authentication, test with:
+```bash
+git fetch
+```
+
+If successful, GitPane will work without authentication errors.
+
 ## Building
 
 ### Prerequisites
@@ -170,3 +212,7 @@ Built with assistance from GitHub Copilot CLI.
 
 For issues, questions, or suggestions, please open an issue on GitHub:
 https://github.com/msarson/Clarion-GitPane/issues
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed release notes and version history.
