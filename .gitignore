@@ -65,3 +65,7 @@ decompiled/
 documentation/
 ide-research/
 images/
+
+# Release packages
+release/
+*.zip
