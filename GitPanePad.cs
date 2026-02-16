@@ -6,16 +6,21 @@ using ICSharpCode.SharpDevelop.Project;
 
 namespace GitPane
 {
-    public class GitPanePad : AbstractPadContent
+    public partial class GitPanePad : AbstractPadContent
     {
+        #region Fields and Properties
+
         private Panel contentPanel;
-        private Label branchLabel;
+        
+        // Toolbar controls
         private Label branchValueLabel;
-        private Button branchSelectButton;
+        private ToolStripButton branchSelectButton;
         private Label remoteLabel;
-        private Button removeRemoteButton;
-        private Button addRemoteButton;
-        private Button createGitHubRepoButton;
+        private ToolStripButton removeRemoteButton;
+        private ToolStripButton addRemoteButton;
+        private ToolStripButton createGitHubRepoButton;
+        private ToolStripButton refreshButton;
+        
         private Button initRepoButton;
         private Label statusLabel;
         
@@ -36,7 +41,6 @@ namespace GitPane
         private Button commitButton;
         private Button commitPushButton;
         private Button pushButton;
-        private Button refreshButton;
         
         private GitRepository gitRepo;
         private System.IO.FileSystemWatcher fileWatcher;
@@ -45,6 +49,10 @@ namespace GitPane
         private System.Threading.Timer configDebounceTimer;
 
         public override Control Control => contentPanel;
+
+        #endregion
+
+        #region Constructor and Initialization
 
         public GitPanePad()
         {
@@ -55,126 +63,124 @@ namespace GitPane
             ProjectService.SolutionLoaded += OnSolutionChanged;
             ProjectService.SolutionClosed += OnSolutionClosed;
             
-            // Ensure initial layout is applied
-            contentPanel.Layout += OnPanelLayout;
+            // Layout now handled by Anchor/Dock properties - no manual resize needed
         }
 
         private void InitializeUI()
         {
             contentPanel = new Panel();
+            contentPanel.Dock = DockStyle.Fill; // Let the IDE handle sizing automatically
             contentPanel.BackColor = SystemColors.Window;
             contentPanel.Padding = new Padding(10);
-            contentPanel.AutoScroll = true;
-            contentPanel.Resize += OnPanelResize;
-            contentPanel.SizeChanged += OnPanelResize;
+            contentPanel.AutoScroll = true; // Enable auto-scroll as fallback
+            // Removed manual resize handlers - let Anchor/Dock properties handle layout
 
-            // Branch label
-            branchLabel = new Label();
-            branchLabel.AutoSize = true;
-            branchLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F);
-            branchLabel.ForeColor = SystemColors.ControlText;
-            branchLabel.Location = new Point(10, 10);
-            branchLabel.Text = "Branch:";
-
-            // Branch value label
+            // ToolStrip for top controls - professional layout
+            ToolStrip toolStrip = new ToolStrip();
+            toolStrip.Dock = DockStyle.Top;
+            toolStrip.GripStyle = ToolStripGripStyle.Hidden;
+            
+            // Branch info
+            ToolStripLabel branchToolLabel = new ToolStripLabel("Branch:");
             branchValueLabel = new Label();
-            branchValueLabel.AutoSize = true;
             branchValueLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F, FontStyle.Bold);
             branchValueLabel.ForeColor = Color.DarkBlue;
-            branchValueLabel.Location = new Point(60, 10);
-
-            // Branch select button
-            branchSelectButton = new Button();
-            branchSelectButton.Text = "...";
-            branchSelectButton.Width = 30;
-            branchSelectButton.Height = 23;
-            branchSelectButton.Location = new Point(200, 7);
+            branchValueLabel.AutoSize = true;
+            ToolStripControlHost branchValueHost = new ToolStripControlHost(branchValueLabel);
+            
+            branchSelectButton = new ToolStripButton("...");
             branchSelectButton.Click += OnBranchSelectClick;
-
-            // Remote label
+            
+            // Separator
+            ToolStripSeparator separator1 = new ToolStripSeparator();
+            
+            // Remote info
             remoteLabel = new Label();
-            remoteLabel.AutoSize = true;
             remoteLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 8F);
             remoteLabel.ForeColor = SystemColors.GrayText;
-            remoteLabel.Location = new Point(240, 12);
-            remoteLabel.Text = "";
-
-            // Remove Remote button (small X button)
-            removeRemoteButton = new Button();
-            removeRemoteButton.Text = "×";
-            removeRemoteButton.Location = new Point(240, 7);
-            removeRemoteButton.Width = 25;
-            removeRemoteButton.Height = 23;
+            remoteLabel.AutoSize = true;
+            remoteLabel.MaximumSize = new Size(200, 0);
+            ToolStripControlHost remoteLabelHost = new ToolStripControlHost(remoteLabel);
+            
+            // Remote buttons
+            removeRemoteButton = new ToolStripButton("×");
             removeRemoteButton.Font = new Font(SystemFonts.DefaultFont.FontFamily, 10F, FontStyle.Bold);
             removeRemoteButton.Click += OnRemoveRemoteClick;
             removeRemoteButton.Visible = false;
-            removeRemoteButton.FlatStyle = FlatStyle.Flat;
-
-            // Add Remote button
-            addRemoteButton = new Button();
-            addRemoteButton.Text = "Add Remote URL";
-            addRemoteButton.Location = new Point(240, 7);
-            addRemoteButton.Width = 120;
-            addRemoteButton.Height = 23;
+            
+            addRemoteButton = new ToolStripButton("Add Remote");
             addRemoteButton.Click += OnAddRemoteClick;
             addRemoteButton.Visible = false;
-
-            // Create GitHub Repo button
-            createGitHubRepoButton = new Button();
-            createGitHubRepoButton.Text = "Create on GitHub";
-            createGitHubRepoButton.Location = new Point(365, 7);
-            createGitHubRepoButton.Width = 130;
-            createGitHubRepoButton.Height = 23;
+            
+            createGitHubRepoButton = new ToolStripButton("Create on GitHub");
             createGitHubRepoButton.Click += OnCreateGitHubRepoClick;
             createGitHubRepoButton.Visible = false;
-
+            
+            // Separator
+            ToolStripSeparator separator2 = new ToolStripSeparator();
+            
             // Refresh button
-            refreshButton = new Button();
-            refreshButton.Text = "Refresh";
-            refreshButton.Location = new Point(500, 7);
-            refreshButton.Width = 70;
-            refreshButton.Height = 23;
+            refreshButton = new ToolStripButton("Refresh");
             refreshButton.Click += OnRefreshClick;
+            
+            // Add items to toolbar
+            toolStrip.Items.Add(branchToolLabel);
+            toolStrip.Items.Add(branchValueHost);
+            toolStrip.Items.Add(branchSelectButton);
+            toolStrip.Items.Add(separator1);
+            toolStrip.Items.Add(remoteLabelHost);
+            toolStrip.Items.Add(removeRemoteButton);
+            toolStrip.Items.Add(addRemoteButton);
+            toolStrip.Items.Add(createGitHubRepoButton);
+            toolStrip.Items.Add(separator2);
+            toolStrip.Items.Add(refreshButton);
+            
+            // Bottom panel for commit controls - Docked to bottom
+            Panel bottomPanel = new Panel();
+            bottomPanel.Dock = DockStyle.Bottom;
+            bottomPanel.Height = 100;
 
-            // Staged files section
+            // Staged files section - Docked to top
             stagedGroupBox = new GroupBox();
             stagedGroupBox.Text = "Staged Files (0)";
-            stagedGroupBox.Location = new Point(10, 40);
-            stagedGroupBox.Size = new Size(460, 170);
+            stagedGroupBox.Dock = DockStyle.Top;
+            stagedGroupBox.Height = 180;
 
             stagedListBox = new CheckedListBox();
             stagedListBox.Location = new Point(10, 20);
-            stagedListBox.Size = new Size(440, 115);
+            stagedListBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
+            stagedListBox.Height = 125;
             stagedListBox.Font = new Font("Courier New", 8F);
             stagedListBox.CheckOnClick = true;
 
             unstageSelectedButton = new Button();
             unstageSelectedButton.Text = "Unstage Selected";
-            unstageSelectedButton.Location = new Point(10, 140);
+            unstageSelectedButton.Location = new Point(10, 150);
             unstageSelectedButton.Width = 120;
             unstageSelectedButton.Height = 25;
             unstageSelectedButton.Click += OnUnstageSelectedClick;
+            unstageSelectedButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
 
             unstageAllButton = new Button();
             unstageAllButton.Text = "Unstage All";
-            unstageAllButton.Location = new Point(135, 140);
+            unstageAllButton.Location = new Point(135, 150);
             unstageAllButton.Width = 100;
             unstageAllButton.Height = 25;
             unstageAllButton.Click += OnUnstageAllClick;
+            unstageAllButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
 
             stagedGroupBox.Controls.Add(stagedListBox);
             stagedGroupBox.Controls.Add(unstageSelectedButton);
             stagedGroupBox.Controls.Add(unstageAllButton);
 
-            // Unstaged files section
+            // Unstaged files section - Fills remaining space
             unstagedGroupBox = new GroupBox();
             unstagedGroupBox.Text = "Unstaged Files (0)";
-            unstagedGroupBox.Location = new Point(10, 220);
-            unstagedGroupBox.Size = new Size(460, 170);
+            unstagedGroupBox.Dock = DockStyle.Fill;
 
             unstagedListBox = new CheckedListBox();
             unstagedListBox.Location = new Point(10, 20);
-            unstagedListBox.Size = new Size(440, 115);
+            unstagedListBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
             unstagedListBox.Font = new Font("Courier New", 8F);
             unstagedListBox.CheckOnClick = true;
             unstagedListBox.MouseDown += OnUnstagedListBoxMouseDown;
@@ -199,6 +205,7 @@ namespace GitPane
             stageSelectedButton.Width = 120;
             stageSelectedButton.Height = 25;
             stageSelectedButton.Click += OnStageSelectedClick;
+            stageSelectedButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
 
             stageAllButton = new Button();
             stageAllButton.Text = "Stage All";
@@ -206,34 +213,36 @@ namespace GitPane
             stageAllButton.Width = 100;
             stageAllButton.Height = 25;
             stageAllButton.Click += OnStageAllClick;
+            stageAllButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
 
             unstagedGroupBox.Controls.Add(unstagedListBox);
             unstagedGroupBox.Controls.Add(stageSelectedButton);
             unstagedGroupBox.Controls.Add(stageAllButton);
 
-            // Commit message section
+            // Commit message section - Goes in bottom panel
             commitMessageLabel = new Label();
             commitMessageLabel.Text = "Commit Message:";
-            commitMessageLabel.Location = new Point(10, 400);
+            commitMessageLabel.Location = new Point(0, 0);
             commitMessageLabel.AutoSize = true;
 
             commitMessageBox = new TextBox();
             commitMessageBox.Multiline = true;
-            commitMessageBox.Location = new Point(10, 420);
-            commitMessageBox.Size = new Size(460, 60);
+            commitMessageBox.Location = new Point(0, 20);
+            commitMessageBox.Size = new Size(450, 40);
             commitMessageBox.ScrollBars = ScrollBars.Vertical;
+            commitMessageBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
-            // Commit buttons
+            // Commit buttons - Goes in bottom panel
             commitButton = new Button();
             commitButton.Text = "Commit";
-            commitButton.Location = new Point(10, 490);
+            commitButton.Location = new Point(0, 65);
             commitButton.Width = 80;
             commitButton.Height = 28;
             commitButton.Click += OnCommitClick;
 
             commitPushButton = new Button();
             commitPushButton.Text = "Commit && Push";
-            commitPushButton.Location = new Point(95, 490);
+            commitPushButton.Location = new Point(85, 65);
             commitPushButton.Width = 110;
             commitPushButton.Height = 28;
             commitPushButton.Click += OnCommitPushClick;
@@ -241,11 +250,17 @@ namespace GitPane
             // Push button (for unpushed commits)
             pushButton = new Button();
             pushButton.Text = "Push";
-            pushButton.Location = new Point(210, 490);
+            pushButton.Location = new Point(200, 65);
             pushButton.Width = 80;
             pushButton.Height = 28;
             pushButton.Click += OnPushClick;
             pushButton.Visible = false;
+            
+            bottomPanel.Controls.Add(commitMessageLabel);
+            bottomPanel.Controls.Add(commitMessageBox);
+            bottomPanel.Controls.Add(commitButton);
+            bottomPanel.Controls.Add(commitPushButton);
+            bottomPanel.Controls.Add(pushButton);
 
             // Status label (for non-repo message)
             statusLabel = new Label();
@@ -263,24 +278,19 @@ namespace GitPane
             initRepoButton.Click += OnInitRepoClick;
             initRepoButton.Visible = false;
 
-            contentPanel.Controls.Add(branchLabel);
-            contentPanel.Controls.Add(branchValueLabel);
-            contentPanel.Controls.Add(branchSelectButton);
-            contentPanel.Controls.Add(remoteLabel);
-            contentPanel.Controls.Add(removeRemoteButton);
-            contentPanel.Controls.Add(addRemoteButton);
-            contentPanel.Controls.Add(createGitHubRepoButton);
-            contentPanel.Controls.Add(refreshButton);
-            contentPanel.Controls.Add(stagedGroupBox);
-            contentPanel.Controls.Add(unstagedGroupBox);
-            contentPanel.Controls.Add(commitMessageLabel);
-            contentPanel.Controls.Add(commitMessageBox);
-            contentPanel.Controls.Add(commitButton);
-            contentPanel.Controls.Add(commitPushButton);
-            contentPanel.Controls.Add(pushButton);
+            // Add controls to contentPanel in correct docking order
+            // For docking: Bottom first, then Top (in REVERSE order), then Fill
+            contentPanel.Controls.Add(bottomPanel);      // Dock.Bottom - at bottom
+            contentPanel.Controls.Add(unstagedGroupBox); // Dock.Fill - fills middle
+            contentPanel.Controls.Add(stagedGroupBox);   // Dock.Top - below toolbar
+            contentPanel.Controls.Add(toolStrip);        // Dock.Top - at very top
             contentPanel.Controls.Add(statusLabel);
             contentPanel.Controls.Add(initRepoButton);
         }
+
+        #endregion
+
+        #region Main Status and Updates
 
         private void UpdateStatus()
         {
@@ -299,7 +309,6 @@ namespace GitPane
 
                     branchValueLabel.Text = currentBranch ?? "unknown";
 
-                    branchLabel.Visible = true;
                     branchValueLabel.Visible = true;
                     branchSelectButton.Visible = true;
                     refreshButton.Visible = true;
@@ -342,7 +351,6 @@ namespace GitPane
 
         private void HideCommitControls()
         {
-            branchLabel.Visible = false;
             branchValueLabel.Visible = false;
             branchSelectButton.Visible = false;
             remoteLabel.Visible = false;
@@ -396,12 +404,6 @@ namespace GitPane
             unstagedGroupBox.Text = $"Unstaged Files ({unstagedFiles.Length + untrackedFiles.Length})";
         }
 
-        private void OnRefreshClick(object sender, EventArgs e)
-        {
-            RefreshFileList();
-            UpdateRemoteStatus(); // Check if remote still exists
-        }
-
         private void UpdatePushButtonVisibility()
         {
             if (gitRepo == null || !gitRepo.HasRemote())
@@ -420,6 +422,16 @@ namespace GitPane
             {
                 pushButton.Visible = false;
             }
+        }
+
+        #endregion
+
+        #region Event Handlers - Basic Actions
+
+        private void OnRefreshClick(object sender, EventArgs e)
+        {
+            RefreshFileList();
+            UpdateRemoteStatus(); // Check if remote still exists
         }
 
         private void OnStageSelectedClick(object sender, EventArgs e)
@@ -529,6 +541,10 @@ namespace GitPane
             }
         }
 
+        #endregion
+
+        #region Event Handlers - Context Menu (.gitignore)
+
         private void OnIgnoreFileClick(object sender, EventArgs e)
         {
             if (unstagedListBox.SelectedItem == null)
@@ -606,491 +622,9 @@ namespace GitPane
             }
         }
 
-        private void OnCommitClick(object sender, EventArgs e)
-        {
-            PerformCommit(false);
-        }
+        #endregion
 
-        private void OnCommitPushClick(object sender, EventArgs e)
-        {
-            PerformCommit(true);
-        }
-
-        private void OnPushClick(object sender, EventArgs e)
-        {
-            if (gitRepo == null)
-                return;
-
-            int unpushedCount = gitRepo.GetUnpushedCommitsCount();
-            
-            var result = MessageBox.Show(
-                $"Push {unpushedCount} local commit{(unpushedCount > 1 ? "s" : "")} to remote?",
-                "Push Commits",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
-
-            if (result == DialogResult.Yes)
-            {
-                if (gitRepo.PushChanges())
-                {
-                    MessageBox.Show("Commits pushed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    RefreshFileList(); // Update push button visibility
-                }
-                else
-                {
-                    MessageBox.Show("Failed to push commits. Check your connection and credentials.", "Push Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
-        private void PerformCommit(bool andPush)
-        {
-            var message = commitMessageBox.Text.Trim();
-            
-            if (string.IsNullOrWhiteSpace(message))
-            {
-                MessageBox.Show("Please enter a commit message.", "Commit Message Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (stagedListBox.Items.Count == 0)
-            {
-                // Check if there are unstaged files to stage
-                if (unstagedListBox.Items.Count > 0)
-                {
-                    var result = MessageBox.Show(
-                        "No files are staged for commit.\n\nWould you like to stage all files and commit?",
-                        "Nothing Staged",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question);
-                    
-                    if (result == DialogResult.Yes)
-                    {
-                        // Stage all files first
-                        if (!gitRepo.StageAllFiles())
-                        {
-                            MessageBox.Show("Failed to stage files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            return;
-                        }
-                        
-                        // Refresh to update staged list
-                        RefreshFileList();
-                        
-                        // Continue with commit (check again after staging)
-                        if (stagedListBox.Items.Count == 0)
-                        {
-                            MessageBox.Show("No files to commit.", "Nothing to Commit", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        return; // User cancelled
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("No files to commit.", "Nothing to Commit", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-            }
-
-            if (gitRepo.CommitChanges(message))
-            {
-                commitMessageBox.Clear();
-                
-                if (andPush)
-                {
-                    if (gitRepo.PushChanges())
-                    {
-                        MessageBox.Show("Committed and pushed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    else
-                    {
-                        MessageBox.Show("Committed locally but push failed. You can push manually later.", "Partial Success", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Committed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                
-                RefreshFileList();
-                UpdateStatus();
-            }
-            else
-            {
-                MessageBox.Show("Failed to commit changes.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void UpdateRemoteStatus()
-        {
-            if (gitRepo == null)
-                return;
-
-            bool hasRemote = gitRepo.HasRemote();
-            
-            if (hasRemote)
-            {
-                string remoteUrl = gitRepo.GetRemoteUrl();
-                if (!string.IsNullOrEmpty(remoteUrl))
-                {
-                    // Show shortened remote URL
-                    string displayUrl = remoteUrl;
-                    if (displayUrl.Length > 40)
-                        displayUrl = displayUrl.Substring(0, 37) + "...";
-                    
-                    remoteLabel.Text = $"Remote: {displayUrl}";
-                    remoteLabel.Visible = true;
-                    removeRemoteButton.Visible = true; // Show remove button
-                }
-                addRemoteButton.Visible = false;
-                createGitHubRepoButton.Visible = false;
-            }
-            else
-            {
-                // No remote - show manual add button
-                remoteLabel.Visible = false;
-                removeRemoteButton.Visible = false;
-                addRemoteButton.Visible = true;
-                
-                // Show GitHub button if CLI is installed and authenticated
-                bool hasGitHubCLI = gitRepo.IsGitHubCLIInstalled() && gitRepo.IsGitHubCLIAuthenticated();
-                createGitHubRepoButton.Visible = hasGitHubCLI;
-            }
-        }
-
-        private void OnAddRemoteClick(object sender, EventArgs e)
-        {
-            // Prompt for remote URL
-            var urlDialog = new Form();
-            urlDialog.Text = "Add Remote Origin";
-            urlDialog.Width = 500;
-            urlDialog.Height = 160;
-            urlDialog.StartPosition = FormStartPosition.CenterParent;
-            urlDialog.FormBorderStyle = FormBorderStyle.FixedDialog;
-            urlDialog.MaximizeBox = false;
-            urlDialog.MinimizeBox = false;
-
-            var label = new Label();
-            label.Text = "Enter remote URL (HTTPS or SSH):";
-            label.Location = new Point(10, 10);
-            label.AutoSize = true;
-            urlDialog.Controls.Add(label);
-
-            var urlBox = new TextBox();
-            urlBox.Location = new Point(10, 35);
-            urlBox.Width = 460;
-            urlDialog.Controls.Add(urlBox);
-
-            var exampleLabel = new Label();
-            exampleLabel.Text = "Example: https://github.com/user/repo.git";
-            exampleLabel.Location = new Point(10, 60);
-            exampleLabel.AutoSize = true;
-            exampleLabel.ForeColor = SystemColors.GrayText;
-            urlDialog.Controls.Add(exampleLabel);
-
-            var okButton = new Button();
-            okButton.Text = "Add";
-            okButton.DialogResult = DialogResult.OK;
-            okButton.Location = new Point(310, 85);
-            okButton.Width = 75;
-            urlDialog.Controls.Add(okButton);
-
-            var cancelButton = new Button();
-            cancelButton.Text = "Cancel";
-            cancelButton.DialogResult = DialogResult.Cancel;
-            cancelButton.Location = new Point(395, 85);
-            cancelButton.Width = 75;
-            urlDialog.Controls.Add(cancelButton);
-
-            urlDialog.AcceptButton = okButton;
-            urlDialog.CancelButton = cancelButton;
-
-            if (urlDialog.ShowDialog() == DialogResult.OK)
-            {
-                string url = urlBox.Text.Trim();
-                
-                if (string.IsNullOrEmpty(url))
-                {
-                    MessageBox.Show("URL cannot be empty.", "Invalid URL", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                // Basic validation
-                if (!url.StartsWith("http://") && !url.StartsWith("https://") && 
-                    !url.StartsWith("git@") && !url.StartsWith("ssh://"))
-                {
-                    MessageBox.Show("URL must start with http://, https://, git@, or ssh://", 
-                        "Invalid URL", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                if (gitRepo.AddRemote("origin", url))
-                {
-                    MessageBox.Show("Remote origin added successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    UpdateRemoteStatus();
-                    UpdateStatus(); // Refresh to update repo name if it changed
-                }
-                else
-                {
-                    MessageBox.Show("Failed to add remote. The remote may already exist or the URL is invalid.", 
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
-        private void OnRemoveRemoteClick(object sender, EventArgs e)
-        {
-            if (gitRepo == null)
-                return;
-
-            string remoteUrl = gitRepo.GetRemoteUrl();
-            
-            var result = MessageBox.Show(
-                $"Remove remote 'origin'?\n\nURL: {remoteUrl}\n\nThis will remove the remote from your local Git config.\nThe remote repository on GitHub/Bitbucket will NOT be deleted.",
-                "Remove Remote",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Warning);
-
-            if (result == DialogResult.Yes)
-            {
-                if (gitRepo.RemoveRemote("origin"))
-                {
-                    MessageBox.Show("Remote 'origin' removed successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    UpdateRemoteStatus();
-                    UpdateStatus(); // Refresh to update repo name
-                }
-                else
-                {
-                    MessageBox.Show("Failed to remove remote.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
-        private void OnCreateGitHubRepoClick(object sender, EventArgs e)
-        {
-            if (gitRepo == null)
-                return;
-
-            // Create dialog for GitHub repo creation
-            var repoDialog = new Form();
-            repoDialog.Text = "Create GitHub Repository";
-            repoDialog.Width = 450;
-            repoDialog.Height = 265;
-            repoDialog.StartPosition = FormStartPosition.CenterParent;
-            repoDialog.FormBorderStyle = FormBorderStyle.FixedDialog;
-            repoDialog.MaximizeBox = false;
-            repoDialog.MinimizeBox = false;
-
-            var nameLabel = new Label();
-            nameLabel.Text = "Repository name:";
-            nameLabel.Location = new Point(10, 15);
-            nameLabel.AutoSize = true;
-            repoDialog.Controls.Add(nameLabel);
-
-            var nameBox = new TextBox();
-            nameBox.Location = new Point(10, 35);
-            nameBox.Width = 410;
-            // Default to current folder name
-            nameBox.Text = System.IO.Path.GetFileName(gitRepo == null ? "" : ProjectService.OpenSolution.Directory);
-            repoDialog.Controls.Add(nameBox);
-
-            var descLabel = new Label();
-            descLabel.Text = "Description (optional):";
-            descLabel.Location = new Point(10, 65);
-            descLabel.AutoSize = true;
-            repoDialog.Controls.Add(descLabel);
-
-            var descBox = new TextBox();
-            descBox.Location = new Point(10, 85);
-            descBox.Width = 410;
-            repoDialog.Controls.Add(descBox);
-
-            var visibilityLabel = new Label();
-            visibilityLabel.Text = "Visibility:";
-            visibilityLabel.Location = new Point(10, 115);
-            visibilityLabel.AutoSize = true;
-            repoDialog.Controls.Add(visibilityLabel);
-
-            var publicRadio = new RadioButton();
-            publicRadio.Text = "Public";
-            publicRadio.Location = new Point(10, 135);
-            publicRadio.AutoSize = true;
-            repoDialog.Controls.Add(publicRadio);
-
-            var privateRadio = new RadioButton();
-            privateRadio.Text = "Private";
-            privateRadio.Location = new Point(100, 135);
-            privateRadio.Checked = true; // Default to private
-            privateRadio.AutoSize = true;
-            repoDialog.Controls.Add(privateRadio);
-
-            var readmeCheckbox = new CheckBox();
-            readmeCheckbox.Text = "Create README.md";
-            readmeCheckbox.Location = new Point(10, 165);
-            readmeCheckbox.Checked = true; // Default to creating README
-            readmeCheckbox.AutoSize = true;
-            repoDialog.Controls.Add(readmeCheckbox);
-
-            var createButton = new Button();
-            createButton.Text = "Create";
-            createButton.DialogResult = DialogResult.OK;
-            createButton.Location = new Point(250, 195);
-            createButton.Width = 80;
-            repoDialog.Controls.Add(createButton);
-
-            var cancelButton = new Button();
-            cancelButton.Text = "Cancel";
-            cancelButton.DialogResult = DialogResult.Cancel;
-            cancelButton.Location = new Point(340, 195);
-            cancelButton.Width = 80;
-            repoDialog.Controls.Add(cancelButton);
-
-            repoDialog.AcceptButton = createButton;
-            repoDialog.CancelButton = cancelButton;
-
-            if (repoDialog.ShowDialog() == DialogResult.OK)
-            {
-                string repoName = nameBox.Text.Trim();
-                string description = descBox.Text.Trim();
-                bool isPrivate = privateRadio.Checked;
-                bool createReadme = readmeCheckbox.Checked;
-
-                if (string.IsNullOrEmpty(repoName))
-                {
-                    MessageBox.Show("Repository name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                // Create README.md if requested and doesn't exist
-                if (createReadme)
-                {
-                    string readmePath = System.IO.Path.Combine(ProjectService.OpenSolution.Directory, "README.md");
-                    if (!System.IO.File.Exists(readmePath))
-                    {
-                        try
-                        {
-                            string readmeContent = $"# {repoName}\n\n{description}\n";
-                            System.IO.File.WriteAllText(readmePath, readmeContent);
-                            
-                            // Stage and commit the README
-                            gitRepo.StageFile("README.md");
-                            gitRepo.CommitChanges("Add README.md");
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show($"Failed to create README.md: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        }
-                    }
-                }
-
-                // Check if there are commits to push
-                bool hasCommits = gitRepo.HasCommits();
-
-                // Show progress message
-                var progressForm = new Form();
-                progressForm.Text = "Creating Repository...";
-                progressForm.Width = 300;
-                progressForm.Height = 100;
-                progressForm.StartPosition = FormStartPosition.CenterParent;
-                progressForm.FormBorderStyle = FormBorderStyle.FixedDialog;
-                progressForm.ControlBox = false;
-                var progressLabel = new Label();
-                progressLabel.Text = "Creating repository on GitHub...\nPlease wait.";
-                progressLabel.Location = new Point(20, 20);
-                progressLabel.AutoSize = true;
-                progressForm.Controls.Add(progressLabel);
-                progressForm.Show();
-                progressForm.Refresh();
-
-                // Create repo
-                var result = gitRepo.CreateGitHubRepo(repoName, isPrivate, description);
-                progressForm.Close();
-
-                if (result.ExitCode == 0)
-                {
-                    UpdateRemoteStatus();
-                    UpdateStatus();
-                    
-                    // Offer to push if there are commits
-                    if (hasCommits)
-                    {
-                        var pushResult = MessageBox.Show(
-                            $"Repository '{repoName}' created successfully!\n\nYou have local commits. Push them to GitHub now?",
-                            "Push Commits?",
-                            MessageBoxButtons.YesNo,
-                            MessageBoxIcon.Question);
-                        
-                        if (pushResult == DialogResult.Yes)
-                        {
-                            progressForm = new Form();
-                            progressForm.Text = "Pushing...";
-                            progressForm.Width = 300;
-                            progressForm.Height = 100;
-                            progressForm.StartPosition = FormStartPosition.CenterParent;
-                            progressForm.FormBorderStyle = FormBorderStyle.FixedDialog;
-                            progressForm.ControlBox = false;
-                            progressLabel = new Label();
-                            progressLabel.Text = "Pushing commits to GitHub...\nPlease wait.";
-                            progressLabel.Location = new Point(20, 20);
-                            progressLabel.AutoSize = true;
-                            progressForm.Controls.Add(progressLabel);
-                            progressForm.Show();
-                            progressForm.Refresh();
-                            
-                            if (gitRepo.PushChanges())
-                            {
-                                progressForm.Close();
-                                MessageBox.Show("Commits pushed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            }
-                            else
-                            {
-                                progressForm.Close();
-                                MessageBox.Show("Failed to push commits. You may need to run 'git push -u origin main' manually.", "Push Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show($"Repository '{repoName}' created successfully on GitHub!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                }
-                else
-                {
-                    string errorMsg = !string.IsNullOrEmpty(result.Error) ? result.Error : result.Output;
-                    MessageBox.Show($"Failed to create repository:\n\n{errorMsg}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
-        private void OnInitRepoClick(object sender, EventArgs e)
-        {
-            if (ProjectService.OpenSolution == null)
-                return;
-
-            string solutionDir = ProjectService.OpenSolution.Directory;
-            
-            var result = MessageBox.Show(
-                $"Initialize a new Git repository in:\n{solutionDir}\n\nThis will create a .git folder. Continue?",
-                "Initialize Git Repository",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
-
-            if (result == DialogResult.Yes)
-            {
-                if (gitRepo != null && gitRepo.InitializeRepository())
-                {
-                    MessageBox.Show("Git repository initialized successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    UpdateStatus(); // Refresh UI to show repo controls
-                }
-                else
-                {
-                    MessageBox.Show("Failed to initialize Git repository.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
+        #region UI Layout and Resize
 
         private void UpdatePadTitle(string title)
         {
@@ -1107,504 +641,11 @@ namespace GitPane
             }
         }
 
-        private void OnPanelResize(object sender, EventArgs e)
-        {
-            // Dynamically reposition controls based on panel size
-            int panelWidth = contentPanel.Width;
-            int panelHeight = contentPanel.Height;
-            
-            // Skip if panel hasn't been sized yet
-            if (panelWidth <= 0 || panelHeight <= 0)
-                return;
-                
-            int margin = 10;
-            int rightMargin = 20; // Extra padding on right since IDE has no border
-            int availableWidth = panelWidth - margin - rightMargin;
+        #endregion
 
-            // Position top-right controls (remoteLabel, addRemoteButton, createGitHubRepoButton, refreshButton)
-            // Work backwards from right edge with proper margin
-            refreshButton.Left = panelWidth - rightMargin - refreshButton.Width;
 
-            if (createGitHubRepoButton.Visible)
-            {
-                createGitHubRepoButton.Left = refreshButton.Left - margin - createGitHubRepoButton.Width;
-                
-                if (addRemoteButton.Visible)
-                {
-                    addRemoteButton.Left = createGitHubRepoButton.Left - margin - addRemoteButton.Width;
-                }
-            }
-            else if (addRemoteButton.Visible)
-            {
-                addRemoteButton.Left = refreshButton.Left - margin - addRemoteButton.Width;
-            }
-            
-            if (remoteLabel.Visible)
-            {
-                // Position remote label to the left of refresh button
-                remoteLabel.Left = refreshButton.Left - margin - remoteLabel.Width;
-                
-                // Position remove button next to remote label
-                if (removeRemoteButton.Visible)
-                {
-                    removeRemoteButton.Left = remoteLabel.Left - 5 - removeRemoteButton.Width;
-                }
-            }
 
-            // Vertical layout with dynamic sizing
-            // Calculate available vertical space for file lists
-            int topControlsHeight = 40; // Branch section
-            int commitMessageHeight = 100; // Commit message + label
-            int commitButtonsHeight = 40; // Buttons at bottom
-            int bottomMargin = 10;
-            
-            int availableVerticalSpace = panelHeight - topControlsHeight - commitMessageHeight - commitButtonsHeight - bottomMargin - (margin * 4);
-            
-            // Split remaining space between staged and unstaged (50/50)
-            int listBoxHeight = (availableVerticalSpace / 2) - margin;
-            
-            // Minimum height for usability
-            if (listBoxHeight < 100)
-                listBoxHeight = 100;
-            
-            // Position and size staged files section
-            stagedGroupBox.Location = new Point(margin, topControlsHeight);
-            stagedGroupBox.Width = availableWidth;
-            stagedGroupBox.Height = listBoxHeight + 50; // +50 for button below
-            
-            stagedListBox.Width = availableWidth - 20;
-            stagedListBox.Height = listBoxHeight;
-            
-            unstageSelectedButton.Top = listBoxHeight + 25;
-            unstageAllButton.Top = listBoxHeight + 25;
-            
-            // Position unstaged files section below staged
-            int unstagedTop = stagedGroupBox.Bottom + margin;
-            unstagedGroupBox.Location = new Point(margin, unstagedTop);
-            unstagedGroupBox.Width = availableWidth;
-            unstagedGroupBox.Height = listBoxHeight + 50;
-            
-            unstagedListBox.Width = availableWidth - 20;
-            unstagedListBox.Height = listBoxHeight;
-            
-            stageSelectedButton.Top = listBoxHeight + 25;
-            stageAllButton.Top = listBoxHeight + 25;
-            
-            // Position commit message section at bottom
-            int commitMessageTop = unstagedGroupBox.Bottom + margin;
-            commitMessageLabel.Location = new Point(margin, commitMessageTop);
-            commitMessageBox.Location = new Point(margin, commitMessageTop + 20);
-            commitMessageBox.Width = availableWidth;
-            
-            // Position commit buttons at very bottom
-            int buttonsTop = commitMessageBox.Bottom + margin;
-            commitButton.Top = buttonsTop;
-            commitPushButton.Top = buttonsTop;
-            pushButton.Top = buttonsTop;
-        }
-
-        private void OnPanelLayout(object sender, LayoutEventArgs e)
-        {
-            // Trigger resize logic when panel layout changes
-            OnPanelResize(sender, EventArgs.Empty);
-        }
-
-        private void OnBranchSelectClick(object sender, EventArgs e)
-        {
-            if (gitRepo == null)
-                return;
-
-            var branches = gitRepo.GetAllBranchesWithInfo();
-            var currentBranch = gitRepo.GetCurrentBranch();
-
-            using (var dialog = new BranchSelectorDialog(branches, currentBranch))
-            {
-                if (dialog.ShowDialog() == DialogResult.OK && dialog.SelectedBranch != null)
-                {
-                    string selectedBranch = dialog.SelectedBranch;
-
-                    // Don't switch if already on this branch
-                    if (selectedBranch == currentBranch)
-                        return;
-
-                    // Don't allow switching from detached HEAD entries
-                    if (selectedBranch.StartsWith("HEAD"))
-                        return;
-
-                    // Check for uncommitted changes
-                    if (gitRepo.HasUncommittedChanges())
-                    {
-                        if (!HandleUncommittedChanges(selectedBranch))
-                            return; // User cancelled or operation failed
-                    }
-                    else
-                    {
-                        // No uncommitted changes, just confirm and switch
-                        if (MessageBox.Show(
-                            $"Switch to branch '{selectedBranch}'?",
-                            "Switch Branch",
-                            MessageBoxButtons.YesNo,
-                            MessageBoxIcon.Question) == DialogResult.Yes)
-                        {
-                            if (gitRepo.CheckoutBranch(selectedBranch))
-                            {
-                                // Check if there are stashes after switching
-                                CheckForStashesToRestore();
-                                MessageBox.Show($"Switched to branch '{selectedBranch}'", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                UpdateStatus();
-                            }
-                            else
-                            {
-                                MessageBox.Show($"Failed to switch to branch '{selectedBranch}'.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private bool HandleUncommittedChanges(string targetBranch)
-        {
-            var changesStatus = gitRepo.GetUncommittedChangesStatus();
-            var changes = changesStatus.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            
-            using (var dialog = new Form())
-            {
-                dialog.Text = "Uncommitted Changes";
-                dialog.Size = new Size(600, 450);
-                dialog.StartPosition = FormStartPosition.CenterParent;
-                dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dialog.MaximizeBox = false;
-                dialog.MinimizeBox = false;
-
-                var infoLabel = new Label();
-                infoLabel.Text = $"You have {changes.Length} uncommitted change(s). What would you like to do?";
-                infoLabel.Location = new Point(10, 10);
-                infoLabel.AutoSize = true;
-                infoLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F, FontStyle.Bold);
-
-                var selectAllCheckBox = new CheckBox();
-                selectAllCheckBox.Text = "Select All";
-                selectAllCheckBox.Location = new Point(10, 35);
-                selectAllCheckBox.AutoSize = true;
-                selectAllCheckBox.Checked = true;
-
-                var changesListBox = new CheckedListBox();
-                changesListBox.Location = new Point(10, 60);
-                changesListBox.Size = new Size(560, 280);
-                changesListBox.Font = new Font("Courier New", 9F);
-                changesListBox.CheckOnClick = true;
-                
-                foreach (var change in changes)
-                {
-                    changesListBox.Items.Add(change, true);
-                }
-
-                selectAllCheckBox.CheckedChanged += (s, e) =>
-                {
-                    for (int i = 0; i < changesListBox.Items.Count; i++)
-                    {
-                        changesListBox.SetItemChecked(i, selectAllCheckBox.Checked);
-                    }
-                };
-
-                var stashButton = new Button();
-                stashButton.Text = "Stash";
-                stashButton.Location = new Point(10, 350);
-                stashButton.Width = 90;
-                stashButton.Click += (s, ev) => { dialog.Tag = "stash"; dialog.Close(); };
-
-                var commitButton = new Button();
-                commitButton.Text = "Commit";
-                commitButton.Location = new Point(105, 350);
-                commitButton.Width = 90;
-                commitButton.Click += (s, ev) => { dialog.Tag = "commit"; dialog.Close(); };
-
-                var commitPushButton = new Button();
-                commitPushButton.Text = "Commit && Push";
-                commitPushButton.Location = new Point(200, 350);
-                commitPushButton.Width = 110;
-                commitPushButton.Click += (s, ev) => { dialog.Tag = "commitpush"; dialog.Close(); };
-
-                var discardButton = new Button();
-                discardButton.Text = "Discard";
-                discardButton.Location = new Point(315, 350);
-                discardButton.Width = 75;
-                discardButton.ForeColor = Color.Red;
-                discardButton.Click += (s, ev) => 
-                { 
-                    if (MessageBox.Show("Are you sure you want to discard all changes? This cannot be undone!", 
-                        "Confirm Discard", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
-                    {
-                        dialog.Tag = "discard"; 
-                        dialog.Close(); 
-                    }
-                };
-
-                var cancelButton = new Button();
-                cancelButton.Text = "Cancel";
-                cancelButton.Location = new Point(395, 350);
-                cancelButton.Width = 75;
-                cancelButton.Click += (s, ev) => { dialog.Tag = "cancel"; dialog.Close(); };
-
-                var helpLabel = new Label();
-                helpLabel.Text = "Note: All operations apply to all files (selection is for reference only)";
-                helpLabel.Location = new Point(10, 380);
-                helpLabel.AutoSize = true;
-                helpLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 7.5F);
-                helpLabel.ForeColor = Color.Gray;
-
-                dialog.Controls.Add(infoLabel);
-                dialog.Controls.Add(selectAllCheckBox);
-                dialog.Controls.Add(changesListBox);
-                dialog.Controls.Add(stashButton);
-                dialog.Controls.Add(commitButton);
-                dialog.Controls.Add(commitPushButton);
-                dialog.Controls.Add(discardButton);
-                dialog.Controls.Add(cancelButton);
-                dialog.Controls.Add(helpLabel);
-
-                dialog.ShowDialog();
-
-                string action = dialog.Tag as string;
-
-                if (action == "stash")
-                {
-                    if (gitRepo.StashChanges($"Before switching to {targetBranch}"))
-                    {
-                        if (gitRepo.CheckoutBranch(targetBranch))
-                        {
-                            // Don't prompt for stash restore right after stashing - user just wanted to switch
-                            MessageBox.Show($"Changes stashed and switched to branch '{targetBranch}'", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            UpdateStatus();
-                            return true;
-                        }
-                    }
-                    MessageBox.Show("Failed to stash changes or switch branch.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return false;
-                }
-                else if (action == "commit" || action == "commitpush")
-                {
-                    var commitMsg = PromptForCommitMessage();
-                    if (string.IsNullOrWhiteSpace(commitMsg))
-                        return false; // User cancelled
-
-                    if (gitRepo.CommitChanges(commitMsg))
-                    {
-                        if (action == "commitpush")
-                        {
-                            if (!gitRepo.PushChanges())
-                            {
-                                MessageBox.Show("Committed locally but push failed. You can push manually later.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            }
-                        }
-
-                        if (gitRepo.CheckoutBranch(targetBranch))
-                        {
-                            // Check if there are stashes after switching
-                            CheckForStashesToRestore();
-                            MessageBox.Show($"Changes committed and switched to branch '{targetBranch}'", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            UpdateStatus();
-                            return true;
-                        }
-                    }
-                    MessageBox.Show("Failed to commit changes or switch branch.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return false;
-                }
-                else if (action == "discard")
-                {
-                    if (gitRepo.DiscardChanges())
-                    {
-                        if (gitRepo.CheckoutBranch(targetBranch))
-                        {
-                            // Check if there are stashes after switching
-                            CheckForStashesToRestore();
-                            MessageBox.Show($"Changes discarded and switched to branch '{targetBranch}'", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            UpdateStatus();
-                            return true;
-                        }
-                    }
-                    MessageBox.Show("Failed to discard changes or switch branch.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return false;
-                }
-
-                return false; // Cancelled
-            }
-        }
-
-        private string PromptForCommitMessage()
-        {
-            using (var dialog = new Form())
-            {
-                dialog.Text = "Commit Message";
-                dialog.Size = new Size(450, 200);
-                dialog.StartPosition = FormStartPosition.CenterParent;
-                dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dialog.MaximizeBox = false;
-                dialog.MinimizeBox = false;
-
-                var label = new Label();
-                label.Text = "Enter commit message:";
-                label.Location = new Point(10, 10);
-                label.AutoSize = true;
-
-                var textBox = new TextBox();
-                textBox.Multiline = true;
-                textBox.Location = new Point(10, 35);
-                textBox.Size = new Size(410, 80);
-                textBox.ScrollBars = ScrollBars.Vertical;
-
-                var okButton = new Button();
-                okButton.Text = "OK";
-                okButton.Location = new Point(255, 125);
-                okButton.Width = 80;
-                okButton.Click += (s, e) => { dialog.DialogResult = DialogResult.OK; dialog.Close(); };
-
-                var cancelButton = new Button();
-                cancelButton.Text = "Cancel";
-                cancelButton.Location = new Point(340, 125);
-                cancelButton.Width = 80;
-                cancelButton.Click += (s, e) => { dialog.DialogResult = DialogResult.Cancel; dialog.Close(); };
-
-                dialog.Controls.Add(label);
-                dialog.Controls.Add(textBox);
-                dialog.Controls.Add(okButton);
-                dialog.Controls.Add(cancelButton);
-                dialog.AcceptButton = okButton;
-                dialog.CancelButton = cancelButton;
-
-                if (dialog.ShowDialog() == DialogResult.OK)
-                    return textBox.Text;
-                
-                return null;
-            }
-        }
-
-        private void CheckForStashesToRestore()
-        {
-            if (!gitRepo.HasStashes())
-                return;
-
-            var stashes = gitRepo.GetStashList();
-            var currentBranch = gitRepo.GetCurrentBranch();
-
-            using (var dialog = new Form())
-            {
-                dialog.Text = "Stashed Changes Available";
-                dialog.Size = new Size(500, 350);
-                dialog.StartPosition = FormStartPosition.CenterParent;
-                dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dialog.MaximizeBox = false;
-                dialog.MinimizeBox = false;
-
-                var label = new Label();
-                label.Text = $"There are stashed changes available on '{currentBranch}'.\nWould you like to restore them?";
-                label.Location = new Point(10, 10);
-                label.AutoSize = true;
-
-                var listBox = new ListBox();
-                listBox.Location = new Point(10, 50);
-                listBox.Size = new Size(460, 200);
-                listBox.Font = new Font("Courier New", 8F);
-                
-                for (int i = 0; i < stashes.Length; i++)
-                {
-                    listBox.Items.Add($"[{i}] {stashes[i]}");
-                }
-                
-                if (stashes.Length > 0)
-                    listBox.SelectedIndex = 0;
-
-                var applyButton = new Button();
-                applyButton.Text = "Apply";
-                applyButton.Location = new Point(10, 260);
-                applyButton.Width = 90;
-                applyButton.Click += (s, ev) => { dialog.Tag = "apply"; dialog.Close(); };
-
-                var popButton = new Button();
-                popButton.Text = "Pop";
-                popButton.Location = new Point(105, 260);
-                popButton.Width = 90;
-                popButton.Click += (s, ev) => { dialog.Tag = "pop"; dialog.Close(); };
-
-                var dropButton = new Button();
-                dropButton.Text = "Drop";
-                dropButton.Location = new Point(200, 260);
-                dropButton.Width = 90;
-                dropButton.ForeColor = Color.Red;
-                dropButton.Click += (s, ev) => 
-                { 
-                    if (MessageBox.Show("Are you sure you want to permanently delete this stash?", 
-                        "Confirm Drop", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
-                    {
-                        dialog.Tag = "drop"; 
-                        dialog.Close(); 
-                    }
-                };
-
-                var cancelButton = new Button();
-                cancelButton.Text = "Not Now";
-                cancelButton.Location = new Point(295, 260);
-                cancelButton.Width = 90;
-                cancelButton.Click += (s, ev) => { dialog.Tag = "cancel"; dialog.Close(); };
-
-                var helpLabel = new Label();
-                helpLabel.Text = "Apply: Keep stash for later | Pop: Apply and remove | Drop: Delete stash";
-                helpLabel.Location = new Point(10, 290);
-                helpLabel.AutoSize = true;
-                helpLabel.Font = new Font(SystemFonts.DefaultFont.FontFamily, 7.5F);
-                helpLabel.ForeColor = Color.Gray;
-
-                dialog.Controls.Add(label);
-                dialog.Controls.Add(listBox);
-                dialog.Controls.Add(applyButton);
-                dialog.Controls.Add(popButton);
-                dialog.Controls.Add(dropButton);
-                dialog.Controls.Add(cancelButton);
-                dialog.Controls.Add(helpLabel);
-
-                dialog.ShowDialog();
-
-                string action = dialog.Tag as string;
-                int selectedIndex = listBox.SelectedIndex >= 0 ? listBox.SelectedIndex : 0;
-
-                if (action == "apply")
-                {
-                    if (gitRepo.ApplyStash(selectedIndex))
-                    {
-                        MessageBox.Show("Stash applied successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        UpdateStatus();
-                    }
-                    else
-                    {
-                        MessageBox.Show("Failed to apply stash. You may have conflicts.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-                else if (action == "pop")
-                {
-                    if (gitRepo.PopStash(selectedIndex))
-                    {
-                        MessageBox.Show("Stash popped successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        UpdateStatus();
-                    }
-                    else
-                    {
-                        MessageBox.Show("Failed to pop stash. You may have conflicts.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-                else if (action == "drop")
-                {
-                    if (gitRepo.DropStash(selectedIndex))
-                    {
-                        MessageBox.Show("Stash dropped successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    else
-                    {
-                        MessageBox.Show("Failed to drop stash.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-            }
-        }
+        #region Solution Event Handlers
 
         private void OnSolutionChanged(object sender, SolutionEventArgs e)
         {
@@ -1626,117 +667,6 @@ namespace GitPane
             base.Dispose();
         }
 
-        private void StartFileWatcher(string directory)
-        {
-            StopFileWatcher();
-
-            try
-            {
-                fileWatcher = new System.IO.FileSystemWatcher(directory);
-                fileWatcher.IncludeSubdirectories = true;
-                fileWatcher.NotifyFilter = System.IO.NotifyFilters.LastWrite 
-                    | System.IO.NotifyFilters.FileName 
-                    | System.IO.NotifyFilters.DirectoryName
-                    | System.IO.NotifyFilters.Size;
-
-                // Filter out .git folder changes to reduce noise
-                fileWatcher.Changed += OnFileSystemChanged;
-                fileWatcher.Created += OnFileSystemChanged;
-                fileWatcher.Deleted += OnFileSystemChanged;
-                fileWatcher.Renamed += OnFileSystemChanged;
-
-                fileWatcher.EnableRaisingEvents = true;
-                
-                // Watch .git/config for remote changes
-                string gitDir = System.IO.Path.Combine(directory, ".git");
-                if (System.IO.Directory.Exists(gitDir))
-                {
-                    gitConfigWatcher = new System.IO.FileSystemWatcher(gitDir);
-                    gitConfigWatcher.Filter = "config";
-                    gitConfigWatcher.NotifyFilter = System.IO.NotifyFilters.LastWrite;
-                    gitConfigWatcher.Changed += OnGitConfigChanged;
-                    gitConfigWatcher.EnableRaisingEvents = true;
-                }
-            }
-            catch
-            {
-                // Silently fail if we can't watch (maybe permissions issue)
-                fileWatcher = null;
-                gitConfigWatcher = null;
-            }
-        }
-
-        private void StopFileWatcher()
-        {
-            if (fileWatcher != null)
-            {
-                fileWatcher.EnableRaisingEvents = false;
-                fileWatcher.Dispose();
-                fileWatcher = null;
-            }
-            
-            if (gitConfigWatcher != null)
-            {
-                gitConfigWatcher.EnableRaisingEvents = false;
-                gitConfigWatcher.Dispose();
-                gitConfigWatcher = null;
-            }
-        }
-
-        private void OnFileSystemChanged(object sender, System.IO.FileSystemEventArgs e)
-        {
-            // Ignore .git folder changes
-            if (e.FullPath.Contains("\\.git\\"))
-                return;
-
-            // Debounce the refresh - only refresh after 500ms of no changes
-            if (debounceTimer != null)
-                debounceTimer.Dispose();
-
-            debounceTimer = new System.Threading.Timer(state =>
-            {
-                if (contentPanel.InvokeRequired)
-                {
-                    try
-                    {
-                        contentPanel.Invoke(new Action(RefreshFileList));
-                    }
-                    catch
-                    {
-                        // Ignore if control is disposed
-                    }
-                }
-                else
-                {
-                    RefreshFileList();
-                }
-            }, null, 500, System.Threading.Timeout.Infinite);
-        }
-
-        private void OnGitConfigChanged(object sender, System.IO.FileSystemEventArgs e)
-        {
-            // Debounce the refresh - .git/config can change multiple times
-            if (configDebounceTimer != null)
-                configDebounceTimer.Dispose();
-
-            configDebounceTimer = new System.Threading.Timer(state =>
-            {
-                if (contentPanel.InvokeRequired)
-                {
-                    try
-                    {
-                        contentPanel.Invoke(new Action(UpdateRemoteStatus));
-                    }
-                    catch
-                    {
-                        // Ignore if control is disposed
-                    }
-                }
-                else
-                {
-                    UpdateRemoteStatus();
-                }
-            }, null, 500, System.Threading.Timeout.Infinite);
-        }
+        #endregion
     }
 }

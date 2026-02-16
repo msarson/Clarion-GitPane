@@ -16,6 +16,11 @@
 
   <ItemGroup>
     <Compile Include="GitPanePad.cs" />
+    <Compile Include="GitPanePad.BranchManagement.cs" />
+    <Compile Include="GitPanePad.CommitOperations.cs" />
+    <Compile Include="GitPanePad.FileSystemWatchers.cs" />
+    <Compile Include="GitPanePad.RemoteManagement.cs" />
+    <Compile Include="GitPanePad.RepositoryDialogs.cs" />
     <Compile Include="GitRepository.cs" />
     <Compile Include="BranchSelectorDialog.cs" />
   </ItemGroup>
