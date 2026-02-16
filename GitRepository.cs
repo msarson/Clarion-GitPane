@@ -91,8 +91,16 @@ namespace GitPane
             if (string.IsNullOrEmpty(workingDirectory) || !Directory.Exists(workingDirectory))
                 return false;
 
-            var result = ExecuteGitCommand("init");
-            return result.ExitCode == 0;
+            // Initialize the repository
+            var initResult = ExecuteGitCommand("init");
+            if (initResult.ExitCode != 0)
+                return false;
+
+            // Create initial commit to establish master/main branch
+            // This allows immediate branching and avoids "no branch" state
+            var commitResult = ExecuteGitCommand("commit --allow-empty -m \"Initial commit\"");
+            
+            return commitResult.ExitCode == 0;
         }
 
         public bool HasCommits()
@@ -394,8 +402,18 @@ namespace GitPane
 
         public bool UnstageAllFiles()
         {
-            var result = ExecuteGitCommand("reset HEAD");
-            return result.ExitCode == 0;
+            // Use git reset if repo has commits, otherwise just rm from index
+            if (HasCommits())
+            {
+                var result = ExecuteGitCommand("reset HEAD");
+                return result.ExitCode == 0;
+            }
+            else
+            {
+                // For new repos without commits, remove from index
+                var result = ExecuteGitCommand("rm --cached -r .");
+                return result.ExitCode == 0;
+            }
         }
 
         public bool DiscardFile(string filePath)

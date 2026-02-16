@@ -61,6 +61,7 @@ namespace GitPane
         private ToolStripButton discardSelectedButton;
         private ToolStripButton discardAllButton;
         
+        private Panel topSpacerPanel;
         private Label commitMessageLabel;
         private TextBox commitMessageBox;
         private ToolStrip commitToolStrip;
@@ -184,7 +185,7 @@ namespace GitPane
             toolStrip = new ToolStrip();
             toolStrip.Dock = DockStyle.Top;
             toolStrip.GripStyle = ToolStripGripStyle.Hidden;
-            toolStrip.Padding = new Padding(5, 2, 5, 2);
+            toolStrip.Padding = new Padding(5, 2, 5, 6); // Extra bottom padding to separate from staged group
             
             // Branch dropdown button
             branchDropDown = new ToolStripDropDownButton();
@@ -196,6 +197,11 @@ namespace GitPane
             
             // Add items to toolbar
             toolStrip.Items.Add(branchDropDown);
+            
+            // Inert spacer panel for WinForms docking stability
+            topSpacerPanel = new Panel();
+            topSpacerPanel.Dock = DockStyle.Top;
+            topSpacerPanel.Height = 6;
             
             // Commit container - holds editor area and buttons in lower splitter
             commitContainer = new Panel();
@@ -377,10 +383,12 @@ namespace GitPane
             initRepoButton.Visible = false;
 
             // Add controls to contentPanel in correct docking order
-            // Fill first, then Top (multiple Top items dock in reverse order)
-            contentPanel.Controls.Add(mainSplitter);  // Dock.Fill - nested splitters (staged / unstaged / commit)
-            contentPanel.Controls.Add(toolStrip);     // Dock.Top - toolbar
-            contentPanel.Controls.Add(menuStrip);     // Dock.Top - menu (added last, appears at top)
+            // MenuStrip MUST be added last to appear topmost (WinForms requirement)
+            // Dock.Fill first, then Dock.Top in reverse visual order (last added = top position)
+            contentPanel.Controls.Add(mainSplitter);   // Dock.Fill - fills remaining space
+            contentPanel.Controls.Add(topSpacerPanel); // Dock.Top - visual separator (appears below toolStrip)
+            contentPanel.Controls.Add(toolStrip);      // Dock.Top - branch selector (appears below menuStrip)
+            contentPanel.Controls.Add(menuStrip);      // Dock.Top - MUST be added last for proper MenuStrip behavior
             contentPanel.Controls.Add(statusLabel);
             contentPanel.Controls.Add(initRepoButton);
         }
