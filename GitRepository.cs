@@ -294,6 +294,12 @@ namespace GitPane
             return result.ExitCode == 0;
         }
 
+        public bool RemoveRemote(string remoteName = "origin")
+        {
+            var result = ExecuteGitCommand($"remote remove {remoteName}");
+            return result.ExitCode == 0;
+        }
+
         public bool AddToGitignore(string pattern)
         {
             try

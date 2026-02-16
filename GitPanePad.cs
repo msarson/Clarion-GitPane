@@ -13,6 +13,7 @@ namespace GitPane
         private Label branchValueLabel;
         private Button branchSelectButton;
         private Label remoteLabel;
+        private Button removeRemoteButton;
         private Button addRemoteButton;
         private Button createGitHubRepoButton;
         private Button initRepoButton;
@@ -96,6 +97,17 @@ namespace GitPane
             remoteLabel.ForeColor = SystemColors.GrayText;
             remoteLabel.Location = new Point(240, 12);
             remoteLabel.Text = "";
+
+            // Remove Remote button (small X button)
+            removeRemoteButton = new Button();
+            removeRemoteButton.Text = "×";
+            removeRemoteButton.Location = new Point(240, 7);
+            removeRemoteButton.Width = 25;
+            removeRemoteButton.Height = 23;
+            removeRemoteButton.Font = new Font(SystemFonts.DefaultFont.FontFamily, 10F, FontStyle.Bold);
+            removeRemoteButton.Click += OnRemoveRemoteClick;
+            removeRemoteButton.Visible = false;
+            removeRemoteButton.FlatStyle = FlatStyle.Flat;
 
             // Add Remote button
             addRemoteButton = new Button();
@@ -245,6 +257,7 @@ namespace GitPane
             contentPanel.Controls.Add(branchValueLabel);
             contentPanel.Controls.Add(branchSelectButton);
             contentPanel.Controls.Add(remoteLabel);
+            contentPanel.Controls.Add(removeRemoteButton);
             contentPanel.Controls.Add(addRemoteButton);
             contentPanel.Controls.Add(createGitHubRepoButton);
             contentPanel.Controls.Add(refreshButton);
@@ -322,6 +335,7 @@ namespace GitPane
             branchValueLabel.Visible = false;
             branchSelectButton.Visible = false;
             remoteLabel.Visible = false;
+            removeRemoteButton.Visible = false;
             addRemoteButton.Visible = false;
             createGitHubRepoButton.Visible = false;
             initRepoButton.Visible = false;
@@ -667,6 +681,7 @@ namespace GitPane
                     
                     remoteLabel.Text = $"Remote: {displayUrl}";
                     remoteLabel.Visible = true;
+                    removeRemoteButton.Visible = true; // Show remove button
                 }
                 addRemoteButton.Visible = false;
                 createGitHubRepoButton.Visible = false;
@@ -675,6 +690,7 @@ namespace GitPane
             {
                 // No remote - show manual add button
                 remoteLabel.Visible = false;
+                removeRemoteButton.Visible = false;
                 addRemoteButton.Visible = true;
                 
                 // Show GitHub button if CLI is installed and authenticated
@@ -759,6 +775,34 @@ namespace GitPane
                 {
                     MessageBox.Show("Failed to add remote. The remote may already exist or the URL is invalid.", 
                         "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void OnRemoveRemoteClick(object sender, EventArgs e)
+        {
+            if (gitRepo == null)
+                return;
+
+            string remoteUrl = gitRepo.GetRemoteUrl();
+            
+            var result = MessageBox.Show(
+                $"Remove remote 'origin'?\n\nURL: {remoteUrl}\n\nThis will remove the remote from your local Git config.\nThe remote repository on GitHub/Bitbucket will NOT be deleted.",
+                "Remove Remote",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            if (result == DialogResult.Yes)
+            {
+                if (gitRepo.RemoveRemote("origin"))
+                {
+                    MessageBox.Show("Remote 'origin' removed successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    UpdateRemoteStatus();
+                    UpdateStatus(); // Refresh to update repo name
+                }
+                else
+                {
+                    MessageBox.Show("Failed to remove remote.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
@@ -1036,6 +1080,12 @@ namespace GitPane
             {
                 // Position remote label to the left of refresh button
                 remoteLabel.Left = refreshButton.Left - margin - remoteLabel.Width;
+                
+                // Position remove button next to remote label
+                if (removeRemoteButton.Visible)
+                {
+                    removeRemoteButton.Left = remoteLabel.Left - 5 - removeRemoteButton.Width;
+                }
             }
 
             // Adjust anchored control widths to respect right margin
