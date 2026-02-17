@@ -13,14 +13,16 @@ namespace GitPane
         
         // Gitignore tab controls
         private ListView gitignoreListView;
-        private Button gitignoreAddButton;
+        private Button gitignoreNewButton;
+        private Button gitignoreImportButton;
         private Button gitignoreEditButton;
         private Button gitignoreDeleteButton;
         private Button gitignoreSetDefaultButton;
         
         // Gitattributes tab controls
         private ListView gitattributesListView;
-        private Button gitattributesAddButton;
+        private Button gitattributesNewButton;
+        private Button gitattributesImportButton;
         private Button gitattributesEditButton;
         private Button gitattributesDeleteButton;
         private Button gitattributesSetDefaultButton;
@@ -94,152 +96,176 @@ namespace GitPane
 
         private void SetupGitignoreTab(TabPage tab)
         {
+            // Bottom panel for buttons
+            var bottomPanel = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 45
+            };
+            tab.Controls.Add(bottomPanel);
+
             // ListView
             gitignoreListView = new ListView
             {
-                Location = new Point(10, 10),
-                Size = new Size(540, 340),
-                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
+                Dock = DockStyle.Fill,
                 View = View.Details,
                 FullRowSelect = true,
                 GridLines = true,
                 Font = new Font("Segoe UI", 9F)
             };
             gitignoreListView.Columns.Add("Name", 150);
-            gitignoreListView.Columns.Add("Description", 300);
+            gitignoreListView.Columns.Add("Description", 400);
             gitignoreListView.Columns.Add("Default", 70);
             gitignoreListView.SelectedIndexChanged += OnGitignoreSelectionChanged;
             gitignoreListView.DoubleClick += OnGitignoreEdit;
             tab.Controls.Add(gitignoreListView);
 
-            // Buttons panel
-            int buttonX = 560;
-            int buttonY = 10;
+            // Buttons in bottom panel
+            int buttonX = 10;
+            int buttonY = 8;
             int buttonWidth = 80;
             int buttonHeight = 28;
-            int buttonSpacing = 35;
+            int buttonSpacing = 90;
 
-            gitignoreAddButton = new Button
+            gitignoreNewButton = new Button
             {
-                Text = "Add",
+                Text = "New",
                 Location = new Point(buttonX, buttonY),
                 Size = new Size(buttonWidth, buttonHeight),
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Font = new Font("Segoe UI", 9F)
             };
-            gitignoreAddButton.Click += OnGitignoreAdd;
-            tab.Controls.Add(gitignoreAddButton);
+            gitignoreNewButton.Click += OnGitignoreNew;
+            bottomPanel.Controls.Add(gitignoreNewButton);
+
+            gitignoreImportButton = new Button
+            {
+                Text = "Import",
+                Location = new Point(buttonX + buttonSpacing, buttonY),
+                Size = new Size(buttonWidth, buttonHeight),
+                Font = new Font("Segoe UI", 9F)
+            };
+            gitignoreImportButton.Click += OnGitignoreImport;
+            bottomPanel.Controls.Add(gitignoreImportButton);
 
             gitignoreEditButton = new Button
             {
                 Text = "Edit",
-                Location = new Point(buttonX, buttonY + buttonSpacing),
+                Location = new Point(buttonX + buttonSpacing * 2, buttonY),
                 Size = new Size(buttonWidth, buttonHeight),
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Font = new Font("Segoe UI", 9F),
                 Enabled = false
             };
             gitignoreEditButton.Click += OnGitignoreEdit;
-            tab.Controls.Add(gitignoreEditButton);
+            bottomPanel.Controls.Add(gitignoreEditButton);
 
             gitignoreDeleteButton = new Button
             {
                 Text = "Delete",
-                Location = new Point(buttonX, buttonY + buttonSpacing * 2),
+                Location = new Point(buttonX + buttonSpacing * 3, buttonY),
                 Size = new Size(buttonWidth, buttonHeight),
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Font = new Font("Segoe UI", 9F),
                 Enabled = false
             };
             gitignoreDeleteButton.Click += OnGitignoreDelete;
-            tab.Controls.Add(gitignoreDeleteButton);
+            bottomPanel.Controls.Add(gitignoreDeleteButton);
 
             gitignoreSetDefaultButton = new Button
             {
                 Text = "Set Default",
-                Location = new Point(buttonX, buttonY + buttonSpacing * 3),
+                Location = new Point(buttonX + buttonSpacing * 4, buttonY),
                 Size = new Size(buttonWidth, buttonHeight),
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Font = new Font("Segoe UI", 9F),
                 Enabled = false
             };
             gitignoreSetDefaultButton.Click += OnGitignoreSetDefault;
-            tab.Controls.Add(gitignoreSetDefaultButton);
+            bottomPanel.Controls.Add(gitignoreSetDefaultButton);
         }
 
         private void SetupGitattributesTab(TabPage tab)
         {
+            // Bottom panel for buttons
+            var bottomPanel = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 45
+            };
+            tab.Controls.Add(bottomPanel);
+
             // ListView
             gitattributesListView = new ListView
             {
-                Location = new Point(10, 10),
-                Size = new Size(540, 340),
-                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
+                Dock = DockStyle.Fill,
                 View = View.Details,
                 FullRowSelect = true,
                 GridLines = true,
                 Font = new Font("Segoe UI", 9F)
             };
             gitattributesListView.Columns.Add("Name", 150);
-            gitattributesListView.Columns.Add("Description", 300);
+            gitattributesListView.Columns.Add("Description", 400);
             gitattributesListView.Columns.Add("Default", 70);
             gitattributesListView.SelectedIndexChanged += OnGitattributesSelectionChanged;
             gitattributesListView.DoubleClick += OnGitattributesEdit;
             tab.Controls.Add(gitattributesListView);
 
-            // Buttons panel
-            int buttonX = 560;
-            int buttonY = 10;
+            // Buttons in bottom panel
+            int buttonX = 10;
+            int buttonY = 8;
             int buttonWidth = 80;
             int buttonHeight = 28;
-            int buttonSpacing = 35;
+            int buttonSpacing = 90;
 
-            gitattributesAddButton = new Button
+            gitattributesNewButton = new Button
             {
-                Text = "Add",
+                Text = "New",
                 Location = new Point(buttonX, buttonY),
                 Size = new Size(buttonWidth, buttonHeight),
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Font = new Font("Segoe UI", 9F)
             };
-            gitattributesAddButton.Click += OnGitattributesAdd;
-            tab.Controls.Add(gitattributesAddButton);
+            gitattributesNewButton.Click += OnGitattributesNew;
+            bottomPanel.Controls.Add(gitattributesNewButton);
+
+            gitattributesImportButton = new Button
+            {
+                Text = "Import",
+                Location = new Point(buttonX + buttonSpacing, buttonY),
+                Size = new Size(buttonWidth, buttonHeight),
+                Font = new Font("Segoe UI", 9F)
+            };
+            gitattributesImportButton.Click += OnGitattributesImport;
+            bottomPanel.Controls.Add(gitattributesImportButton);
 
             gitattributesEditButton = new Button
             {
                 Text = "Edit",
-                Location = new Point(buttonX, buttonY + buttonSpacing),
+                Location = new Point(buttonX + buttonSpacing * 2, buttonY),
                 Size = new Size(buttonWidth, buttonHeight),
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Font = new Font("Segoe UI", 9F),
                 Enabled = false
             };
             gitattributesEditButton.Click += OnGitattributesEdit;
-            tab.Controls.Add(gitattributesEditButton);
+            bottomPanel.Controls.Add(gitattributesEditButton);
 
             gitattributesDeleteButton = new Button
             {
                 Text = "Delete",
-                Location = new Point(buttonX, buttonY + buttonSpacing * 2),
+                Location = new Point(buttonX + buttonSpacing * 3, buttonY),
                 Size = new Size(buttonWidth, buttonHeight),
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Font = new Font("Segoe UI", 9F),
                 Enabled = false
             };
             gitattributesDeleteButton.Click += OnGitattributesDelete;
-            tab.Controls.Add(gitattributesDeleteButton);
+            bottomPanel.Controls.Add(gitattributesDeleteButton);
 
             gitattributesSetDefaultButton = new Button
             {
                 Text = "Set Default",
-                Location = new Point(buttonX, buttonY + buttonSpacing * 3),
+                Location = new Point(buttonX + buttonSpacing * 4, buttonY),
                 Size = new Size(buttonWidth, buttonHeight),
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Font = new Font("Segoe UI", 9F),
                 Enabled = false
             };
             gitattributesSetDefaultButton.Click += OnGitattributesSetDefault;
-            tab.Controls.Add(gitattributesSetDefaultButton);
+            bottomPanel.Controls.Add(gitattributesSetDefaultButton);
         }
 
         private void LoadTemplates()
@@ -299,7 +325,7 @@ namespace GitPane
             gitignoreSetDefaultButton.Enabled = hasSelection;
         }
 
-        private void OnGitignoreAdd(object sender, EventArgs e)
+        private void OnGitignoreNew(object sender, EventArgs e)
         {
             var newTemplate = new GitTemplate();
             var dialog = new TemplateEditorDialog(newTemplate, TemplateType.Gitignore, isNew: true);
@@ -308,6 +334,44 @@ namespace GitPane
             {
                 templateManager.SaveTemplate(newTemplate, TemplateType.Gitignore);
                 LoadGitignoreTemplates();
+            }
+        }
+
+        private void OnGitignoreImport(object sender, EventArgs e)
+        {
+            using (var openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "Gitignore files (.gitignore)|.gitignore|All files (*.*)|*.*";
+                openFileDialog.Title = "Import .gitignore File";
+                
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        string content = System.IO.File.ReadAllText(openFileDialog.FileName);
+                        string fileName = System.IO.Path.GetFileName(openFileDialog.FileName);
+                        
+                        var newTemplate = new GitTemplate
+                        {
+                            Name = "Imported " + fileName,
+                            Description = "Imported from " + openFileDialog.FileName,
+                            Content = content
+                        };
+                        
+                        var dialog = new TemplateEditorDialog(newTemplate, TemplateType.Gitignore, isNew: true);
+                        
+                        if (dialog.ShowDialog(this) == DialogResult.OK)
+                        {
+                            templateManager.SaveTemplate(newTemplate, TemplateType.Gitignore);
+                            LoadGitignoreTemplates();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Failed to import file: {ex.Message}", "Import Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             }
         }
 
@@ -388,7 +452,7 @@ namespace GitPane
             gitattributesSetDefaultButton.Enabled = hasSelection;
         }
 
-        private void OnGitattributesAdd(object sender, EventArgs e)
+        private void OnGitattributesNew(object sender, EventArgs e)
         {
             var newTemplate = new GitTemplate();
             var dialog = new TemplateEditorDialog(newTemplate, TemplateType.Gitattributes, isNew: true);
@@ -397,6 +461,44 @@ namespace GitPane
             {
                 templateManager.SaveTemplate(newTemplate, TemplateType.Gitattributes);
                 LoadGitattributesTemplates();
+            }
+        }
+
+        private void OnGitattributesImport(object sender, EventArgs e)
+        {
+            using (var openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "Gitattributes files (.gitattributes)|.gitattributes|All files (*.*)|*.*";
+                openFileDialog.Title = "Import .gitattributes File";
+                
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        string content = System.IO.File.ReadAllText(openFileDialog.FileName);
+                        string fileName = System.IO.Path.GetFileName(openFileDialog.FileName);
+                        
+                        var newTemplate = new GitTemplate
+                        {
+                            Name = "Imported " + fileName,
+                            Description = "Imported from " + openFileDialog.FileName,
+                            Content = content
+                        };
+                        
+                        var dialog = new TemplateEditorDialog(newTemplate, TemplateType.Gitattributes, isNew: true);
+                        
+                        if (dialog.ShowDialog(this) == DialogResult.OK)
+                        {
+                            templateManager.SaveTemplate(newTemplate, TemplateType.Gitattributes);
+                            LoadGitattributesTemplates();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Failed to import file: {ex.Message}", "Import Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             }
         }
 
