@@ -2,6 +2,46 @@
 
 All notable changes to Clarion-GitPane will be documented in this file.
 
+## [1.0.5] - 2026-02-17
+
+### Added
+- **Template System** - Complete .gitignore and .gitattributes template management
+  - Create custom templates from scratch with name, description, and content editor
+  - Import existing .gitignore/.gitattributes files and save as templates
+  - Edit and delete templates through dedicated management UI
+  - Set default templates for quick repository initialization
+  - Character and line count display in template editor
+- **Repository Initialization** - Enhanced init dialog with template selection
+  - Independent selection of .gitignore and .gitattributes templates
+  - Option to skip either file type during initialization
+  - Preview template descriptions before selection
+- **Apply Templates** - Apply templates to existing repositories
+  - Apply .gitignore and/or .gitattributes templates independently
+  - Three modes per file: Skip (no change), Replace (backup existing), Merge (append with header)
+  - Automatic backup creation (.gitignore.backup / .gitattributes.backup)
+  - Merge operations include template name and timestamp in comment header
+  - Detects existing files and shows appropriate warnings
+- **Default Templates** - Ships with two ready-to-use templates
+  - Standard Clarion .gitignore (dll, exe, lib, obj, map, sln.cache)
+  - Standard Clarion .gitattributes (linguist-language tags, binary file markers)
+
+### Changed
+- **Menu Organization** - Added "Manage .gitignore/.gitattributes Templates..." to Help menu
+- **Repository Menu** - Added "Apply .gitignore/.gitattributes Template..." menu item
+- **Initialize Button** - Moved to top-level menu for better discoverability (was buried in File menu)
+- **Context-Aware Menus** - Only show relevant menus based on repository state
+- **Menu Naming** - More explicit menu item names for better clarity
+
+### Fixed
+- **Git History Dialog** - Fixed line ending display issues (LF to CRLF conversion for Windows TextBox)
+- **Dialog Layout** - Fixed DPI scaling issues in template manager using proper Panel docking
+
+### Technical
+- Template storage: JSON format in `[ClarionRoot]\accessory\addins\GitPane\templates\templates.json`
+- Independent gitignore and gitattributes collections for mix-and-match flexibility
+- GUID-based template identification for reliable management
+- Pretty-printed JSON for human readability and version control
+
 ## [1.0.4] - 2026-02-16
 
 ### Added

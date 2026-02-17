@@ -9,11 +9,19 @@ Clarion-GitPane adds a dockable pane to the Clarion IDE that enables essential G
 ## Features
 
 ### Core Git Operations
-- **Initialize Repository** - Create new Git repositories
+- **Initialize Repository** - Create new Git repositories with template selection
 - **Commit** - Stage files and commit changes with messages
 - **Push/Pull/Fetch** - Sync with remote repositories
 - **Stage/Unstage** - Granular file staging control
 - **Discard Changes** - Revert unwanted modifications
+
+### Template System
+- **Template Management** - Create, edit, and organize .gitignore and .gitattributes templates
+- **Import Templates** - Import existing .gitignore/.gitattributes files from any repository
+- **Template Editor** - Full-featured editor with character/line count and description
+- **Default Templates** - Set preferred templates for quick initialization
+- **Apply to Existing Repos** - Apply templates with Skip/Replace/Merge options
+- **Template Storage** - Templates persist in JSON format for easy version control
 
 ### Branch Management
 - **Quick Branch Switching** - Dropdown selector for fast branch changes
@@ -138,11 +146,39 @@ The compiled DLL will be located at: `bin\Release\net40\GitPane.dll`
 
 ### Menu Features
 
+- **Initialize Repository** → When no repo exists (top-level button)
 - **File** → Open in external tools, close pane
-- **Repository** → Refresh, Fetch, Pull, Push, View on Remote
+- **Repository** → Refresh, Fetch, Pull, Push, Apply Templates, View on Remote
 - **Branch** → Create, Delete, Merge branches
 - **View** → Toggle UI elements, reset layout
-- **Help** → About and diagnostics
+- **Help** → Manage Templates, About and diagnostics
+
+### Template System Usage
+
+#### Managing Templates
+
+1. **Open Template Manager** - Help → Manage .gitignore/.gitattributes Templates...
+2. **Create New Template** - Click "New" button on either tab
+3. **Import Template** - Click "Import" to load an existing .gitignore or .gitattributes file
+4. **Edit Template** - Select a template and click "Edit" (or double-click)
+5. **Set Default** - Select a template and click "Set Default" for automatic selection during init
+6. **Delete Template** - Select a template and click "Delete"
+
+#### Initializing with Templates
+
+1. **Click "Initialize Repository"** button when no repo exists
+2. **Select Templates** - Choose from dropdowns for .gitignore and .gitattributes (or select "None")
+3. **Click "Initialize"** - Repository is created with selected template files
+
+#### Applying Templates to Existing Repository
+
+1. **Repository → Apply .gitignore/.gitattributes Template...**
+2. **Select Templates** - Choose templates to apply (shows "(None)" option to skip)
+3. **Choose Action** for files that already exist:
+   - **Skip** - Don't modify existing file
+   - **Replace** - Replace file (backup created as .gitignore.backup)
+   - **Merge** - Append template content with timestamp header
+4. **Click "Apply"** - Templates are applied with chosen actions
 
 ## Project Structure
 
@@ -156,6 +192,12 @@ GitPane/
 ├── GitPanePad.RemoteManagement.cs     # Remote handling
 ├── GitPanePad.RepositoryDialogs.cs    # Dialogs and prompts
 ├── GitRepository.cs                   # Git command wrapper
+├── GitTemplate.cs                     # Template data model
+├── TemplateManager.cs                 # Template CRUD and persistence
+├── TemplateEditorDialog.cs            # Template editor UI
+├── TemplateManagerDialog.cs           # Template management UI
+├── InitializeRepositoryDialog.cs      # Enhanced init dialog
+├── ApplyTemplateDialog.cs             # Apply template dialog
 ├── BranchSelectorDialog.cs            # Branch selection UI
 ├── GitHistoryDialog.cs                # History viewer
 └── GitPane.addin                      # Add-in manifest
