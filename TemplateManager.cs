@@ -56,12 +56,15 @@ namespace GitPane
                 ? gitignoreTemplates 
                 : gitattributesTemplates;
 
-            // If setting as default, unset others
+            // If setting as default, unset others (but not this template)
             if (template.IsDefault)
             {
                 foreach (var t in templates)
                 {
-                    t.IsDefault = false;
+                    if (t.Id != template.Id)
+                    {
+                        t.IsDefault = false;
+                    }
                 }
             }
 
@@ -163,7 +166,7 @@ namespace GitPane
             gitignoreTemplates = new List<GitTemplate>();
             gitattributesTemplates = new List<GitTemplate>();
 
-            // Default .gitignore templates
+            // Default .gitignore template
             gitignoreTemplates.Add(new GitTemplate
             {
                 Name = "Clarion Basic",
@@ -174,86 +177,23 @@ namespace GitPane
 *.exe
 *.lib
 *.obj
-
-# Build directories
-obj/
-map/
-bin/
+*.map
 
 # IDE files
-*.sln.cache
-*.suo
-*.user
-
-# Debug files
-*.pdb
-*.dbg"
-            });
-
-            gitignoreTemplates.Add(new GitTemplate
-            {
-                Name = "Clarion + Redirection",
-                Description = "For projects using bin/obj folder redirection",
-                IsDefault = false,
-                Content = @"# Redirected output folders
-bin/
-obj/
-map/
-
-# Cache files
-*.sln.cache
-*.suo
-*.user"
-            });
-
-            gitignoreTemplates.Add(new GitTemplate
-            {
-                Name = "Clarion Minimal",
-                Description = "Minimal ignore for tracking most files",
-                IsDefault = false,
-                Content = @"# Executables only
-*.exe
-*.dll
-
-# Cache
 *.sln.cache"
             });
 
-            gitignoreTemplates.Add(new GitTemplate
-            {
-                Name = "Clarion + C# Mixed",
-                Description = "Mixed Clarion and C# projects",
-                IsDefault = false,
-                Content = @"# Clarion outputs
-*.dll
-*.exe
-*.lib
-obj/
-map/
-bin/
-
-# C# outputs
-[Bb]in/
-[Oo]bj/
-*.user
-*.suo
-.vs/
-
-# Common
-*.sln.cache"
-            });
-
-            // Default .gitattributes templates
+            // Default .gitattributes template
             gitattributesTemplates.Add(new GitTemplate
             {
                 Name = "Clarion Standard",
                 Description = "Standard Clarion text file attributes",
                 IsDefault = true,
                 Content = @"# Clarion source files
-*.clw text eol=crlf
-*.inc text eol=crlf
-*.int text eol=crlf
-*.equ text eol=crlf
+*.clw text eol=crlf linguist-language=Clarion
+*.inc text eol=crlf linguist-language=Clarion
+*.int text eol=crlf linguist-language=Clarion
+*.equ text eol=crlf linguist-language=Clarion
 
 # Project files
 *.cwproj text eol=crlf
@@ -262,45 +202,15 @@ bin/
 # Binary files
 *.dll binary
 *.exe binary
-*.lib binary"
-            });
+*.lib binary
 
-            gitattributesTemplates.Add(new GitTemplate
-            {
-                Name = "Clarion Basic",
-                Description = "Basic Clarion files only",
-                IsDefault = false,
-                Content = @"*.clw text eol=crlf
-*.cwproj text eol=crlf
-*.sln text eol=crlf"
-            });
-
-            gitattributesTemplates.Add(new GitTemplate
-            {
-                Name = "Clarion + C# Mixed",
-                Description = "Mixed Clarion and C# projects",
-                IsDefault = false,
-                Content = @"# Clarion
-*.clw text eol=crlf
-*.inc text eol=crlf
-*.int text eol=crlf
-*.equ text eol=crlf
-*.cwproj text eol=crlf
-
-# C#
-*.cs text eol=crlf
-*.csproj text eol=crlf
-
-# Solution
-*.sln text eol=crlf"
-            });
-
-            gitattributesTemplates.Add(new GitTemplate
-            {
-                Name = "Clarion Minimal",
-                Description = "Minimal attributes, let Git auto-detect most files",
-                IsDefault = false,
-                Content = @"*.clw text eol=crlf"
+# Images
+*.ico binary
+*.gif binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.bmp binary"
             });
 
             SaveToFile();

@@ -1229,6 +1229,22 @@ namespace GitPane
                 MessageBoxIcon.Information);
         }
 
+        private void OnManageTemplatesClick(object sender, EventArgs e)
+        {
+            if (templateManager == null)
+            {
+                MessageBox.Show(
+                    "Template manager is not available.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
+
+            var dialog = new TemplateManagerDialog(templateManager);
+            dialog.ShowDialog();
+        }
+
         #endregion
 
         #region UI Layout and Resize

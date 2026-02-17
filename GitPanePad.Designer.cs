@@ -171,8 +171,12 @@ namespace GitPane
             
             // Help menu
             var helpMenu = new ToolStripDropDownButton("Help");
+            var manageTemplatesMenuItem = new ToolStripMenuItem("Manage Templates...");
+            manageTemplatesMenuItem.Click += OnManageTemplatesClick;
             var aboutMenuItem = new ToolStripMenuItem("About GitPane");
             aboutMenuItem.Click += OnAboutClick;
+            helpMenu.DropDownItems.Add(manageTemplatesMenuItem);
+            helpMenu.DropDownItems.Add(new ToolStripSeparator());
             helpMenu.DropDownItems.Add(aboutMenuItem);
             
             // Add menu dropdowns to ToolStrip

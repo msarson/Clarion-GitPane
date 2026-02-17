@@ -27,6 +27,8 @@
     <Compile Include="GitHistoryDialog.cs" />
     <Compile Include="GitTemplate.cs" />
     <Compile Include="TemplateManager.cs" />
+    <Compile Include="TemplateEditorDialog.cs" />
+    <Compile Include="TemplateManagerDialog.cs" />
   </ItemGroup>
 
   <ItemGroup>
