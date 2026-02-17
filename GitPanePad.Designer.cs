@@ -158,7 +158,7 @@ namespace GitPane
             repoMenu.DropDownItems.Add(pushMenuItem);
             repoMenu.DropDownItems.Add(historyMenuItem);
             repoMenu.DropDownItems.Add(new ToolStripSeparator());
-            applyTemplateMenuItem = new ToolStripMenuItem("Apply Template...");
+            applyTemplateMenuItem = new ToolStripMenuItem("Apply .gitignore/.gitattributes Template...");
             applyTemplateMenuItem.Click += OnApplyTemplateClick;
             applyTemplateMenuItem.ToolTipText = "Apply .gitignore or .gitattributes template to existing repository";
             repoMenu.DropDownItems.Add(applyTemplateMenuItem);
@@ -217,7 +217,7 @@ namespace GitPane
             // Help menu
             helpMenu = new ToolStripDropDownButton("Help");
             helpMenu.AutoToolTip = false;
-            var manageTemplatesMenuItem = new ToolStripMenuItem("Manage Templates...");
+            var manageTemplatesMenuItem = new ToolStripMenuItem("Manage .gitignore/.gitattributes Templates...");
             manageTemplatesMenuItem.Click += OnManageTemplatesClick;
             manageTemplatesMenuItem.ToolTipText = "Manage .gitignore and .gitattributes templates";
             var aboutMenuItem = new ToolStripMenuItem("About GitPane");

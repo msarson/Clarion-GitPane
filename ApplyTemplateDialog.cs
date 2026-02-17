@@ -13,6 +13,7 @@ namespace GitPane
         private Label gitignoreLabel;
         private ComboBox gitignoreComboBox;
         private Label gitignoreDescLabel;
+        private GroupBox gitignoreActionGroup;
         private RadioButton gitignoreSkipRadio;
         private RadioButton gitignoreReplaceRadio;
         private RadioButton gitignoreMergeRadio;
@@ -22,6 +23,7 @@ namespace GitPane
         private Label gitattributesLabel;
         private ComboBox gitattributesComboBox;
         private Label gitattributesDescLabel;
+        private GroupBox gitattributesActionGroup;
         private RadioButton gitattributesSkipRadio;
         private RadioButton gitattributesReplaceRadio;
         private RadioButton gitattributesMergeRadio;
@@ -65,8 +67,7 @@ namespace GitPane
 
         private void InitializeUI()
         {
-            this.Text = "Apply Templates";
-            this.Size = new Size(580, 480);
+            this.Text = "Apply .gitignore/.gitattributes Templates";
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -131,34 +132,41 @@ namespace GitPane
                 this.Controls.Add(gitignoreExistsLabel);
                 yPos += 25;
 
-                // Action radio buttons
+                // Action radio buttons in a group
+                gitignoreActionGroup = new GroupBox
+                {
+                    Location = new Point(15, yPos),
+                    Size = new Size(540, 85),
+                    Text = ""
+                };
+                
                 gitignoreSkipRadio = new RadioButton
                 {
                     Text = "Skip (don't modify existing file)",
-                    Location = new Point(35, yPos),
+                    Location = new Point(20, 10),
                     Size = new Size(250, 20),
                     Checked = true
                 };
-                this.Controls.Add(gitignoreSkipRadio);
-                yPos += 25;
+                gitignoreActionGroup.Controls.Add(gitignoreSkipRadio);
 
                 gitignoreReplaceRadio = new RadioButton
                 {
                     Text = "Replace (backup existing to .gitignore.backup)",
-                    Location = new Point(35, yPos),
+                    Location = new Point(20, 35),
                     Size = new Size(350, 20)
                 };
-                this.Controls.Add(gitignoreReplaceRadio);
-                yPos += 25;
+                gitignoreActionGroup.Controls.Add(gitignoreReplaceRadio);
 
                 gitignoreMergeRadio = new RadioButton
                 {
                     Text = "Merge (append template content to existing)",
-                    Location = new Point(35, yPos),
+                    Location = new Point(20, 60),
                     Size = new Size(350, 20)
                 };
-                this.Controls.Add(gitignoreMergeRadio);
-                yPos += 30;
+                gitignoreActionGroup.Controls.Add(gitignoreMergeRadio);
+                
+                this.Controls.Add(gitignoreActionGroup);
+                yPos += 90;
             }
             else
             {
@@ -212,34 +220,41 @@ namespace GitPane
                 this.Controls.Add(gitattributesExistsLabel);
                 yPos += 25;
 
-                // Action radio buttons
+                // Action radio buttons in a group
+                gitattributesActionGroup = new GroupBox
+                {
+                    Location = new Point(15, yPos),
+                    Size = new Size(540, 85),
+                    Text = ""
+                };
+                
                 gitattributesSkipRadio = new RadioButton
                 {
                     Text = "Skip (don't modify existing file)",
-                    Location = new Point(35, yPos),
+                    Location = new Point(20, 10),
                     Size = new Size(250, 20),
                     Checked = true
                 };
-                this.Controls.Add(gitattributesSkipRadio);
-                yPos += 25;
+                gitattributesActionGroup.Controls.Add(gitattributesSkipRadio);
 
                 gitattributesReplaceRadio = new RadioButton
                 {
                     Text = "Replace (backup existing to .gitattributes.backup)",
-                    Location = new Point(35, yPos),
+                    Location = new Point(20, 35),
                     Size = new Size(380, 20)
                 };
-                this.Controls.Add(gitattributesReplaceRadio);
-                yPos += 25;
+                gitattributesActionGroup.Controls.Add(gitattributesReplaceRadio);
 
                 gitattributesMergeRadio = new RadioButton
                 {
                     Text = "Merge (append template content to existing)",
-                    Location = new Point(35, yPos),
+                    Location = new Point(20, 60),
                     Size = new Size(350, 20)
                 };
-                this.Controls.Add(gitattributesMergeRadio);
-                yPos += 30;
+                gitattributesActionGroup.Controls.Add(gitattributesMergeRadio);
+                
+                this.Controls.Add(gitattributesActionGroup);
+                yPos += 90;
             }
 
             // Buttons
@@ -266,10 +281,17 @@ namespace GitPane
 
             this.AcceptButton = okButton;
             this.CancelButton = cancelButton;
+            
+            // Set dialog height based on content
+            this.ClientSize = new Size(560, yPos + 60);
         }
 
         private void LoadTemplates()
         {
+            // Set display member first
+            gitignoreComboBox.DisplayMember = "Name";
+            gitattributesComboBox.DisplayMember = "Name";
+            
             // Load gitignore templates
             var gitignoreTemplates = templateManager.GetTemplates(TemplateType.Gitignore);
             gitignoreComboBox.Items.Add("(None)");
@@ -305,9 +327,6 @@ namespace GitPane
             {
                 gitattributesComboBox.SelectedIndex = 0;
             }
-
-            gitignoreComboBox.DisplayMember = "Name";
-            gitattributesComboBox.DisplayMember = "Name";
         }
 
         private void OnGitignoreSelectionChanged(object sender, EventArgs e)

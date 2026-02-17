@@ -37,7 +37,7 @@ namespace GitPane
 
         private void InitializeUI()
         {
-            this.Text = "Manage Templates";
+            this.Text = "Manage .gitignore/.gitattributes Templates";
             this.Size = new Size(700, 500);
             this.StartPosition = FormStartPosition.CenterParent;
             this.MinimumSize = new Size(600, 400);
