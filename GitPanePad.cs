@@ -11,6 +11,7 @@ namespace GitPane
         #region Fields and Properties
 
         private GitRepository gitRepo;
+        private TemplateManager templateManager;
         private System.IO.FileSystemWatcher fileWatcher;
         private System.IO.FileSystemWatcher gitConfigWatcher;
         private System.Threading.Timer debounceTimer;
@@ -30,12 +31,36 @@ namespace GitPane
                 ShowGitNotInstalledMessage();
             }
             
+            // Initialize template manager
+            InitializeTemplateManager();
+            
             InitializeUI();
             UpdateStatus();
 
             // Subscribe to solution events
             ProjectService.SolutionLoaded += OnSolutionChanged;
             ProjectService.SolutionClosed += OnSolutionClosed;
+        }
+
+        private void InitializeTemplateManager()
+        {
+            try
+            {
+                // Get the add-in directory path
+                string assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                string addInPath = System.IO.Path.GetDirectoryName(assemblyPath);
+                
+                templateManager = new TemplateManager(addInPath);
+                templateManager.EnsureDefaultTemplates();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Failed to initialize template manager: " + ex.Message,
+                    "Template System Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
         }
 
         private void ShowGitNotInstalledMessage()

@@ -25,11 +25,14 @@
     <Compile Include="GitRepository.cs" />
     <Compile Include="BranchSelectorDialog.cs" />
     <Compile Include="GitHistoryDialog.cs" />
+    <Compile Include="GitTemplate.cs" />
+    <Compile Include="TemplateManager.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="ICSharpCode.Core">
       <HintPath>$(CLARION_ROOT)\bin\ICSharpCode.Core.dll</HintPath>

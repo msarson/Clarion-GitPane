@@ -113,13 +113,15 @@ namespace GitPane
                 if (!string.IsNullOrEmpty(details.Body))
                 {
                     text.AppendLine();
-                    text.AppendLine(details.Body);
+                    text.Append(details.Body.Replace("\n", "\r\n"));
+                    text.AppendLine();
                 }
                 
                 if (!string.IsNullOrEmpty(details.Stats))
                 {
                     text.AppendLine();
-                    text.AppendLine(details.Stats);
+                    text.Append(details.Stats.Replace("\n", "\r\n"));
+                    text.AppendLine();
                 }
                 
                 if (!string.IsNullOrEmpty(details.Diff))
@@ -127,7 +129,7 @@ namespace GitPane
                     text.AppendLine();
                     text.AppendLine("---");
                     text.AppendLine();
-                    text.AppendLine(details.Diff);
+                    text.Append(details.Diff.Replace("\n", "\r\n"));
                 }
 
                 detailsTextBox.Text = text.ToString();
