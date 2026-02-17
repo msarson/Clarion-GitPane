@@ -321,6 +321,7 @@ namespace GitPane
             openExternalMenuItem.Visible = hasRepo;
             
             // Repository menu items
+            applyTemplateMenuItem.Enabled = hasRepo;
             fetchMenuItem.Enabled = hasRemote;
             pullMenuItem.Enabled = hasRemote;
             pushMenuItem.Enabled = hasRemote;

@@ -131,6 +131,94 @@ namespace GitPane
             }
         }
 
+        public bool ReplaceGitignoreFile(string content)
+        {
+            try
+            {
+                string gitignorePath = Path.Combine(workingDirectory, ".gitignore");
+                string backupPath = Path.Combine(workingDirectory, ".gitignore.backup");
+                
+                if (File.Exists(gitignorePath))
+                {
+                    File.Copy(gitignorePath, backupPath, true);
+                }
+                
+                File.WriteAllText(gitignorePath, content);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool ReplaceGitattributesFile(string content)
+        {
+            try
+            {
+                string gitattributesPath = Path.Combine(workingDirectory, ".gitattributes");
+                string backupPath = Path.Combine(workingDirectory, ".gitattributes.backup");
+                
+                if (File.Exists(gitattributesPath))
+                {
+                    File.Copy(gitattributesPath, backupPath, true);
+                }
+                
+                File.WriteAllText(gitattributesPath, content);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool MergeGitignoreFile(string content, string templateName)
+        {
+            try
+            {
+                string gitignorePath = Path.Combine(workingDirectory, ".gitignore");
+                string existing = File.Exists(gitignorePath) ? File.ReadAllText(gitignorePath) : "";
+                
+                string merged = existing;
+                if (!merged.EndsWith("\n"))
+                    merged += "\n";
+                
+                merged += $"\n# --- Added from template \"{templateName}\" on {DateTime.Now:yyyy-MM-dd} ---\n";
+                merged += content;
+                
+                File.WriteAllText(gitignorePath, merged);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool MergeGitattributesFile(string content, string templateName)
+        {
+            try
+            {
+                string gitattributesPath = Path.Combine(workingDirectory, ".gitattributes");
+                string existing = File.Exists(gitattributesPath) ? File.ReadAllText(gitattributesPath) : "";
+                
+                string merged = existing;
+                if (!merged.EndsWith("\n"))
+                    merged += "\n";
+                
+                merged += $"\n# --- Added from template \"{templateName}\" on {DateTime.Now:yyyy-MM-dd} ---\n";
+                merged += content;
+                
+                File.WriteAllText(gitattributesPath, merged);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public bool HasCommits()
         {
             var result = ExecuteGitCommand("rev-list --count HEAD");

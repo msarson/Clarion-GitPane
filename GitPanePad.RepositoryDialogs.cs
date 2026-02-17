@@ -273,6 +273,84 @@ namespace GitPane
             }
         }
 
+        private void OnApplyTemplateClick(object sender, EventArgs e)
+        {
+            if (gitRepo == null || !gitRepo.IsRepository())
+            {
+                MessageBox.Show("No repository initialized.", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (templateManager == null)
+            {
+                MessageBox.Show("Template manager is not available.", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            string repoDir = gitRepo.GetWorkingDirectory();
+            var dialog = new ApplyTemplateDialog(templateManager, repoDir);
+
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                bool success = true;
+                string message = "";
+
+                // Apply gitignore template
+                if (dialog.GitignoreAction != ApplyTemplateDialog.TemplateAction.Skip && 
+                    dialog.SelectedGitignoreTemplate != null)
+                {
+                    bool result = false;
+                    switch (dialog.GitignoreAction)
+                    {
+                        case ApplyTemplateDialog.TemplateAction.Replace:
+                            result = gitRepo.ReplaceGitignoreFile(dialog.SelectedGitignoreTemplate.Content);
+                            message += result ? ".gitignore replaced (backup created)\n" : ".gitignore replace failed\n";
+                            break;
+                        case ApplyTemplateDialog.TemplateAction.Merge:
+                            result = gitRepo.MergeGitignoreFile(dialog.SelectedGitignoreTemplate.Content, 
+                                dialog.SelectedGitignoreTemplate.Name);
+                            message += result ? ".gitignore merged\n" : ".gitignore merge failed\n";
+                            break;
+                    }
+                    success &= result;
+                }
+
+                // Apply gitattributes template
+                if (dialog.GitattributesAction != ApplyTemplateDialog.TemplateAction.Skip && 
+                    dialog.SelectedGitattributesTemplate != null)
+                {
+                    bool result = false;
+                    switch (dialog.GitattributesAction)
+                    {
+                        case ApplyTemplateDialog.TemplateAction.Replace:
+                            result = gitRepo.ReplaceGitattributesFile(dialog.SelectedGitattributesTemplate.Content);
+                            message += result ? ".gitattributes replaced (backup created)\n" : ".gitattributes replace failed\n";
+                            break;
+                        case ApplyTemplateDialog.TemplateAction.Merge:
+                            result = gitRepo.MergeGitattributesFile(dialog.SelectedGitattributesTemplate.Content, 
+                                dialog.SelectedGitattributesTemplate.Name);
+                            message += result ? ".gitattributes merged\n" : ".gitattributes merge failed\n";
+                            break;
+                    }
+                    success &= result;
+                }
+
+                if (success)
+                {
+                    MessageBox.Show(message + "\nTemplates applied successfully!", "Success",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    RefreshFileList(); // Refresh to show new/modified files
+                }
+                else
+                {
+                    MessageBox.Show(message + "\nSome operations failed.", "Partial Success",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+        }
+
         #endregion
     }
 }

@@ -32,6 +32,7 @@ namespace GitPane
         // Menu items that need context-aware visibility
         private ToolStripMenuItem initRepoMenuItem;
         private ToolStripMenuItem openExternalMenuItem;
+        private ToolStripMenuItem applyTemplateMenuItem;
         private ToolStripMenuItem fetchMenuItem;
         private ToolStripMenuItem pullMenuItem;
         private ToolStripMenuItem pushMenuItem;
@@ -156,6 +157,11 @@ namespace GitPane
             repoMenu.DropDownItems.Add(pullMenuItem);
             repoMenu.DropDownItems.Add(pushMenuItem);
             repoMenu.DropDownItems.Add(historyMenuItem);
+            repoMenu.DropDownItems.Add(new ToolStripSeparator());
+            applyTemplateMenuItem = new ToolStripMenuItem("Apply Template...");
+            applyTemplateMenuItem.Click += OnApplyTemplateClick;
+            applyTemplateMenuItem.ToolTipText = "Apply .gitignore or .gitattributes template to existing repository";
+            repoMenu.DropDownItems.Add(applyTemplateMenuItem);
             repoMenu.DropDownItems.Add(new ToolStripSeparator());
             viewOnRemoteMenuItem = new ToolStripMenuItem("View on Remote");
             viewOnRemoteMenuItem.Click += OnViewOnRemoteClick;
