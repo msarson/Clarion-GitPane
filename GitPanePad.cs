@@ -152,7 +152,8 @@ namespace GitPane
                     StopFileWatcher();
                     statusLabel.Text = "Not a Git repository";
                     statusLabel.Visible = true;
-                    initRepoButton.Visible = true; // Show init button
+                    initRepoButton.Visible = false; // Hide button - use menu instead
+                    toolStrip.Visible = true; // Show menu bar for Initialize and Templates access
                     UpdateMenuStates(); // Update menu items for non-repo state
                 }
             }
@@ -164,6 +165,7 @@ namespace GitPane
                 statusLabel.Text = "No solution opened";
                 statusLabel.Visible = true;
                 initRepoButton.Visible = false; // Hide init button - no solution
+                toolStrip.Visible = true; // Show menu bar for Templates access
                 UpdateMenuStates(); // Update menu items for no solution state
             }
         }
@@ -303,8 +305,20 @@ namespace GitPane
                 return;
             }
             
-            // File menu
-            initRepoMenuItem.Visible = hasSolution && !hasRepo;
+            // Show/hide entire menus based on repository state
+            // If no repo: show top-level Initialize button and Help menu only
+            // If repo: show all normal menus
+            initRepoMenuButton.Visible = hasSolution && !hasRepo;
+            fileMenu.Visible = hasRepo;
+            repoMenu.Visible = hasRepo;
+            branchMenu.Visible = hasRepo;
+            viewMenu.Visible = hasRepo;
+            helpMenu.Visible = true;
+            branchDropDown.Visible = hasRepo;
+            
+            // File menu items (when visible)
+            initRepoMenuItem.Visible = false; // Not needed - using top-level button now
+            openExternalMenuItem.Visible = hasRepo;
             
             // Repository menu items
             fetchMenuItem.Enabled = hasRemote;

@@ -29,6 +29,7 @@
     <Compile Include="TemplateManager.cs" />
     <Compile Include="TemplateEditorDialog.cs" />
     <Compile Include="TemplateManagerDialog.cs" />
+    <Compile Include="InitializeRepositoryDialog.cs" />
   </ItemGroup>
 
   <ItemGroup>

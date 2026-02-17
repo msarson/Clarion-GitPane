@@ -103,6 +103,34 @@ namespace GitPane
             return commitResult.ExitCode == 0;
         }
 
+        public bool CreateGitignoreFile(string content)
+        {
+            try
+            {
+                string gitignorePath = Path.Combine(workingDirectory, ".gitignore");
+                File.WriteAllText(gitignorePath, content);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool CreateGitattributesFile(string content)
+        {
+            try
+            {
+                string gitattributesPath = Path.Combine(workingDirectory, ".gitattributes");
+                File.WriteAllText(gitattributesPath, content);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public bool HasCommits()
         {
             var result = ExecuteGitCommand("rev-list --count HEAD");

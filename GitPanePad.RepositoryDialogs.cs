@@ -233,24 +233,42 @@ namespace GitPane
             if (ProjectService.OpenSolution == null)
                 return;
 
+            if (templateManager == null)
+            {
+                MessageBox.Show("Template manager is not available.", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             string solutionDir = ProjectService.OpenSolution.Directory;
             
-            var result = MessageBox.Show(
-                $"Initialize a new Git repository in:\n{solutionDir}\n\nThis will create a .git folder. Continue?",
-                "Initialize Git Repository",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
-
-            if (result == DialogResult.Yes)
+            // Show initialize dialog with template selection
+            var dialog = new InitializeRepositoryDialog(templateManager, solutionDir);
+            
+            if (dialog.ShowDialog() == DialogResult.OK)
             {
                 if (gitRepo != null && gitRepo.InitializeRepository())
                 {
-                    MessageBox.Show("Git repository initialized successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // Create .gitignore if template selected
+                    if (dialog.SelectedGitignoreTemplate != null)
+                    {
+                        gitRepo.CreateGitignoreFile(dialog.SelectedGitignoreTemplate.Content);
+                    }
+
+                    // Create .gitattributes if template selected
+                    if (dialog.SelectedGitattributesTemplate != null)
+                    {
+                        gitRepo.CreateGitattributesFile(dialog.SelectedGitattributesTemplate.Content);
+                    }
+
+                    MessageBox.Show("Git repository initialized successfully!", "Success", 
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                     UpdateStatus(); // Refresh UI to show repo controls
                 }
                 else
                 {
-                    MessageBox.Show("Failed to initialize Git repository.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Failed to initialize Git repository.", "Error", 
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

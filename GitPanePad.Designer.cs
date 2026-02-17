@@ -21,8 +21,17 @@ namespace GitPane
         private ToolStrip toolStrip;
         private ToolStripDropDownButton branchDropDown;
         
+        // Menu dropdowns for visibility control
+        private ToolStripDropDownButton fileMenu;
+        private ToolStripDropDownButton repoMenu;
+        private ToolStripDropDownButton branchMenu;
+        private ToolStripDropDownButton viewMenu;
+        private ToolStripDropDownButton helpMenu;
+        private ToolStripButton initRepoMenuButton;
+        
         // Menu items that need context-aware visibility
         private ToolStripMenuItem initRepoMenuItem;
+        private ToolStripMenuItem openExternalMenuItem;
         private ToolStripMenuItem fetchMenuItem;
         private ToolStripMenuItem pullMenuItem;
         private ToolStripMenuItem pushMenuItem;
@@ -86,42 +95,62 @@ namespace GitPane
             toolStrip.GripStyle = ToolStripGripStyle.Hidden;
             toolStrip.Padding = new Padding(5, 2, 5, 6); // Extra bottom padding to separate from staged group
             
+            // Top-level Initialize Repository button (visible when no repo)
+            initRepoMenuButton = new ToolStripButton("Initialize Repository");
+            initRepoMenuButton.Click += OnInitRepoClick;
+            initRepoMenuButton.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            initRepoMenuButton.AutoToolTip = false;
+            initRepoMenuButton.ToolTipText = "Create a new Git repository in the current solution directory";
+            
             // File menu
-            var fileMenu = new ToolStripDropDownButton("File");
+            fileMenu = new ToolStripDropDownButton("File");
+            fileMenu.AutoToolTip = false;
             initRepoMenuItem = new ToolStripMenuItem("Initialize Repository...");
             initRepoMenuItem.Click += OnInitRepoClick;
-            var openExternalMenu = new ToolStripMenuItem("Open in External Tool");
+            openExternalMenuItem = new ToolStripMenuItem("Open in External Tool");
             var openGitHubDesktopMenuItem = new ToolStripMenuItem("GitHub Desktop");
             openGitHubDesktopMenuItem.Click += OnOpenGitHubDesktopClick;
+            openGitHubDesktopMenuItem.ToolTipText = "Open this repository in GitHub Desktop";
             var openGitKrakenMenuItem = new ToolStripMenuItem("GitKraken");
             openGitKrakenMenuItem.Click += OnOpenGitKrakenClick;
-            openExternalMenu.DropDownItems.Add(openGitHubDesktopMenuItem);
-            openExternalMenu.DropDownItems.Add(openGitKrakenMenuItem);
+            openGitKrakenMenuItem.ToolTipText = "Open this repository in GitKraken";
+            openExternalMenuItem.DropDownItems.Add(openGitHubDesktopMenuItem);
+            openExternalMenuItem.DropDownItems.Add(openGitKrakenMenuItem);
             var closePaneMenuItem = new ToolStripMenuItem("Close Git Pane");
             closePaneMenuItem.Click += OnClosePaneClick;
+            closePaneMenuItem.ToolTipText = "Hide the Git pane";
             fileMenu.DropDownItems.Add(initRepoMenuItem);
-            fileMenu.DropDownItems.Add(openExternalMenu);
+            fileMenu.DropDownItems.Add(openExternalMenuItem);
             fileMenu.DropDownItems.Add(new ToolStripSeparator());
             fileMenu.DropDownItems.Add(closePaneMenuItem);
             
             // Repository menu
-            var repoMenu = new ToolStripDropDownButton("Repository");
+            repoMenu = new ToolStripDropDownButton("Repository");
+            repoMenu.AutoToolTip = false;
             var refreshMenuItem = new ToolStripMenuItem("Refresh");
             refreshMenuItem.Click += OnRefreshClick;
+            refreshMenuItem.ToolTipText = "Refresh file list and repository status";
             fetchMenuItem = new ToolStripMenuItem("Fetch");
             fetchMenuItem.Click += OnFetchClick;
+            fetchMenuItem.ToolTipText = "Fetch changes from remote (doesn't merge)";
             pullMenuItem = new ToolStripMenuItem("Pull");
             pullMenuItem.Click += OnPullClick;
+            pullMenuItem.ToolTipText = "Pull and merge changes from remote";
             pushMenuItem = new ToolStripMenuItem("Push");
             pushMenuItem.Click += OnPushClick;
+            pushMenuItem.ToolTipText = "Push committed changes to remote";
             var historyMenuItem = new ToolStripMenuItem("View History...");
             historyMenuItem.Click += OnHistoryClick;
+            historyMenuItem.ToolTipText = "View commit history and diffs";
             createGitHubMenuItem = new ToolStripMenuItem("Create GitHub Repository...");
             createGitHubMenuItem.Click += OnCreateGitHubRepoClick;
+            createGitHubMenuItem.ToolTipText = "Create a new GitHub repository and set it as remote";
             addRemoteMenuItem = new ToolStripMenuItem("Add Remote...");
             addRemoteMenuItem.Click += OnAddRemoteClick;
+            addRemoteMenuItem.ToolTipText = "Add a remote repository URL";
             removeRemoteMenuItem = new ToolStripMenuItem("Remove Remote...");
             removeRemoteMenuItem.Click += OnRemoveRemoteClick;
+            removeRemoteMenuItem.ToolTipText = "Remove the remote repository connection";
             repoMenu.DropDownItems.Add(refreshMenuItem);
             repoMenu.DropDownItems.Add(fetchMenuItem);
             repoMenu.DropDownItems.Add(pullMenuItem);
@@ -130,6 +159,7 @@ namespace GitPane
             repoMenu.DropDownItems.Add(new ToolStripSeparator());
             viewOnRemoteMenuItem = new ToolStripMenuItem("View on Remote");
             viewOnRemoteMenuItem.Click += OnViewOnRemoteClick;
+            viewOnRemoteMenuItem.ToolTipText = "Open this repository in your web browser (GitHub/GitLab)";
             repoMenu.DropDownItems.Add(viewOnRemoteMenuItem);
             repoMenu.DropDownItems.Add(new ToolStripSeparator());
             repoMenu.DropDownItems.Add(createGitHubMenuItem);
@@ -137,15 +167,20 @@ namespace GitPane
             repoMenu.DropDownItems.Add(removeRemoteMenuItem);
             
             // Branch menu
-            var branchMenu = new ToolStripDropDownButton("Branch");
+            branchMenu = new ToolStripDropDownButton("Branch");
+            branchMenu.AutoToolTip = false;
             switchBranchMenuItem = new ToolStripMenuItem("Switch Branch...");
             switchBranchMenuItem.Click += OnBranchSelectClick;
+            switchBranchMenuItem.ToolTipText = "Switch to a different branch";
             createBranchMenuItem = new ToolStripMenuItem("Create Branch...");
             createBranchMenuItem.Click += OnCreateBranchClick;
+            createBranchMenuItem.ToolTipText = "Create a new branch from current HEAD";
             deleteBranchMenuItem = new ToolStripMenuItem("Delete Branch...");
             deleteBranchMenuItem.Click += OnDeleteBranchClick;
+            deleteBranchMenuItem.ToolTipText = "Delete a local branch";
             mergeBranchMenuItem = new ToolStripMenuItem("Merge...");
             mergeBranchMenuItem.Click += OnMergeBranchClick;
+            mergeBranchMenuItem.ToolTipText = "Merge another branch into current branch";
             branchMenu.DropDownItems.Add(switchBranchMenuItem);
             branchMenu.DropDownItems.Add(createBranchMenuItem);
             branchMenu.DropDownItems.Add(deleteBranchMenuItem);
@@ -153,33 +188,41 @@ namespace GitPane
             branchMenu.DropDownItems.Add(mergeBranchMenuItem);
             
             // View menu
-            var viewMenu = new ToolStripDropDownButton("View");
+            viewMenu = new ToolStripDropDownButton("View");
+            viewMenu.AutoToolTip = false;
             var showToolbarMenuItem = new ToolStripMenuItem("Show Toolbar");
             showToolbarMenuItem.CheckOnClick = true;
             showToolbarMenuItem.Checked = true;
             showToolbarMenuItem.Click += OnShowToolbarClick;
+            showToolbarMenuItem.ToolTipText = "Toggle toolbar visibility";
             var showCommitAreaMenuItem = new ToolStripMenuItem("Show Commit Area");
             showCommitAreaMenuItem.CheckOnClick = true;
             showCommitAreaMenuItem.Checked = true;
             showCommitAreaMenuItem.Click += OnShowCommitAreaClick;
+            showCommitAreaMenuItem.ToolTipText = "Toggle commit message area visibility";
             var resetLayoutMenuItem = new ToolStripMenuItem("Reset Split Layout");
             resetLayoutMenuItem.Click += OnResetLayoutClick;
+            resetLayoutMenuItem.ToolTipText = "Reset splitter positions to default";
             viewMenu.DropDownItems.Add(showToolbarMenuItem);
             viewMenu.DropDownItems.Add(showCommitAreaMenuItem);
             viewMenu.DropDownItems.Add(new ToolStripSeparator());
             viewMenu.DropDownItems.Add(resetLayoutMenuItem);
             
             // Help menu
-            var helpMenu = new ToolStripDropDownButton("Help");
+            helpMenu = new ToolStripDropDownButton("Help");
+            helpMenu.AutoToolTip = false;
             var manageTemplatesMenuItem = new ToolStripMenuItem("Manage Templates...");
             manageTemplatesMenuItem.Click += OnManageTemplatesClick;
+            manageTemplatesMenuItem.ToolTipText = "Manage .gitignore and .gitattributes templates";
             var aboutMenuItem = new ToolStripMenuItem("About GitPane");
             aboutMenuItem.Click += OnAboutClick;
+            aboutMenuItem.ToolTipText = "View GitPane version and information";
             helpMenu.DropDownItems.Add(manageTemplatesMenuItem);
             helpMenu.DropDownItems.Add(new ToolStripSeparator());
             helpMenu.DropDownItems.Add(aboutMenuItem);
             
             // Add menu dropdowns to ToolStrip
+            toolStrip.Items.Add(initRepoMenuButton);
             toolStrip.Items.Add(fileMenu);
             toolStrip.Items.Add(repoMenu);
             toolStrip.Items.Add(branchMenu);
@@ -193,6 +236,7 @@ namespace GitPane
             branchDropDown.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F, FontStyle.Bold);
             branchDropDown.ForeColor = Color.DarkBlue;
             branchDropDown.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            branchDropDown.ToolTipText = "Switch branches or manage branch options";
             branchDropDown.DropDownOpening += OnBranchDropDownOpening;
             
             // Add branch dropdown to toolbar
@@ -243,9 +287,11 @@ namespace GitPane
 
             unstageSelectedButton = new ToolStripButton("Unstage Selected");
             unstageSelectedButton.Click += OnUnstageSelectedClick;
+            unstageSelectedButton.ToolTipText = "Unstage selected files (remove from commit)";
 
             unstageAllButton = new ToolStripButton("Unstage All");
             unstageAllButton.Click += OnUnstageAllClick;
+            unstageAllButton.ToolTipText = "Unstage all files (remove all from commit)";
 
             stagedToolStrip.Items.Add(unstageSelectedButton);
             stagedToolStrip.Items.Add(unstageAllButton);
@@ -291,18 +337,22 @@ namespace GitPane
 
             stageSelectedButton = new ToolStripButton("Stage Selected");
             stageSelectedButton.Click += OnStageSelectedClick;
+            stageSelectedButton.ToolTipText = "Stage selected files for commit";
 
             stageAllButton = new ToolStripButton("Stage All");
             stageAllButton.Click += OnStageAllClick;
+            stageAllButton.ToolTipText = "Stage all unstaged files for commit";
 
             ToolStripSeparator unstagedSeparator = new ToolStripSeparator();
             unstagedSeparator.Margin = new Padding(5, 0, 5, 0);
 
             discardSelectedButton = new ToolStripButton("Discard Selected");
             discardSelectedButton.Click += OnDiscardSelectedClick;
+            discardSelectedButton.ToolTipText = "Discard changes to selected files (cannot be undone)";
 
             discardAllButton = new ToolStripButton("Discard All");
             discardAllButton.Click += OnDiscardAllClick;
+            discardAllButton.ToolTipText = "Discard all unstaged changes (cannot be undone)";
 
             unstagedToolStrip.Items.Add(stageSelectedButton);
             unstagedToolStrip.Items.Add(stageAllButton);
@@ -339,14 +389,17 @@ namespace GitPane
             // Commit buttons
             commitButton = new ToolStripButton("Commit");
             commitButton.Click += OnCommitClick;
+            commitButton.ToolTipText = "Commit staged files to local repository";
 
             commitPushButton = new ToolStripButton("Commit && Push");
             commitPushButton.Click += OnCommitPushClick;
+            commitPushButton.ToolTipText = "Commit staged files and push to remote";
 
             // Push button (for unpushed commits)
             pushButton = new ToolStripButton("Push");
             pushButton.Click += OnPushClick;
             pushButton.Visible = false;
+            pushButton.ToolTipText = "Push committed changes to remote repository";
             
             commitToolStrip.Items.Add(commitButton);
             commitToolStrip.Items.Add(commitPushButton);
