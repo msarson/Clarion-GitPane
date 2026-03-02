@@ -94,51 +94,60 @@ namespace GitPane
             if (string.IsNullOrEmpty(commitHash))
                 return;
 
-            // Show loading message
             detailsTextBox.Text = "Loading commit details...";
-            detailsTextBox.Update();
 
-            // Get commit details
-            var details = gitRepo.GetCommitDetails(commitHash);
-            if (details != null)
+            // Run git on a background thread so the UI thread (and the IDE) stays responsive
+            System.Threading.ThreadPool.QueueUserWorkItem(_ =>
             {
-                // Build display text
-                var text = new System.Text.StringBuilder();
-                text.AppendLine($"Commit: {details.Hash}");
-                text.AppendLine($"Author: {details.Author}");
-                text.AppendLine($"Date:   {details.Date}");
-                text.AppendLine();
-                text.AppendLine(details.Subject);
-                
-                if (!string.IsNullOrEmpty(details.Body))
-                {
-                    text.AppendLine();
-                    text.Append(details.Body.Replace("\n", "\r\n"));
-                    text.AppendLine();
-                }
-                
-                if (!string.IsNullOrEmpty(details.Stats))
-                {
-                    text.AppendLine();
-                    text.Append(details.Stats.Replace("\n", "\r\n"));
-                    text.AppendLine();
-                }
-                
-                if (!string.IsNullOrEmpty(details.Diff))
-                {
-                    text.AppendLine();
-                    text.AppendLine("---");
-                    text.AppendLine();
-                    text.Append(details.Diff.Replace("\n", "\r\n"));
-                }
+                var details = gitRepo.GetCommitDetails(commitHash);
 
-                detailsTextBox.Text = text.ToString();
-                detailsTextBox.Select(0, 0);
-            }
-            else
-            {
-                detailsTextBox.Text = "Failed to load commit details.";
-            }
+                // Marshal back to the UI thread to update controls
+                BeginInvoke(new Action(() =>
+                {
+                    // Guard: user may have selected a different row before this came back
+                    if (commitsListView.SelectedItems.Count == 0 ||
+                        (commitsListView.SelectedItems[0].Tag as string) != commitHash)
+                        return;
+
+                    if (details == null)
+                    {
+                        detailsTextBox.Text = "Failed to load commit details.";
+                        return;
+                    }
+
+                    var text = new System.Text.StringBuilder();
+                    text.AppendLine($"Commit: {details.Hash}");
+                    text.AppendLine($"Author: {details.Author}");
+                    text.AppendLine($"Date:   {details.Date}");
+                    text.AppendLine();
+                    text.AppendLine(details.Subject);
+
+                    if (!string.IsNullOrEmpty(details.Body))
+                    {
+                        text.AppendLine();
+                        text.Append(details.Body.Replace("\n", "\r\n"));
+                        text.AppendLine();
+                    }
+
+                    if (!string.IsNullOrEmpty(details.Stats))
+                    {
+                        text.AppendLine();
+                        text.Append(details.Stats.Replace("\n", "\r\n"));
+                        text.AppendLine();
+                    }
+
+                    if (!string.IsNullOrEmpty(details.Diff))
+                    {
+                        text.AppendLine();
+                        text.AppendLine("---");
+                        text.AppendLine();
+                        text.Append(details.Diff.Replace("\n", "\r\n"));
+                    }
+
+                    detailsTextBox.Text = text.ToString();
+                    detailsTextBox.Select(0, 0);
+                }));
+            });
         }
     }
 }
