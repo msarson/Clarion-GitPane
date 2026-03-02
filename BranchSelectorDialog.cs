@@ -57,17 +57,26 @@ namespace GitPane
             // Populate branches
             foreach (var branch in branches)
             {
-                var displayText = branch.IsRemote 
-                    ? $"{branch.Name,-40} (remote, {branch.LastCommit})"
-                    : $"{branch.Name,-40} (local, {branch.LastCommit})";
-                
-                branchListBox.Items.Add(new BranchListItem(branch.Name, displayText, branch.IsRemote));
-                
-                if (branch.Name == currentBranch || 
-                    (branch.IsRemote && branch.Name == "origin/" + currentBranch))
+                string syncIndicator = string.Empty;
+                if (!branch.IsRemote)
                 {
-                    branchListBox.SelectedIndex = branchListBox.Items.Count - 1;
+                    if (branch.AheadCount == 0 && branch.BehindCount == 0)
+                        syncIndicator = "  ✓";
+                    else
+                    {
+                        if (branch.BehindCount > 0) syncIndicator += $"  ↓{branch.BehindCount}";
+                        if (branch.AheadCount  > 0) syncIndicator += $"  ↑{branch.AheadCount}";
+                    }
                 }
+
+                string type = branch.IsRemote ? "remote" : "local";
+                var displayText = $"{branch.Name,-40} ({type}, {branch.LastCommit}){syncIndicator}";
+                branchListBox.Items.Add(new BranchListItem(branch.Name, displayText, branch.IsRemote,
+                    branch.AheadCount, branch.BehindCount));
+
+                if (branch.Name == currentBranch ||
+                    (branch.IsRemote && branch.Name == "origin/" + currentBranch))
+                    branchListBox.SelectedIndex = branchListBox.Items.Count - 1;
             }
 
             // Buttons
@@ -142,21 +151,23 @@ namespace GitPane
 
         private class BranchListItem
         {
-            public string BranchName { get; }
+            public string BranchName  { get; }
             public string DisplayText { get; }
-            public bool IsRemote { get; }
+            public bool   IsRemote    { get; }
+            public int    AheadCount  { get; }
+            public int    BehindCount { get; }
 
-            public BranchListItem(string branchName, string displayText, bool isRemote)
+            public BranchListItem(string branchName, string displayText, bool isRemote,
+                int aheadCount = 0, int behindCount = 0)
             {
-                BranchName = branchName;
+                BranchName  = branchName;
                 DisplayText = displayText;
-                IsRemote = isRemote;
+                IsRemote    = isRemote;
+                AheadCount  = aheadCount;
+                BehindCount = behindCount;
             }
 
-            public override string ToString()
-            {
-                return DisplayText;
-            }
+            public override string ToString() => DisplayText;
         }
     }
 
@@ -166,5 +177,15 @@ namespace GitPane
         public string LastCommit { get; set; }
         public bool IsRemote { get; set; }
         public bool IsCurrent { get; set; }
+        public int AheadCount { get; set; }
+        public int BehindCount { get; set; }
+    }
+
+    public class StashEntry
+    {
+        public int    Index    { get; set; }
+        public string Ref      { get; set; }
+        public string Message  { get; set; }
+        public string Relative { get; set; }
     }
 }

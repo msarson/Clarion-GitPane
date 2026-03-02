@@ -227,6 +227,9 @@ namespace GitPane
             
             // Update button states after refreshing lists
             UpdateButtonStates();
+
+            // Refresh stash panel
+            RefreshStashPanel();
         }
 
         private void UpdateButtonStates()
@@ -369,6 +372,116 @@ namespace GitPane
             else
             {
                 pushButton.Visible = false;
+            }
+        }
+
+        private void RefreshStashPanel()
+        {
+            if (gitRepo == null || !gitRepo.IsRepository())
+            {
+                stashGroupBox.Visible = false;
+                return;
+            }
+
+            var entries = gitRepo.GetStashEntries();
+            stashListView.Items.Clear();
+
+            if (entries.Length == 0)
+            {
+                stashGroupBox.Visible = false;
+                return;
+            }
+
+            foreach (var s in entries)
+            {
+                var item = new ListViewItem(s.Ref);
+                item.SubItems.Add(s.Message);
+                item.SubItems.Add(s.Relative);
+                item.Tag = s.Index;
+                stashListView.Items.Add(item);
+            }
+
+            stashGroupBox.Text    = $"Stashes ({entries.Length})";
+            stashGroupBox.Visible = true;
+            UpdateStashButtons();
+        }
+
+        private void OnStashSelectionChanged(object sender, EventArgs e)
+        {
+            UpdateStashButtons();
+        }
+
+        private void UpdateStashButtons()
+        {
+            bool selected = stashListView.SelectedItems.Count > 0;
+            applyStashButton.Enabled = selected;
+            popStashButton.Enabled   = selected;
+            dropStashButton.Enabled  = selected;
+        }
+
+        private void OnNewStashClick(object sender, EventArgs e)
+        {
+            if (gitRepo == null) return;
+            string msg = PromptSingleLine("New Stash", "Stash message (optional):");
+            if (msg == null) return; // cancelled
+            if (!gitRepo.StashChanges(msg))
+                MessageBox.Show("Failed to create stash.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            RefreshFileList();
+        }
+
+        private void OnApplyStashClick(object sender, EventArgs e)
+        {
+            if (gitRepo == null || stashListView.SelectedItems.Count == 0) return;
+            int idx = (int)stashListView.SelectedItems[0].Tag;
+            if (!gitRepo.ApplyStash(idx))
+                MessageBox.Show("Failed to apply stash. You may have conflicts.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            RefreshFileList();
+        }
+
+        private void OnPopStashClick(object sender, EventArgs e)
+        {
+            if (gitRepo == null || stashListView.SelectedItems.Count == 0) return;
+            int idx = (int)stashListView.SelectedItems[0].Tag;
+            if (!gitRepo.PopStash(idx))
+                MessageBox.Show("Failed to pop stash. You may have conflicts.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            RefreshFileList();
+        }
+
+        private void OnDropStashClick(object sender, EventArgs e)
+        {
+            if (gitRepo == null || stashListView.SelectedItems.Count == 0) return;
+            int idx = (int)stashListView.SelectedItems[0].Tag;
+            string stashRef = stashListView.SelectedItems[0].Text;
+            if (MessageBox.Show($"Permanently drop '{stashRef}'?", "Drop Stash",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2)
+                != DialogResult.Yes) return;
+            if (!gitRepo.DropStash(idx))
+                MessageBox.Show("Failed to drop stash.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            RefreshFileList();
+        }
+
+        /// <summary>Shows a small single-line input prompt. Returns null if user cancelled.</summary>
+        private string PromptSingleLine(string title, string labelText)
+        {
+            using (var dlg = new Form())
+            {
+                dlg.Text            = title;
+                dlg.Size            = new Size(400, 130);
+                dlg.StartPosition   = FormStartPosition.CenterParent;
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.MaximizeBox     = false;
+
+                var lbl = new Label { Text = labelText, Location = new Point(10, 12), AutoSize = true };
+                var tb  = new TextBox { Location = new Point(10, 32), Width = 360 };
+                var ok  = new Button { Text = "OK",     Location = new Point(195, 62), Width = 80,
+                                       DialogResult = DialogResult.OK };
+                var cn  = new Button { Text = "Cancel", Location = new Point(285, 62), Width = 80,
+                                       DialogResult = DialogResult.Cancel };
+                dlg.Controls.AddRange(new Control[] { lbl, tb, ok, cn });
+                dlg.AcceptButton = ok;
+                dlg.CancelButton = cn;
+
+                return dlg.ShowDialog() == DialogResult.OK ? tb.Text : null;
             }
         }
 
@@ -1270,8 +1383,32 @@ namespace GitPane
                     }
                     else
                     {
-                        MessageBox.Show($"Merge failed.\n\nError: {result.Error}\n\n{result.Output}", 
-                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        // Check for conflicts first
+                        var conflictedFiles = gitRepo.GetConflictedFiles();
+                        if (conflictedFiles.Length > 0)
+                        {
+                            using (var conflictDialog = new MergeConflictDialog(
+                                gitRepo, gitRepo.GetWorkingDirectory(), branchToMerge, conflictedFiles))
+                            {
+                                var dr = conflictDialog.ShowDialog();
+                                if (dr == DialogResult.OK)
+                                {
+                                    MessageBox.Show($"Merge of '{branchToMerge}' completed successfully.",
+                                        "Merge Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                }
+                                else if (dr == DialogResult.Abort)
+                                {
+                                    MessageBox.Show($"Merge of '{branchToMerge}' was aborted.",
+                                        "Merge Aborted", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show($"Merge failed.\n\nError: {result.Error}\n\n{result.Output}", 
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                        RefreshFileList();
                     }
                 }
             }

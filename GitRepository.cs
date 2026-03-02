@@ -299,14 +299,11 @@ namespace GitPane
         public BranchInfo[] GetAllBranchesWithInfo()
         {
             var currentBranch = GetCurrentBranch();
-            
-            // Get all branches sorted by last commit date
             var result = ExecuteGitCommand("for-each-ref --sort=-committerdate --format=%(refname:short)|%(committerdate:relative) refs/heads/ refs/remotes/");
             if (result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output))
             {
                 var lines = result.Output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
                 var branches = new System.Collections.Generic.List<BranchInfo>();
-                
                 foreach (var line in lines)
                 {
                     var parts = line.Split('|');
@@ -315,17 +312,35 @@ namespace GitPane
                         var branchName = parts[0].Trim();
                         var lastCommit = parts[1].Trim();
                         var isRemote = branchName.StartsWith("origin/") || branchName.StartsWith("remotes/");
-                        
-                        branches.Add(new BranchInfo
+                        var info = new BranchInfo
                         {
-                            Name = branchName,
+                            Name       = branchName,
                             LastCommit = lastCommit,
-                            IsRemote = isRemote,
-                            IsCurrent = branchName == currentBranch
-                        });
+                            IsRemote   = isRemote,
+                            IsCurrent  = branchName == currentBranch
+                        };
+
+                        // Ahead/behind counts for local branches that have a remote counterpart
+                        if (!isRemote)
+                        {
+                            var countResult = ExecuteGitCommand(
+                                $"rev-list --left-right --count origin/{EscapeGitArg(branchName)}...{EscapeGitArg(branchName)}");
+                            if (countResult.ExitCode == 0 && !string.IsNullOrEmpty(countResult.Output))
+                            {
+                                var counts = countResult.Output.Trim().Split('\t');
+                                if (counts.Length == 2)
+                                {
+                                    int.TryParse(counts[0], out int behind);
+                                    int.TryParse(counts[1], out int ahead);
+                                    info.BehindCount = behind;
+                                    info.AheadCount  = ahead;
+                                }
+                            }
+                        }
+
+                        branches.Add(info);
                     }
                 }
-                
                 return branches.ToArray();
             }
             return new BranchInfo[0];
@@ -367,6 +382,32 @@ namespace GitPane
         public GitCommandResult MergeBranch(string branchName)
         {
             return ExecuteGitCommand($"merge \"{EscapeGitArg(branchName)}\"");
+        }
+
+        /// <summary>Returns files with merge conflicts (unmerged paths).</summary>
+        public string[] GetConflictedFiles()
+        {
+            var result = ExecuteGitCommand("diff --name-only --diff-filter=U");
+            if (result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output))
+                return result.Output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            return new string[0];
+        }
+
+        /// <summary>Returns true if a merge is currently in progress (MERGE_HEAD exists).</summary>
+        public bool IsMergeInProgress()
+        {
+            return File.Exists(Path.Combine(workingDirectory, ".git", "MERGE_HEAD"));
+        }
+
+        public GitCommandResult AbortMerge()
+        {
+            return ExecuteGitCommand("merge --abort");
+        }
+
+        /// <summary>Commits the current merge with the default merge message.</summary>
+        public GitCommandResult CommitMerge()
+        {
+            return ExecuteGitCommand("commit --no-edit");
         }
 
         public bool HasUncommittedChanges()
@@ -444,10 +485,30 @@ namespace GitPane
         {
             var result = ExecuteGitCommand("stash list");
             if (result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output))
-            {
                 return result.Output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            }
             return new string[0];
+        }
+
+        public StashEntry[] GetStashEntries()
+        {
+            var result = ExecuteGitCommand("stash list --format=%gd|%s|%cr");
+            var entries = new System.Collections.Generic.List<StashEntry>();
+            if (result.ExitCode != 0 || string.IsNullOrEmpty(result.Output))
+                return entries.ToArray();
+
+            int index = 0;
+            foreach (var line in result.Output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var parts = line.Split(new[] { '|' }, 3);
+                entries.Add(new StashEntry
+                {
+                    Index    = index++,
+                    Ref      = parts.Length > 0 ? parts[0].Trim() : $"stash@{{{index - 1}}}",
+                    Message  = parts.Length > 1 ? parts[1].Trim() : string.Empty,
+                    Relative = parts.Length > 2 ? parts[2].Trim() : string.Empty,
+                });
+            }
+            return entries.ToArray();
         }
 
         public bool HasStashes()

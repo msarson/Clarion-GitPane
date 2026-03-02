@@ -79,6 +79,15 @@ namespace GitPane
         private ToolStripButton commitButton;
         private ToolStripButton commitPushButton;
         private ToolStripButton pushButton;
+
+        // Stash panel
+        private GroupBox stashGroupBox;
+        private ListView stashListView;
+        private ToolStrip stashToolStrip;
+        private ToolStripButton newStashButton;
+        private ToolStripButton applyStashButton;
+        private ToolStripButton popStashButton;
+        private ToolStripButton dropStashButton;
         
         #endregion
         
@@ -455,9 +464,57 @@ namespace GitPane
             initRepoButton.Click += OnInitRepoClick;
             initRepoButton.Visible = false;
 
+            // Stash management panel - docked to bottom, hidden when no stashes
+            stashGroupBox = new GroupBox();
+            stashGroupBox.Text = "Stashes (0)";
+            stashGroupBox.Dock = DockStyle.Bottom;
+            stashGroupBox.Height = 130;
+            stashGroupBox.Visible = false;
+
+            stashListView = new ListView();
+            stashListView.Dock = DockStyle.Fill;
+            stashListView.View = View.Details;
+            stashListView.FullRowSelect = true;
+            stashListView.MultiSelect = false;
+            stashListView.Font = new Font("Courier New", 8F);
+            stashListView.Columns.Add("Ref", 80);
+            stashListView.Columns.Add("Message", 260);
+            stashListView.Columns.Add("When", 100);
+            stashListView.SelectedIndexChanged += OnStashSelectionChanged;
+
+            stashToolStrip = new ToolStrip();
+            stashToolStrip.Dock = DockStyle.Bottom;
+            stashToolStrip.GripStyle = ToolStripGripStyle.Hidden;
+            stashToolStrip.Padding = new Padding(5, 2, 5, 2);
+
+            newStashButton   = new ToolStripButton("New Stash");
+            applyStashButton = new ToolStripButton("Apply");
+            popStashButton   = new ToolStripButton("Pop");
+            dropStashButton  = new ToolStripButton("Drop");
+            dropStashButton.ForeColor = Color.DarkRed;
+
+            applyStashButton.Enabled = false;
+            popStashButton.Enabled   = false;
+            dropStashButton.Enabled  = false;
+
+            newStashButton.Click   += OnNewStashClick;
+            applyStashButton.Click += OnApplyStashClick;
+            popStashButton.Click   += OnPopStashClick;
+            dropStashButton.Click  += OnDropStashClick;
+
+            stashToolStrip.Items.Add(newStashButton);
+            stashToolStrip.Items.Add(new ToolStripSeparator());
+            stashToolStrip.Items.Add(applyStashButton);
+            stashToolStrip.Items.Add(popStashButton);
+            stashToolStrip.Items.Add(dropStashButton);
+
+            stashGroupBox.Controls.Add(stashListView);
+            stashGroupBox.Controls.Add(stashToolStrip);
+
             // Add controls to contentPanel in correct docking order
             // Dock.Fill first, then Dock.Top in reverse visual order (last added = top position)
             contentPanel.Controls.Add(mainSplitter);   // Dock.Fill - fills remaining space
+            contentPanel.Controls.Add(stashGroupBox);  // Dock.Bottom - stash panel at bottom
             contentPanel.Controls.Add(topSpacerPanel); // Dock.Top - visual separator (appears below toolStrip)
             contentPanel.Controls.Add(toolStrip);      // Dock.Top - combined menu and toolbar
             contentPanel.Controls.Add(statusLabel);

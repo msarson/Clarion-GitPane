@@ -2,6 +2,13 @@
 
 All notable changes to Clarion-GitPane will be documented in this file.
 
+## [1.0.7] - Unreleased
+
+### Added
+- **Merge conflict visualiser** — When a merge results in conflicts, instead of a raw error message, a `MergeConflictDialog` opens showing each conflicted file. Per-file actions: open in external diff tool (WinMerge → VS Code → Beyond Compare → Notepad fallback), and mark as resolved (`git add`). Footer buttons: Abort Merge (`git merge --abort`) and Complete Merge (`git commit --no-edit`, enabled only when all files are resolved)
+- **Branch ahead/behind sync indicators** — `BranchSelectorDialog` now shows sync status for each local branch: `✓` (up to date), `↓n` (behind remote), `↑n` (ahead of remote), or both; computed via `git rev-list --left-right --count`
+- **Stash management panel** — A collapsible "Stashes" panel docks to the bottom of the main pane, automatically shown/hidden based on whether stashes exist. Shows each stash with its ref, message, and relative date. Toolbar actions: New Stash (with optional message), Apply, Pop, Drop. Refreshes automatically alongside the file list
+
 ## [1.0.6] - 2026-03-02
 
 ### Security
