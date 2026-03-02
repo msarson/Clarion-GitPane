@@ -6,175 +6,203 @@ namespace GitPane
 {
     public class BranchSelectorDialog : Form
     {
-        private ListBox branchListBox;
-        private TextBox searchBox;
-        private Button checkoutButton;
-        private Button cancelButton;
-        private Label infoLabel;
-        private string selectedBranch;
+        private ListView   _list;
+        private TextBox    _searchBox;
+        private CheckBox   _showRemote;
+        private Button     _checkoutButton;
+        private Button     _cancelButton;
 
-        public string SelectedBranch => selectedBranch;
+        private readonly BranchInfo[] _allBranches;
+        private readonly string       _currentBranch;
+
+        public string SelectedBranch { get; private set; }
 
         public BranchSelectorDialog(BranchInfo[] branches, string currentBranch)
         {
-            InitializeComponent(branches, currentBranch);
+            _allBranches   = branches;
+            _currentBranch = currentBranch;
+            BuildUI();
+            PopulateList(string.Empty);
         }
 
-        private void InitializeComponent(BranchInfo[] branches, string currentBranch)
+        private void BuildUI()
         {
-            Text = "Select Branch";
-            Size = new Size(500, 450);
-            StartPosition = FormStartPosition.CenterParent;
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
-            MinimizeBox = false;
+            Text            = "Branch Manager";
+            FormBorderStyle = FormBorderStyle.Sizable;
+            MinimumSize     = new Size(560, 380);
+            Size            = new Size(680, 500);
+            StartPosition   = FormStartPosition.CenterParent;
+            MaximizeBox     = false;
 
-            // Search box
-            var searchLabel = new Label();
-            searchLabel.Text = "Search:";
-            searchLabel.Location = new Point(10, 15);
-            searchLabel.AutoSize = true;
+            var layout = new TableLayoutPanel
+            {
+                Dock        = DockStyle.Fill,
+                RowCount    = 5,
+                ColumnCount = 1,
+                Padding     = new Padding(12),
+            };
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // current branch label
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // search
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f)); // list
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // show remote checkbox
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // buttons
 
-            searchBox = new TextBox();
-            searchBox.Location = new Point(60, 12);
-            searchBox.Width = 410;
-            searchBox.TextChanged += OnSearchChanged;
+            // Current branch header
+            layout.Controls.Add(new Label
+            {
+                Text     = "Current branch:  " + (_currentBranch ?? "(unknown)"),
+                AutoSize = true,
+                Font     = new Font(Font, FontStyle.Bold),
+                Margin   = new Padding(0, 0, 0, 8),
+            }, 0, 0);
 
-            // Info label
-            infoLabel = new Label();
-            infoLabel.Location = new Point(10, 40);
-            infoLabel.AutoSize = true;
-            infoLabel.ForeColor = Color.Gray;
-            infoLabel.Text = $"Current: {currentBranch}";
+            // Search row
+            var searchPanel = new Panel { Dock = DockStyle.Fill, Height = 28, Margin = new Padding(0, 0, 0, 6) };
+            var searchLabel = new Label { Text = "Search:", AutoSize = true, Location = new Point(0, 5) };
+            _searchBox = new TextBox { Location = new Point(52, 2), Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top };
+            _searchBox.TextChanged += (s, e) => PopulateList(_searchBox.Text);
+            searchPanel.Controls.Add(searchLabel);
+            searchPanel.Controls.Add(_searchBox);
+            searchPanel.Resize += (s, e) => _searchBox.Width = searchPanel.Width - 56;
+            layout.Controls.Add(searchPanel, 0, 1);
 
             // Branch list
-            branchListBox = new ListBox();
-            branchListBox.Location = new Point(10, 65);
-            branchListBox.Size = new Size(460, 300);
-            branchListBox.Font = new Font("Consolas", 9F);
-            branchListBox.DoubleClick += OnBranchDoubleClick;
-
-            // Populate branches
-            foreach (var branch in branches)
+            _list = new ListView
             {
-                string syncIndicator = string.Empty;
+                Dock          = DockStyle.Fill,
+                View          = View.Details,
+                FullRowSelect = true,
+                MultiSelect   = false,
+                HideSelection = false,
+                GridLines     = true,
+                Font          = new Font("Consolas", 9F),
+            };
+            _list.Columns.Add("Branch",      280);
+            _list.Columns.Add("Last commit", 120);
+            _list.Columns.Add("Date",        90);
+            _list.Columns.Add("Sync",        80);
+            _list.DoubleClick          += (s, e) => { if (CanCheckout()) Accept(); };
+            _list.SelectedIndexChanged += (s, e) => UpdateButtons();
+            layout.Controls.Add(_list, 0, 2);
+
+            // Show remote checkbox
+            _showRemote = new CheckBox
+            {
+                Text     = "Show remote branches",
+                AutoSize = true,
+                Margin   = new Padding(0, 6, 0, 4),
+            };
+            _showRemote.CheckedChanged += (s, e) => PopulateList(_searchBox.Text);
+            layout.Controls.Add(_showRemote, 0, 3);
+
+            // Buttons
+            var buttons = new FlowLayoutPanel
+            {
+                FlowDirection = FlowDirection.RightToLeft,
+                AutoSize      = true,
+                Margin        = new Padding(0, 4, 0, 0),
+            };
+            _cancelButton   = new Button { Text = "Cancel",   Width = 80, DialogResult = DialogResult.Cancel };
+            _checkoutButton = new Button { Text = "Checkout", Width = 80, Enabled = false };
+            _checkoutButton.Click += (s, e) => Accept();
+            buttons.Controls.Add(_cancelButton);
+            buttons.Controls.Add(_checkoutButton);
+            layout.Controls.Add(buttons, 0, 4);
+
+            AcceptButton = _checkoutButton;
+            CancelButton = _cancelButton;
+            Controls.Add(layout);
+        }
+
+        private void PopulateList(string filter)
+        {
+            string prevSelected = SelectedItem();
+
+            _list.BeginUpdate();
+            _list.Items.Clear();
+
+            string f = filter == null ? string.Empty : filter.ToLower();
+
+            foreach (var branch in _allBranches)
+            {
+                if (branch.IsRemote && !_showRemote.Checked) continue;
+                if (f.Length > 0 && !branch.Name.ToLower().Contains(f)) continue;
+
+                string name = branch.IsCurrent ? branch.Name + "  \u2190 current" : branch.Name;
+
+                string sync = string.Empty;
                 if (!branch.IsRemote)
                 {
-                    if (branch.AheadCount == 0 && branch.BehindCount == 0)
-                        syncIndicator = "  ✓";
+                    if (branch.BehindCount == 0 && branch.AheadCount == 0)
+                        sync = "✓";
                     else
                     {
-                        if (branch.BehindCount > 0) syncIndicator += $"  ↓{branch.BehindCount}";
-                        if (branch.AheadCount  > 0) syncIndicator += $"  ↑{branch.AheadCount}";
+                        if (branch.BehindCount > 0) sync += $"↓{branch.BehindCount} ";
+                        if (branch.AheadCount  > 0) sync += $"↑{branch.AheadCount}";
+                        sync = sync.Trim();
                     }
                 }
 
-                string type = branch.IsRemote ? "remote" : "local";
-                var displayText = $"{branch.Name,-40} ({type}, {branch.LastCommit}){syncIndicator}";
-                branchListBox.Items.Add(new BranchListItem(branch.Name, displayText, branch.IsRemote,
-                    branch.AheadCount, branch.BehindCount));
+                var item = new ListViewItem(name);
+                item.SubItems.Add(branch.LastCommit);
+                item.SubItems.Add(branch.ShortDate);
+                item.SubItems.Add(sync);
+                item.Tag = branch.Name;
 
-                if (branch.Name == currentBranch ||
-                    (branch.IsRemote && branch.Name == "origin/" + currentBranch))
-                    branchListBox.SelectedIndex = branchListBox.Items.Count - 1;
+                if (branch.IsCurrent)
+                    item.Font = new Font(_list.Font, FontStyle.Bold);
+                if (branch.IsRemote)
+                    item.ForeColor = SystemColors.GrayText;
+
+                _list.Items.Add(item);
             }
 
-            // Buttons
-            checkoutButton = new Button();
-            checkoutButton.Text = "Checkout";
-            checkoutButton.Location = new Point(295, 375);
-            checkoutButton.Width = 85;
-            checkoutButton.Click += OnCheckoutClick;
-
-            cancelButton = new Button();
-            cancelButton.Text = "Cancel";
-            cancelButton.Location = new Point(385, 375);
-            cancelButton.Width = 85;
-            cancelButton.DialogResult = DialogResult.Cancel;
-            cancelButton.Click += OnCancelClick;
-
-            Controls.Add(searchLabel);
-            Controls.Add(searchBox);
-            Controls.Add(infoLabel);
-            Controls.Add(branchListBox);
-            Controls.Add(checkoutButton);
-            Controls.Add(cancelButton);
-
-            AcceptButton = checkoutButton;
-            CancelButton = cancelButton;
-        }
-
-        private void OnSearchChanged(object sender, EventArgs e)
-        {
-            string filter = searchBox.Text.ToLower();
-            for (int i = 0; i < branchListBox.Items.Count; i++)
+            // Restore selection
+            string toSelect = prevSelected ?? _currentBranch;
+            foreach (ListViewItem item in _list.Items)
             {
-                var item = (BranchListItem)branchListBox.Items[i];
-                if (item.BranchName.ToLower().Contains(filter))
+                if ((string)item.Tag == toSelect)
                 {
-                    branchListBox.SelectedIndex = i;
+                    item.Selected = true;
+                    item.EnsureVisible();
                     break;
                 }
             }
+
+            _list.EndUpdate();
+            UpdateButtons();
         }
 
-        private void OnBranchDoubleClick(object sender, EventArgs e)
+        private void UpdateButtons()
         {
-            if (branchListBox.SelectedItem != null)
+            _checkoutButton.Enabled = CanCheckout();
+        }
+
+        private bool CanCheckout()
+        {
+            string sel = SelectedItem();
+            return sel != null && sel != _currentBranch;
+        }
+
+        private string SelectedItem() =>
+            _list.SelectedItems.Count > 0 ? (string)_list.SelectedItems[0].Tag : null;
+
+        private void Accept()
+        {
+            SelectedBranch = SelectedItem();
+            if (SelectedBranch != null)
             {
-                var item = (BranchListItem)branchListBox.SelectedItem;
-                selectedBranch = item.BranchName;
                 DialogResult = DialogResult.OK;
                 Close();
             }
-        }
-
-        private void OnCheckoutClick(object sender, EventArgs e)
-        {
-            if (branchListBox.SelectedItem != null)
-            {
-                var item = (BranchListItem)branchListBox.SelectedItem;
-                selectedBranch = item.BranchName;
-                DialogResult = DialogResult.OK;
-                Close();
-            }
-            else
-            {
-                MessageBox.Show("Please select a branch.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
-        private void OnCancelClick(object sender, EventArgs e)
-        {
-            Close();
-        }
-
-        private class BranchListItem
-        {
-            public string BranchName  { get; }
-            public string DisplayText { get; }
-            public bool   IsRemote    { get; }
-            public int    AheadCount  { get; }
-            public int    BehindCount { get; }
-
-            public BranchListItem(string branchName, string displayText, bool isRemote,
-                int aheadCount = 0, int behindCount = 0)
-            {
-                BranchName  = branchName;
-                DisplayText = displayText;
-                IsRemote    = isRemote;
-                AheadCount  = aheadCount;
-                BehindCount = behindCount;
-            }
-
-            public override string ToString() => DisplayText;
         }
     }
 
     public class BranchInfo
     {
         public string Name { get; set; }
-        public string LastCommit { get; set; }
+        public string LastCommit { get; set; }   // relative, e.g. "3 days ago"
+        public string ShortDate  { get; set; }   // ISO short, e.g. "2026-02-28"
         public bool IsRemote { get; set; }
         public bool IsCurrent { get; set; }
         public int AheadCount { get; set; }

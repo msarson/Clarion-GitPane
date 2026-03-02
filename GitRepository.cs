@@ -284,7 +284,7 @@ namespace GitPane
         public BranchInfo[] GetAllBranchesWithInfo()
         {
             var currentBranch = GetCurrentBranch();
-            var result = ExecuteGitCommand("for-each-ref --sort=-committerdate --format=%(refname:short)|%(committerdate:relative) refs/heads/ refs/remotes/");
+            var result = ExecuteGitCommand("for-each-ref --sort=-committerdate --format=%(refname:short)|%(committerdate:relative)|%(committerdate:short) refs/heads/ refs/remotes/");
             if (result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output))
             {
                 var lines = result.Output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
@@ -292,15 +292,17 @@ namespace GitPane
                 foreach (var line in lines)
                 {
                     var parts = line.Split('|');
-                    if (parts.Length == 2)
+                    if (parts.Length >= 2)
                     {
                         var branchName = parts[0].Trim();
                         var lastCommit = parts[1].Trim();
+                        var shortDate  = parts.Length >= 3 ? parts[2].Trim() : string.Empty;
                         var isRemote = branchName.StartsWith("origin/") || branchName.StartsWith("remotes/");
                         var info = new BranchInfo
                         {
                             Name       = branchName,
                             LastCommit = lastCommit,
+                            ShortDate  = shortDate,
                             IsRemote   = isRemote,
                             IsCurrent  = branchName == currentBranch
                         };
