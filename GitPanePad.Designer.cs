@@ -19,7 +19,6 @@ namespace GitPane
         
         // Menu and toolbar controls (MenuStrip removed - caused reparenting issues in SharpDevelop host)
         private ToolStrip toolStrip;
-        private ToolStripButton branchDropDown;
         
         // Menu dropdowns for visibility control
         private ToolStripDropDownButton fileMenu;
@@ -257,20 +256,7 @@ namespace GitPane
             toolStrip.Items.Add(branchMenu);
             toolStrip.Items.Add(viewMenu);
             toolStrip.Items.Add(helpMenu);
-            toolStrip.Items.Add(new ToolStripSeparator());
-            
-            // Branch dropdown button (with separator for visual grouping)
-            branchDropDown = new ToolStripButton();
-            branchDropDown.Text = "No branch";
-            branchDropDown.Font = new Font(SystemFonts.DefaultFont.FontFamily, 9F, FontStyle.Bold);
-            branchDropDown.ForeColor = Color.DarkBlue;
-            branchDropDown.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            branchDropDown.ToolTipText = "Click to open Branch Manager";
-            branchDropDown.Click += OnBranchSelectClick;
-            
-            // Add branch dropdown to toolbar
-            toolStrip.Items.Add(branchDropDown);
-            
+
             // Inert spacer panel for WinForms docking stability
             topSpacerPanel = new Panel();
             topSpacerPanel.Dock = DockStyle.Top;

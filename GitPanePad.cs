@@ -115,10 +115,8 @@ namespace GitPane
                     string repoName = gitRepo.GetRepositoryName();
                     string currentBranch = gitRepo.GetCurrentBranch();
 
-                    // Update title to include repo name and path
-                    UpdatePadTitle($"{repoName} - {solutionDir}");
-
-                    branchDropDown.Text = currentBranch ?? "unknown";
+                    // Update title to include repo name, branch and path
+                    UpdatePadTitle($"Git [{currentBranch ?? "unknown"}] - {repoName}");
 
                     // FIX: Hide non-repo controls, show repo UI
                     statusLabel.Visible = false;
@@ -126,8 +124,6 @@ namespace GitPane
                     toolStrip.Visible = true;
                     mainSplitter.Visible = true;
                     commitPanel.Visible = true;
-                    
-                    branchDropDown.Visible = true;
                     
                     // Show commit workflow controls
                     stagedGroupBox.Visible = true;
@@ -179,9 +175,7 @@ namespace GitPane
             mainSplitter.Visible = false;
             
             // Hide individual controls
-            branchDropDown.Visible = false;
             initRepoButton.Visible = false;
-            stagedGroupBox.Visible = false;
             unstagedGroupBox.Visible = false;
             commitMessageLabel.Visible = false;
             commitMessageBox.Visible = false;
@@ -246,13 +240,9 @@ namespace GitPane
                 commitButton.Enabled = false;
                 commitPushButton.Enabled = false;
                 pushButton.Enabled = false;
-                branchDropDown.Enabled = false;
                 return;
             }
-            
-            // Enable branch dropdown when repo exists
-            branchDropDown.Enabled = true;
-            
+
             // Stage buttons - enabled when unstaged files exist or are checked
             int unstagedCount = unstagedListBox.Items.Count;
             int unstagedCheckedCount = unstagedListBox.CheckedItems.Count;
@@ -319,8 +309,7 @@ namespace GitPane
             branchMenu.Visible = hasRepo;
             viewMenu.Visible = hasRepo;
             helpMenu.Visible = true;
-            branchDropDown.Visible = hasRepo;
-            
+
             // File menu items (when visible)
             initRepoMenuItem.Visible = false; // Not needed - using top-level button now
             openExternalMenuItem.Visible = hasRepo;
