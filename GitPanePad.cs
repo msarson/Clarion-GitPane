@@ -494,50 +494,73 @@ namespace GitPane
             if (gitRepo == null || !gitRepo.IsRepository())
                 return;
 
-            // Clear existing items
             branchDropDown.DropDownItems.Clear();
 
-            // Get all branches
-            var branches = gitRepo.GetAllBranchesWithInfo();
-            var currentBranch = gitRepo.GetCurrentBranch();
+            var branches  = gitRepo.GetAllBranchesWithInfo();
+            var toolFont  = toolStrip.Font; // match the rest of the menu bar
+            var boldFont  = new Font(toolFont, FontStyle.Bold);
 
-            // Add branch items
-            foreach (var branch in branches)
+            // --- Local branches ---
+            var locals = branches.Where(b => !b.IsRemote);
+            bool addedLocal = false;
+            foreach (var branch in locals)
             {
-                var item = new ToolStripMenuItem(branch.Name);
-                item.Tag = branch;
-                
-                // Mark current branch
-                if (branch.IsCurrent)
-                {
-                    item.Checked = true;
-                    item.Font = new Font(item.Font, FontStyle.Bold);
-                }
-                
-                // Show remote branches in gray
-                if (branch.IsRemote)
-                {
-                    item.ForeColor = SystemColors.GrayText;
-                }
-                
-                // Show last commit info in tooltip
-                if (!string.IsNullOrEmpty(branch.LastCommit))
-                {
-                    item.ToolTipText = $"Last commit: {branch.LastCommit}";
-                }
-                
-                item.Click += OnBranchDropDownItemClick;
+                var item = BuildBranchMenuItem(branch, branch.IsCurrent ? boldFont : toolFont);
                 branchDropDown.DropDownItems.Add(item);
+                addedLocal = true;
             }
 
-            // Add separator and "More..." option
-            if (branches.Length > 0)
+            // --- Remote branches (collapsed under a submenu to keep the list tidy) ---
+            var remotes = branches.Where(b => b.IsRemote);
+            bool addedRemote = false;
+            var remoteMenu = new ToolStripMenuItem("Remote branches");
+            remoteMenu.Font = toolFont;
+            remoteMenu.ForeColor = SystemColors.GrayText;
+            foreach (var branch in remotes)
             {
-                branchDropDown.DropDownItems.Add(new ToolStripSeparator());
-                var moreItem = new ToolStripMenuItem("More branch options...");
-                moreItem.Click += OnBranchSelectClick;
-                branchDropDown.DropDownItems.Add(moreItem);
+                var item = BuildBranchMenuItem(branch, toolFont);
+                item.ForeColor = SystemColors.GrayText;
+                remoteMenu.DropDownItems.Add(item);
+                addedRemote = true;
             }
+
+            if (addedLocal && addedRemote)
+                branchDropDown.DropDownItems.Add(new ToolStripSeparator());
+            if (addedRemote)
+                branchDropDown.DropDownItems.Add(remoteMenu);
+
+            // --- Actions ---
+            branchDropDown.DropDownItems.Add(new ToolStripSeparator());
+            var moreItem = new ToolStripMenuItem("Branch manager...");
+            moreItem.Font = toolFont;
+            moreItem.Click += OnBranchSelectClick;
+            branchDropDown.DropDownItems.Add(moreItem);
+        }
+
+        private ToolStripMenuItem BuildBranchMenuItem(BranchInfo branch, Font font)
+        {
+            // Build label: name + optional sync indicator
+            string label = branch.Name;
+            if (!branch.IsRemote)
+            {
+                if (branch.BehindCount > 0 && branch.AheadCount > 0)
+                    label += $"  ↓{branch.BehindCount} ↑{branch.AheadCount}";
+                else if (branch.BehindCount > 0)
+                    label += $"  ↓{branch.BehindCount}";
+                else if (branch.AheadCount > 0)
+                    label += $"  ↑{branch.AheadCount}";
+            }
+
+            var item = new ToolStripMenuItem(label);
+            item.Font    = font;
+            item.Tag     = branch;
+            item.Checked = branch.IsCurrent;
+
+            if (!string.IsNullOrEmpty(branch.LastCommit))
+                item.ToolTipText = $"Last commit: {branch.LastCommit}";
+
+            item.Click += OnBranchDropDownItemClick;
+            return item;
         }
 
         private void OnBranchDropDownItemClick(object sender, EventArgs e)
