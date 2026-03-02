@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
+using ICSharpCode.SharpDevelop;
 using ICSharpCode.SharpDevelop.Gui;
 using ICSharpCode.SharpDevelop.Project;
 
@@ -319,6 +321,19 @@ namespace GitPane
             // File menu items (when visible)
             initRepoMenuItem.Visible = false; // Not needed - using top-level button now
             openExternalMenuItem.Visible = hasRepo;
+            
+            // Show open file items only if files exist
+            if (hasRepo && hasSolution)
+            {
+                string solutionDir = ProjectService.OpenSolution.Directory;
+                openGitignoreMenuItem.Visible = System.IO.File.Exists(System.IO.Path.Combine(solutionDir, ".gitignore"));
+                openGitattributesMenuItem.Visible = System.IO.File.Exists(System.IO.Path.Combine(solutionDir, ".gitattributes"));
+            }
+            else
+            {
+                openGitignoreMenuItem.Visible = false;
+                openGitattributesMenuItem.Visible = false;
+            }
             
             // Repository menu items
             applyTemplateMenuItem.Enabled = hasRepo;
@@ -677,6 +692,7 @@ namespace GitPane
             if (!string.IsNullOrEmpty(extension))
             {
                 ((ToolStripMenuItem)unstagedContextMenu.Items[1]).Text = $"Ignore file type (*{extension})";
+                ((ToolStripMenuItem)unstagedContextMenu.Items[1]).Enabled = true;
             }
             else
             {
@@ -684,18 +700,37 @@ namespace GitPane
                 ((ToolStripMenuItem)unstagedContextMenu.Items[1]).Enabled = false;
             }
 
-            // Update directory menu item
+            // Build directory hierarchy submenu
+            var directoryMenuItem = (ToolStripMenuItem)unstagedContextMenu.Items[2];
+            directoryMenuItem.DropDownItems.Clear();
+            
             string directory = System.IO.Path.GetDirectoryName(filePath);
             if (!string.IsNullOrEmpty(directory))
             {
-                string displayDir = directory.Length > 20 ? "..." + directory.Substring(directory.Length - 20) : directory;
-                ((ToolStripMenuItem)unstagedContextMenu.Items[2]).Text = $"Ignore directory ({displayDir}/)";
-                ((ToolStripMenuItem)unstagedContextMenu.Items[2]).Enabled = true;
+                directoryMenuItem.Enabled = true;
+                
+                // Build path hierarchy from deepest to root
+                var pathParts = directory.Replace("\\", "/").Split('/');
+                
+                for (int i = pathParts.Length; i > 0; i--)
+                {
+                    string partialPath = string.Join("/", pathParts.Take(i));
+                    string displayPath = pathParts[i - 1]; // Show just the folder name
+                    string fullPath = partialPath + "/";
+                    
+                    // Show full relative path in tooltip
+                    var menuItem = new ToolStripMenuItem($"{displayPath}/");
+                    menuItem.Tag = fullPath;
+                    menuItem.ToolTipText = fullPath;
+                    menuItem.Click += OnIgnoreDirectoryClick;
+                    
+                    directoryMenuItem.DropDownItems.Add(menuItem);
+                }
             }
             else
             {
-                ((ToolStripMenuItem)unstagedContextMenu.Items[2]).Text = "Ignore directory (root)";
-                ((ToolStripMenuItem)unstagedContextMenu.Items[2]).Enabled = false;
+                directoryMenuItem.Enabled = false;
+                directoryMenuItem.DropDownItems.Add(new ToolStripMenuItem("(file is in root directory)") { Enabled = false });
             }
         }
 
@@ -753,22 +788,13 @@ namespace GitPane
 
         private void OnIgnoreDirectoryClick(object sender, EventArgs e)
         {
-            if (unstagedListBox.SelectedItem == null)
+            // Get the directory path from the menu item's Tag
+            var menuItem = sender as ToolStripMenuItem;
+            if (menuItem == null || menuItem.Tag == null)
                 return;
-
-            var item = unstagedListBox.SelectedItem.ToString();
-            var parts = item.Split('\t');
-            var filePath = parts.Length > 1 ? parts[1] : item;
-
-            string directory = System.IO.Path.GetDirectoryName(filePath);
-            if (string.IsNullOrEmpty(directory))
-            {
-                MessageBox.Show("File is in root directory.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            // Normalize path separators to forward slashes for .gitignore
-            string pattern = directory.Replace('\\', '/') + "/";
+            
+            string pattern = menuItem.Tag.ToString();
+            
             if (gitRepo.AddToGitignore(pattern))
             {
                 MessageBox.Show($"Added '{pattern}' to .gitignore", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -825,8 +851,8 @@ namespace GitPane
                 var psi = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "gitkraken",
-                    Arguments = $"--path \"{repoPath}\"",
-                    UseShellExecute = true
+                    Arguments = $"--path \"{GitRepository.EscapeGitArg(repoPath)}\"",
+                    UseShellExecute = false
                 };
                 System.Diagnostics.Process.Start(psi);
             }
@@ -844,6 +870,56 @@ namespace GitPane
             if (parentForm != null)
             {
                 parentForm.Close();
+            }
+        }
+
+        private void OnOpenGitignoreClick(object sender, EventArgs e)
+        {
+            if (ProjectService.OpenSolution == null || gitRepo == null || !gitRepo.IsRepository())
+            {
+                MessageBox.Show("No Git repository is open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string gitignorePath = System.IO.Path.Combine(ProjectService.OpenSolution.Directory, ".gitignore");
+            if (!System.IO.File.Exists(gitignorePath))
+            {
+                MessageBox.Show(".gitignore file does not exist in the repository.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            try
+            {
+                FileService.OpenFile(gitignorePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to open .gitignore:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void OnOpenGitattributesClick(object sender, EventArgs e)
+        {
+            if (ProjectService.OpenSolution == null || gitRepo == null || !gitRepo.IsRepository())
+            {
+                MessageBox.Show("No Git repository is open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string gitattributesPath = System.IO.Path.Combine(ProjectService.OpenSolution.Directory, ".gitattributes");
+            if (!System.IO.File.Exists(gitattributesPath))
+            {
+                MessageBox.Show(".gitattributes file does not exist in the repository.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            try
+            {
+                FileService.OpenFile(gitattributesPath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to open .gitattributes:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -998,6 +1074,13 @@ namespace GitPane
 
             try
             {
+                // Only allow http/https to prevent file://, javascript: etc. from executing
+                if (!browserUrl.StartsWith("https://") && !browserUrl.StartsWith("http://"))
+                {
+                    MessageBox.Show("The remote URL could not be converted to a safe browser URL.\n\nOnly HTTPS and HTTP URLs can be opened.",
+                        "Cannot Open URL", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
                 System.Diagnostics.Process.Start(browserUrl);
             }
             catch (Exception ex)
@@ -1025,10 +1108,13 @@ namespace GitPane
             if (string.IsNullOrWhiteSpace(branchName))
                 return;
 
-            // Validate branch name (basic check)
-            if (branchName.Contains(" ") || branchName.Contains(".."))
+            // Validate branch name - allow only git-safe characters
+            if (!System.Text.RegularExpressions.Regex.IsMatch(branchName, @"^[a-zA-Z0-9/_\-\.]+$")
+                || branchName.Contains("..") || branchName.StartsWith(".") || branchName.EndsWith("/"))
             {
-                MessageBox.Show("Invalid branch name. Branch names cannot contain spaces or '..'", 
+                MessageBox.Show(
+                    "Invalid branch name. Use only letters, numbers, hyphens, underscores, dots and forward slashes.\n" +
+                    "Branch names cannot contain spaces, quotes, or other special characters.",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
@@ -1301,6 +1387,7 @@ namespace GitPane
             ProjectService.SolutionClosed -= OnSolutionClosed;
             StopFileWatcher();
             debounceTimer?.Dispose();
+            configDebounceTimer?.Dispose();
             contentPanel?.Dispose();
             base.Dispose();
         }

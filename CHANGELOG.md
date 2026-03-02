@@ -2,6 +2,25 @@
 
 All notable changes to Clarion-GitPane will be documented in this file.
 
+## [1.0.6] - 2026-03-02
+
+### Security
+- **Command injection prevention** — All user-supplied values passed to git/gh commands are now escaped via `EscapeGitArg()`: branch names, commit messages, stash messages, file paths, remote names, remote URLs, commit hashes, GitHub repo name and description
+- **`PushChanges`** — Branch name was previously unquoted in the push command; now quoted and escaped
+- **`safe.directory` path** — Directory path passed to `git config --global --add safe.directory` is now escaped
+- **GitHub CLI repo creation** — `repoName` is now quoted and escaped; `description` escaping improved
+- **Browser URL validation** — Remote URL opened in browser is now validated to be `http://` or `https://` only, preventing `file://`, `javascript:` or other dangerous protocols executing via `Process.Start`
+- **GitKraken launch** — Changed `UseShellExecute=true` to `false` so the repo path is not interpreted by the shell
+
+### Fixed
+- **Deadlock in `ExecuteGitHubCLICommand`** — stdout and stderr are now read concurrently (same fix as `ExecuteGitCommand` in 1.0.4); sequential reads could deadlock when either buffer filled
+- **`configDebounceTimer` not disposed** — `Dispose()` was cleaning up `debounceTimer` but not `configDebounceTimer`, causing a resource leak on pane close
+- **Debounce timer race condition** — `FileSystemWatcher` callbacks fire on ThreadPool threads; concurrent events could race through the null check and create duplicate timers. Fixed with `Interlocked.Exchange` to atomically swap timers
+
+### Changed
+- **Branch name validation** — Replaced weak check (blocked spaces and `..` only) with strict allowlist regex `^[a-zA-Z0-9/_\-\.]+$` plus git-specific rules; prevents special characters in user-created branch names
+- **`EscapeGitArg`** — Promoted from `private` to `internal static` so it can be used across partial classes
+
 ## [1.0.5] - 2026-02-17
 
 ### Added

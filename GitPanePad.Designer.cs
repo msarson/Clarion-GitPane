@@ -32,6 +32,8 @@ namespace GitPane
         // Menu items that need context-aware visibility
         private ToolStripMenuItem initRepoMenuItem;
         private ToolStripMenuItem openExternalMenuItem;
+        private ToolStripMenuItem openGitignoreMenuItem;
+        private ToolStripMenuItem openGitattributesMenuItem;
         private ToolStripMenuItem applyTemplateMenuItem;
         private ToolStripMenuItem fetchMenuItem;
         private ToolStripMenuItem pullMenuItem;
@@ -117,11 +119,23 @@ namespace GitPane
             openGitKrakenMenuItem.ToolTipText = "Open this repository in GitKraken";
             openExternalMenuItem.DropDownItems.Add(openGitHubDesktopMenuItem);
             openExternalMenuItem.DropDownItems.Add(openGitKrakenMenuItem);
+            
+            openGitignoreMenuItem = new ToolStripMenuItem("Open .gitignore");
+            openGitignoreMenuItem.Click += OnOpenGitignoreClick;
+            openGitignoreMenuItem.ToolTipText = "Open .gitignore file in the IDE editor";
+            
+            openGitattributesMenuItem = new ToolStripMenuItem("Open .gitattributes");
+            openGitattributesMenuItem.Click += OnOpenGitattributesClick;
+            openGitattributesMenuItem.ToolTipText = "Open .gitattributes file in the IDE editor";
+            
             var closePaneMenuItem = new ToolStripMenuItem("Close Git Pane");
             closePaneMenuItem.Click += OnClosePaneClick;
             closePaneMenuItem.ToolTipText = "Hide the Git pane";
             fileMenu.DropDownItems.Add(initRepoMenuItem);
             fileMenu.DropDownItems.Add(openExternalMenuItem);
+            fileMenu.DropDownItems.Add(new ToolStripSeparator());
+            fileMenu.DropDownItems.Add(openGitignoreMenuItem);
+            fileMenu.DropDownItems.Add(openGitattributesMenuItem);
             fileMenu.DropDownItems.Add(new ToolStripSeparator());
             fileMenu.DropDownItems.Add(closePaneMenuItem);
             
@@ -334,7 +348,7 @@ namespace GitPane
             var ignoreExtensionItem = new ToolStripMenuItem("Ignore file type (*.[ext])");
             ignoreExtensionItem.Click += OnIgnoreExtensionClick;
             var ignoreDirectoryItem = new ToolStripMenuItem("Ignore directory");
-            ignoreDirectoryItem.Click += OnIgnoreDirectoryClick;
+            // Note: Directory submenu items will be populated dynamically in OnUnstagedContextMenuOpening
             unstagedContextMenu.Items.Add(ignoreFileItem);
             unstagedContextMenu.Items.Add(ignoreExtensionItem);
             unstagedContextMenu.Items.Add(ignoreDirectoryItem);

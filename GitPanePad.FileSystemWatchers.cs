@@ -76,54 +76,41 @@ namespace GitPane
             if (e.FullPath.Contains("\\.git\\"))
                 return;
 
-            // Debounce the refresh - only refresh after 500ms of no changes
-            if (debounceTimer != null)
-                debounceTimer.Dispose();
-
-            debounceTimer = new System.Threading.Timer(state =>
-            {
-                if (contentPanel.InvokeRequired)
+            // Debounce: atomically replace any existing timer to avoid race between
+            // concurrent FileSystemWatcher callbacks firing on ThreadPool threads.
+            var old = System.Threading.Interlocked.Exchange(ref debounceTimer,
+                new System.Threading.Timer(state =>
                 {
-                    try
+                    if (contentPanel.InvokeRequired)
                     {
-                        contentPanel.Invoke(new Action(RefreshFileList));
+                        try { contentPanel.Invoke(new Action(RefreshFileList)); }
+                        catch { /* control disposed */ }
                     }
-                    catch
+                    else
                     {
-                        // Ignore if control is disposed
+                        RefreshFileList();
                     }
-                }
-                else
-                {
-                    RefreshFileList();
-                }
-            }, null, 500, System.Threading.Timeout.Infinite);
+                }, null, 500, System.Threading.Timeout.Infinite));
+            old?.Dispose();
         }
 
         private void OnGitConfigChanged(object sender, System.IO.FileSystemEventArgs e)
         {
-            // Debounce the refresh - .git/config can change multiple times
-            if (configDebounceTimer != null)
-                configDebounceTimer.Dispose();
-
-            configDebounceTimer = new System.Threading.Timer(state =>
-            {
-                if (contentPanel.InvokeRequired)
+            // Debounce: atomically replace any existing timer.
+            var old = System.Threading.Interlocked.Exchange(ref configDebounceTimer,
+                new System.Threading.Timer(state =>
                 {
-                    try
+                    if (contentPanel.InvokeRequired)
                     {
-                        contentPanel.Invoke(new Action(UpdateMenuStates));
+                        try { contentPanel.Invoke(new Action(UpdateMenuStates)); }
+                        catch { /* control disposed */ }
                     }
-                    catch
+                    else
                     {
-                        // Ignore if control is disposed
+                        UpdateMenuStates();
                     }
-                }
-                else
-                {
-                    UpdateMenuStates();
-                }
-            }, null, 500, System.Threading.Timeout.Infinite);
+                }, null, 500, System.Threading.Timeout.Infinite));
+            old?.Dispose();
         }
 
         #endregion

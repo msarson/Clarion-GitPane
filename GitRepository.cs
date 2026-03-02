@@ -86,21 +86,28 @@ namespace GitPane
             return result.ExitCode == 0;
         }
 
-        public bool InitializeRepository()
+        public GitCommandResult InitializeRepository()
         {
             if (string.IsNullOrEmpty(workingDirectory) || !Directory.Exists(workingDirectory))
-                return false;
+            {
+                return new GitCommandResult 
+                { 
+                    ExitCode = -1,
+                    Output = "", 
+                    Error = "Working directory is invalid or does not exist"
+                };
+            }
 
             // Initialize the repository
             var initResult = ExecuteGitCommand("init");
             if (initResult.ExitCode != 0)
-                return false;
+                return initResult;
 
             // Create initial commit to establish master/main branch
             // This allows immediate branching and avoids "no branch" state
             var commitResult = ExecuteGitCommand("commit --allow-empty -m \"Initial commit\"");
             
-            return commitResult.ExitCode == 0;
+            return commitResult;
         }
 
         public bool CreateGitignoreFile(string content)
@@ -330,40 +337,36 @@ namespace GitPane
             if (branchName.StartsWith("origin/"))
             {
                 var localName = branchName.Substring(7); // Remove "origin/"
-                var result = ExecuteGitCommand($"checkout -b \"{localName}\" \"{branchName}\"");
+                var result = ExecuteGitCommand($"checkout -b \"{EscapeGitArg(localName)}\" \"{EscapeGitArg(branchName)}\"");
                 if (result.ExitCode != 0)
                 {
                     // Branch might already exist locally, try regular checkout
-                    result = ExecuteGitCommand($"checkout \"{localName}\"");
+                    result = ExecuteGitCommand($"checkout \"{EscapeGitArg(localName)}\"");
                 }
                 return result.ExitCode == 0;
             }
             
-            var checkoutResult = ExecuteGitCommand($"checkout \"{branchName}\"");
+            var checkoutResult = ExecuteGitCommand($"checkout \"{EscapeGitArg(branchName)}\"");
             return checkoutResult.ExitCode == 0;
         }
 
         public GitCommandResult CreateBranch(string branchName, bool checkout = true)
         {
             if (checkout)
-            {
-                return ExecuteGitCommand($"checkout -b \"{branchName}\"");
-            }
+                return ExecuteGitCommand($"checkout -b \"{EscapeGitArg(branchName)}\"");
             else
-            {
-                return ExecuteGitCommand($"branch \"{branchName}\"");
-            }
+                return ExecuteGitCommand($"branch \"{EscapeGitArg(branchName)}\"");
         }
 
         public GitCommandResult DeleteBranch(string branchName, bool force = false)
         {
             string flag = force ? "-D" : "-d";
-            return ExecuteGitCommand($"branch {flag} \"{branchName}\"");
+            return ExecuteGitCommand($"branch {flag} \"{EscapeGitArg(branchName)}\"");
         }
 
         public GitCommandResult MergeBranch(string branchName)
         {
-            return ExecuteGitCommand($"merge \"{branchName}\"");
+            return ExecuteGitCommand($"merge \"{EscapeGitArg(branchName)}\"");
         }
 
         public bool HasUncommittedChanges()
@@ -381,7 +384,7 @@ namespace GitPane
         public bool StashChanges(string message = null)
         {
             var stashMessage = string.IsNullOrEmpty(message) ? "GitPane auto-stash" : message;
-            var result = ExecuteGitCommand($"stash push -m \"{stashMessage}\"");
+            var result = ExecuteGitCommand($"stash push -m \"{EscapeGitArg(stashMessage)}\"");
             return result.ExitCode == 0;
         }
 
@@ -393,7 +396,7 @@ namespace GitPane
                 return false;
 
             // Commit
-            var commitResult = ExecuteGitCommand($"commit -m \"{message}\"");
+            var commitResult = ExecuteGitCommand($"commit -m \"{EscapeGitArg(message)}\"");
             return commitResult.ExitCode == 0;
         }
 
@@ -408,7 +411,7 @@ namespace GitPane
             }
             
             // Try push with upstream set (works for first push and subsequent pushes)
-            return ExecuteGitCommand($"push -u origin {branch}");
+            return ExecuteGitCommand($"push -u origin \"{EscapeGitArg(branch)}\"");
         }
 
         public GitCommandResult Fetch()
@@ -421,6 +424,10 @@ namespace GitPane
             return ExecuteGitCommand("pull");
         }
 
+        /// <remarks>
+        /// DESTRUCTIVE: permanently discards all uncommitted changes and deletes
+        /// untracked files. Callers must show a confirmation dialog before calling.
+        /// </remarks>
         public bool DiscardChanges()
         {
             // Reset tracked files
@@ -499,13 +506,13 @@ namespace GitPane
 
         public bool StageFile(string filePath)
         {
-            var result = ExecuteGitCommand($"add \"{filePath}\"");
+            var result = ExecuteGitCommand($"add \"{EscapeGitArg(filePath)}\"");
             return result.ExitCode == 0;
         }
 
         public bool UnstageFile(string filePath)
         {
-            var result = ExecuteGitCommand($"reset HEAD \"{filePath}\"");
+            var result = ExecuteGitCommand($"reset HEAD \"{EscapeGitArg(filePath)}\"");
             return result.ExitCode == 0;
         }
 
@@ -533,13 +540,9 @@ namespace GitPane
 
         public bool DiscardFile(string filePath)
         {
-            // Use git restore (Git 2.23+) or fall back to checkout
-            var result = ExecuteGitCommand($"restore \"{filePath}\"");
+            var result = ExecuteGitCommand($"restore \"{EscapeGitArg(filePath)}\"");
             if (result.ExitCode != 0)
-            {
-                // Fall back to checkout for older git versions
-                result = ExecuteGitCommand($"checkout -- \"{filePath}\"");
-            }
+                result = ExecuteGitCommand($"checkout -- \"{EscapeGitArg(filePath)}\"");
             return result.ExitCode == 0;
         }
 
@@ -593,19 +596,19 @@ namespace GitPane
 
         public string GetRemoteUrl(string remoteName = "origin")
         {
-            var result = ExecuteGitCommand($"config --get remote.{remoteName}.url");
+            var result = ExecuteGitCommand($"config --get remote.{EscapeGitArg(remoteName)}.url");
             return result.ExitCode == 0 && !string.IsNullOrEmpty(result.Output) ? result.Output.Trim() : null;
         }
 
         public bool AddRemote(string remoteName, string url)
         {
-            var result = ExecuteGitCommand($"remote add {remoteName} \"{url}\"");
+            var result = ExecuteGitCommand($"remote add \"{EscapeGitArg(remoteName)}\" \"{EscapeGitArg(url)}\"");
             return result.ExitCode == 0;
         }
 
         public bool RemoveRemote(string remoteName = "origin")
         {
-            var result = ExecuteGitCommand($"remote remove {remoteName}");
+            var result = ExecuteGitCommand($"remote remove \"{EscapeGitArg(remoteName)}\"");
             return result.ExitCode == 0;
         }
 
@@ -685,7 +688,7 @@ namespace GitPane
                 return null;
             
             // Get commit details
-            var detailsResult = ExecuteGitCommand($"show --stat --format=\"%H%n%an%n%ai%n%s%n%b\" {commitHash}");
+            var detailsResult = ExecuteGitCommand($"show --stat --format=\"%H%n%an%n%ai%n%s%n%b\" \"{EscapeGitArg(commitHash)}\"");
             if (detailsResult.ExitCode != 0)
                 return null;
             
@@ -718,14 +721,14 @@ namespace GitPane
             }
             
             // Get stats summary
-            var statsResult = ExecuteGitCommand($"show --shortstat --format=\"\" {commitHash}");
+            var statsResult = ExecuteGitCommand($"show --shortstat --format=\"\" \"{EscapeGitArg(commitHash)}\"");
             if (statsResult.ExitCode == 0 && !string.IsNullOrEmpty(statsResult.Output))
             {
                 details.Stats = statsResult.Output.Trim();
             }
             
             // Get diff
-            var diffResult = ExecuteGitCommand($"show --format=\"\" {commitHash}");
+            var diffResult = ExecuteGitCommand($"show --format=\"\" \"{EscapeGitArg(commitHash)}\"");
             if (diffResult.ExitCode == 0)
             {
                 details.Diff = diffResult.Output;
@@ -789,11 +792,8 @@ namespace GitPane
         public GitCommandResult CreateGitHubRepo(string repoName, bool isPrivate, string description = "")
         {
             string visibility = isPrivate ? "--private" : "--public";
-            string descArg = string.IsNullOrEmpty(description) ? "" : $"--description \"{description}\"";
-            
-            // Create repo and set as remote origin
-            string arguments = $"repo create {repoName} {visibility} {descArg} --source=. --remote=origin";
-            
+            string descArg = string.IsNullOrEmpty(description) ? "" : $"--description \"{EscapeGitArg(description)}\"";
+            string arguments = $"repo create \"{EscapeGitArg(repoName)}\" {visibility} {descArg} --source=. --remote=origin";
             return ExecuteGitHubCLICommand(arguments);
         }
 
@@ -814,15 +814,18 @@ namespace GitPane
 
                 using (var process = Process.Start(psi))
                 {
+                    string capturedError = null;
+                    var stderrTask = System.Threading.Tasks.Task.Factory.StartNew(
+                        () => capturedError = process.StandardError.ReadToEnd());
                     var output = process.StandardOutput.ReadToEnd();
-                    var error = process.StandardError.ReadToEnd();
+                    stderrTask.Wait();
                     process.WaitForExit();
 
                     return new GitCommandResult
                     {
                         ExitCode = process.ExitCode,
                         Output = output,
-                        Error = error
+                        Error = capturedError ?? string.Empty
                     };
                 }
             }
@@ -836,7 +839,7 @@ namespace GitPane
             }
         }
 
-        private GitCommandResult ExecuteGitCommand(string arguments)
+        public static GitCommandResult ExecuteGitCommand(string arguments, string workingDirectory)
         {
             try
             {
@@ -853,15 +856,20 @@ namespace GitPane
 
                 using (var process = Process.Start(psi))
                 {
+                    // Read both streams concurrently to avoid deadlock when either
+                    // buffer fills while the other is being read synchronously.
+                    string capturedError = null;
+                    var stderrTask = System.Threading.Tasks.Task.Factory.StartNew(
+                        () => capturedError = process.StandardError.ReadToEnd());
                     var output = process.StandardOutput.ReadToEnd();
-                    var error = process.StandardError.ReadToEnd();
+                    stderrTask.Wait();
                     process.WaitForExit();
 
                     return new GitCommandResult
                     {
                         ExitCode = process.ExitCode,
                         Output = output,
-                        Error = error
+                        Error = capturedError ?? string.Empty
                     };
                 }
             }
@@ -869,6 +877,23 @@ namespace GitPane
             {
                 return new GitCommandResult { ExitCode = -1 };
             }
+        }
+
+        private GitCommandResult ExecuteGitCommand(string arguments)
+        {
+            return ExecuteGitCommand(arguments, workingDirectory);
+        }
+
+        /// <summary>
+        /// Escapes a user-supplied string for safe inclusion inside a double-quoted
+        /// git argument (e.g. commit message, stash message).
+        /// Escapes backslashes first, then double-quotes.
+        /// </summary>
+        internal static string EscapeGitArg(string value)
+        {
+            return (value ?? string.Empty)
+                .Replace("\\", "\\\\")
+                .Replace("\"", "\\\"");
         }
 
         public class GitCommandResult

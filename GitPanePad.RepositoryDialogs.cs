@@ -247,30 +247,182 @@ namespace GitPane
             
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                if (gitRepo != null && gitRepo.InitializeRepository())
+                var result = gitRepo.InitializeRepository();
+                
+                // Check for dubious ownership error
+                if (result.ExitCode != 0 && result.Error.Contains("dubious ownership"))
                 {
+                    if (HandleDubiousOwnershipError(result.Error, solutionDir, dialog))
+                        return; // Error was handled and user chose to retry or cancel
+                }
+                
+                if (result.ExitCode == 0)
+                {
+                    bool gitignoreSuccess = true;
+                    bool gitattributesSuccess = true;
+                    
                     // Create .gitignore if template selected
                     if (dialog.SelectedGitignoreTemplate != null)
                     {
-                        gitRepo.CreateGitignoreFile(dialog.SelectedGitignoreTemplate.Content);
+                        gitignoreSuccess = gitRepo.CreateGitignoreFile(dialog.SelectedGitignoreTemplate.Content);
                     }
 
                     // Create .gitattributes if template selected
                     if (dialog.SelectedGitattributesTemplate != null)
                     {
-                        gitRepo.CreateGitattributesFile(dialog.SelectedGitattributesTemplate.Content);
+                        gitattributesSuccess = gitRepo.CreateGitattributesFile(dialog.SelectedGitattributesTemplate.Content);
                     }
 
-                    MessageBox.Show("Git repository initialized successfully!", "Success", 
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    if (gitignoreSuccess && gitattributesSuccess)
+                    {
+                        MessageBox.Show("Git repository initialized successfully!", "Success", 
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        string warnings = "Git repository initialized, but:\n";
+                        if (!gitignoreSuccess)
+                            warnings += "- Failed to create .gitignore file\n";
+                        if (!gitattributesSuccess)
+                            warnings += "- Failed to create .gitattributes file\n";
+                        
+                        MessageBox.Show(warnings, "Partial Success", 
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                    
                     UpdateStatus(); // Refresh UI to show repo controls
                 }
                 else
                 {
-                    MessageBox.Show("Failed to initialize Git repository.", "Error", 
+                    string errorMsg = "Failed to initialize Git repository.\n\n";
+                    
+                    if (!string.IsNullOrEmpty(result.Error))
+                    {
+                        errorMsg += "Error: " + result.Error;
+                    }
+                    else if (!string.IsNullOrEmpty(result.Output))
+                    {
+                        errorMsg += "Output: " + result.Output;
+                    }
+                    else
+                    {
+                        errorMsg += "Git may not be installed or not available in PATH.\n";
+                        errorMsg += "Please ensure Git is installed and try again.";
+                    }
+                    
+                    MessageBox.Show(errorMsg, "Initialization Failed", 
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+        }
+
+        private bool HandleDubiousOwnershipError(string errorMessage, string directory, InitializeRepositoryDialog initDialog)
+        {
+            var dialogResult = MessageBox.Show(
+                "Git detected a directory ownership issue:\n\n" +
+                "This directory is located in a shared/public folder and is owned by Administrators, " +
+                "but you are running as a different user. Git blocks this for security reasons.\n\n" +
+                "GitPane can add this directory to Git's safe directory list to allow operations.\n\n" +
+                "Directory: " + directory + "\n\n" +
+                "Do you want to add this directory to the safe list and retry?",
+                "Git Security Issue",
+                MessageBoxButtons.YesNoCancel,
+                MessageBoxIcon.Warning
+            );
+
+            if (dialogResult == DialogResult.Yes)
+            {
+                // Add to safe.directory
+                var addResult = GitRepository.ExecuteGitCommand(
+                    $"config --global --add safe.directory \"{GitRepository.EscapeGitArg(directory.Replace("\\", "/"))}\"",
+                    ""
+                );
+
+                if (addResult.ExitCode == 0)
+                {
+                    // Retry initialization
+                    MessageBox.Show(
+                        "Directory added to safe list successfully.\n\nRetrying initialization...",
+                        "Success",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
+
+                    // Retry the initialization
+                    var retryResult = gitRepo.InitializeRepository();
+                    
+                    if (retryResult.ExitCode == 0)
+                    {
+                        // Create template files
+                        bool gitignoreSuccess = true;
+                        bool gitattributesSuccess = true;
+                        
+                        if (initDialog.SelectedGitignoreTemplate != null)
+                        {
+                            gitignoreSuccess = gitRepo.CreateGitignoreFile(initDialog.SelectedGitignoreTemplate.Content);
+                        }
+
+                        if (initDialog.SelectedGitattributesTemplate != null)
+                        {
+                            gitattributesSuccess = gitRepo.CreateGitattributesFile(initDialog.SelectedGitattributesTemplate.Content);
+                        }
+
+                        if (gitignoreSuccess && gitattributesSuccess)
+                        {
+                            MessageBox.Show("Git repository initialized successfully!", "Success", 
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            string warnings = "Git repository initialized, but:\n";
+                            if (!gitignoreSuccess)
+                                warnings += "- Failed to create .gitignore file\n";
+                            if (!gitattributesSuccess)
+                                warnings += "- Failed to create .gitattributes file\n";
+                            
+                            MessageBox.Show(warnings, "Partial Success", 
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+                        
+                        UpdateStatus();
+                        return true;
+                    }
+                    else
+                    {
+                        MessageBox.Show(
+                            "Retry failed:\n\n" + retryResult.Error,
+                            "Initialization Failed",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error
+                        );
+                        return true;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show(
+                        "Failed to add directory to safe list:\n\n" + addResult.Error,
+                        "Configuration Failed",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                    return true;
+                }
+            }
+            else if (dialogResult == DialogResult.No)
+            {
+                // Show the full error message
+                MessageBox.Show(
+                    "Initialization cancelled.\n\nFull error:\n\n" + errorMessage,
+                    "Initialization Failed",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return true;
+            }
+            
+            // DialogResult.Cancel - user cancelled
+            return true;
         }
 
         private void OnApplyTemplateClick(object sender, EventArgs e)
