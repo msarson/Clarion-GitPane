@@ -261,6 +261,36 @@ namespace GitPane
             return 0;
         }
 
+        /// <summary>
+        /// Fetches from origin then returns ahead/behind counts for the current branch.
+        /// Returns null if there is no upstream configured.
+        /// ahead  = commits local has that remote doesn't
+        /// behind = commits remote has that local doesn't
+        /// </summary>
+        public SyncInfo GetSyncStatus()
+        {
+            // Must have an upstream
+            var upstreamResult = ExecuteGitCommand("rev-parse --abbrev-ref @{u}");
+            if (upstreamResult.ExitCode != 0)
+                return new SyncInfo { Ahead = 0, Behind = -1 }; // -1 = no upstream
+
+            // Fetch quietly so counts are current
+            ExecuteGitCommand("fetch --quiet");
+
+            var countResult = ExecuteGitCommand("rev-list --left-right --count @{u}...HEAD");
+            if (countResult.ExitCode != 0 || string.IsNullOrEmpty(countResult.Output))
+                return new SyncInfo { Ahead = 0, Behind = 0 };
+
+            var parts = countResult.Output.Trim().Split('\t');
+            int behind = 0, ahead = 0;
+            if (parts.Length == 2)
+            {
+                int.TryParse(parts[0], out behind);
+                int.TryParse(parts[1], out ahead);
+            }
+            return new SyncInfo { Ahead = ahead, Behind = behind };
+        }
+
         public string GetCurrentBranch()
         {
             var result = ExecuteGitCommand("rev-parse --abbrev-ref HEAD");
@@ -949,6 +979,13 @@ namespace GitPane
             public int ExitCode { get; set; }
             public string Output { get; set; }
             public string Error { get; set; }
+        }
+
+        /// <summary>Ahead/behind counts relative to the remote tracking branch.</summary>
+        public class SyncInfo
+        {
+            public int Ahead  { get; set; }
+            public int Behind { get; set; }
         }
 
         public class GitCommitInfo

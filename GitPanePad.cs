@@ -18,6 +18,7 @@ namespace GitPane
         private System.IO.FileSystemWatcher gitConfigWatcher;
         private System.Threading.Timer debounceTimer;
         private System.Threading.Timer configDebounceTimer;
+        private System.Windows.Forms.Timer _syncTimer;
 
         public override Control Control => contentPanel;
 
@@ -115,8 +116,10 @@ namespace GitPane
                     string repoName = gitRepo.GetRepositoryName();
                     string currentBranch = gitRepo.GetCurrentBranch();
 
-                    // Update title to include repo name, branch and path
-                    UpdatePadTitle($"Git [{currentBranch ?? "unknown"}] - {repoName}");
+                    // Update title: show branch immediately with "checking…" then update async
+                    UpdatePadTitle(BuildPaneTitle(repoName, currentBranch, null));
+                    TriggerSyncCheck(gitRepo, repoName, currentBranch);
+                    StartSyncTimer(gitRepo, repoName, currentBranch);
 
                     // FIX: Hide non-repo controls, show repo UI
                     statusLabel.Visible = false;
@@ -148,6 +151,7 @@ namespace GitPane
                     UpdatePadTitle($"Not a Git repository - {solutionDir}");
                     HideCommitControls();
                     StopFileWatcher();
+                    StopSyncTimer();
                     statusLabel.Text = "Not a Git repository";
                     statusLabel.Visible = true;
                     initRepoButton.Visible = false; // Hide button - use menu instead
@@ -160,6 +164,7 @@ namespace GitPane
                 UpdatePadTitle("Git - No solution opened");
                 HideCommitControls();
                 StopFileWatcher();
+                StopSyncTimer();
                 statusLabel.Text = "No solution opened";
                 statusLabel.Visible = true;
                 initRepoButton.Visible = false; // Hide init button - no solution
@@ -1411,11 +1416,73 @@ namespace GitPane
             }
         }
 
-        #endregion
+        /// <summary>
+        /// Builds the pane title: "Git · branch · ✓ up to date — repoName"
+        /// Pass null for sync to show "checking…"
+        /// </summary>
+        private void TriggerSyncCheck(GitRepository repo, string repoName, string branch)
+        {
+            System.Threading.ThreadPool.QueueUserWorkItem(_ =>
+            {
+                var sync = repo.GetSyncStatus();
+                contentPanel.BeginInvoke(new Action(() =>
+                    UpdatePadTitle(BuildPaneTitle(repoName, branch, sync))));
+            });
+        }
+
+        private void StartSyncTimer(GitRepository repo, string repoName, string branch)
+        {
+            StopSyncTimer();
+            _syncTimer = new System.Windows.Forms.Timer { Interval = 60000 }; // 1 minute
+            _syncTimer.Tick += (s, e) =>
+            {
+                // Re-read branch name each tick in case it changed
+                string currentBranch = repo.GetCurrentBranch();
+                TriggerSyncCheck(repo, repoName, currentBranch);
+            };
+            _syncTimer.Start();
+        }
+
+        private void StopSyncTimer()
+        {
+            if (_syncTimer != null)
+            {
+                _syncTimer.Stop();
+                _syncTimer.Dispose();
+                _syncTimer = null;
+            }
+        }
+
+        private static string BuildPaneTitle(string repoName, string branch, GitRepository.SyncInfo sync)
+        {
+            string branchPart = branch ?? "unknown";
+
+            string statusPart;
+            if (sync == null)
+            {
+                statusPart = "checking\u2026"; // checking…, shown before async result
+            }
+            else if (sync.Behind == -1) // sentinel for "no upstream"
+            {
+                statusPart = "\u2717 no remote"; // ✗
+            }
+            else if (sync.Behind == 0 && sync.Ahead == 0)
+            {
+                statusPart = "\u2713 up to date"; // ✓
+            }
+            else
+            {
+                var sb = new System.Text.StringBuilder();
+                if (sync.Behind > 0) sb.Append($"\u26a0 {sync.Behind} behind"); // ⚠
+                if (sync.Behind > 0 && sync.Ahead > 0) sb.Append(" \u00b7 "); // ·
+                if (sync.Ahead  > 0) sb.Append($"\u2191{sync.Ahead} ahead");   // ↑
+                statusPart = sb.ToString();
+            }
+
+            return $"Git \u00b7 {branchPart} \u00b7 {statusPart} \u2014 {repoName}";
+        }
 
 
-
-        #region Solution Event Handlers
 
         private void OnSolutionChanged(object sender, SolutionEventArgs e)
         {
@@ -1432,6 +1499,7 @@ namespace GitPane
             ProjectService.SolutionLoaded -= OnSolutionChanged;
             ProjectService.SolutionClosed -= OnSolutionClosed;
             StopFileWatcher();
+            StopSyncTimer();
             debounceTimer?.Dispose();
             configDebounceTimer?.Dispose();
             contentPanel?.Dispose();
