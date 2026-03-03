@@ -2,6 +2,14 @@
 
 All notable changes to Clarion-GitPane will be documented in this file.
 
+## [1.0.8] - 2026-03-03
+
+### Changed
+- View menu entry renamed from "Git" to "Git Pane" for clarity
+
+### Added
+- Custom icon for the Git Pane entry in the View menu
+
 ## [1.0.7] - 2026-03-03
 
 ### Added
