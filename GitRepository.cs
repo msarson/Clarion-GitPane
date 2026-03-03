@@ -269,15 +269,28 @@ namespace GitPane
         /// </summary>
         public SyncInfo GetSyncStatus()
         {
-            // Must have an upstream
+            // Resolve the remote tracking ref — prefer @{u} (explicit tracking config),
+            // fall back to origin/<branch> (handles Jenkins-style checkouts with no tracking set)
+            string remoteRef;
             var upstreamResult = ExecuteGitCommand("rev-parse --abbrev-ref @{u}");
-            if (upstreamResult.ExitCode != 0)
-                return new SyncInfo { Ahead = 0, Behind = -1 }; // -1 = no upstream
+            if (upstreamResult.ExitCode == 0 && !string.IsNullOrWhiteSpace(upstreamResult.Output))
+            {
+                remoteRef = upstreamResult.Output.Trim();
+            }
+            else
+            {
+                // No tracking ref — try origin/<currentBranch>
+                var branch = GetCurrentBranch();
+                var checkRef = ExecuteGitCommand($"rev-parse --verify refs/remotes/origin/{branch}");
+                if (checkRef.ExitCode != 0)
+                    return new SyncInfo { Ahead = 0, Behind = -1 }; // -1 = no remote at all
+                remoteRef = $"origin/{branch}";
+            }
 
             // Fetch quietly so counts are current
             ExecuteGitCommand("fetch --quiet");
 
-            var countResult = ExecuteGitCommand("rev-list --left-right --count @{u}...HEAD");
+            var countResult = ExecuteGitCommand($"rev-list --left-right --count {remoteRef}...HEAD");
             if (countResult.ExitCode != 0 || string.IsNullOrEmpty(countResult.Output))
                 return new SyncInfo { Ahead = 0, Behind = 0 };
 
