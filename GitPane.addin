@@ -16,7 +16,6 @@
     <Pad id="GitPane"
          category="Main"
          title="Git Pane"
-         icon="GitPane.GitPaneIcon"
          shortcut="Control|Alt|G"
          class="GitPane.GitPanePad"/>
   </Path>
