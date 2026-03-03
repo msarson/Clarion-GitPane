@@ -30,14 +30,6 @@ namespace GitPane
 
         public GitPanePad()
         {
-            using (var stream = Assembly.GetExecutingAssembly()
-                       .GetManifestResourceStream("GitPane.Resources.GitPaneIcon.png"))
-            {
-                if (stream != null)
-                    ResourceService.RegisterNeutralImages(
-                        new EmbeddedIconManager("GitPane.GitPaneIcon", new Bitmap(stream)));
-            }
-
             // Check Git availability first
             if (!GitRepository.IsGitAvailable())
             {
@@ -1517,14 +1509,5 @@ namespace GitPane
         }
 
         #endregion
-
-        private sealed class EmbeddedIconManager : System.Resources.ResourceManager
-        {
-            private readonly string _key;
-            private readonly Bitmap _bitmap;
-            public EmbeddedIconManager(string key, Bitmap bitmap) : base(key, Assembly.GetExecutingAssembly()) { _key = key; _bitmap = bitmap; }
-            public override object GetObject(string name) => name == _key ? _bitmap : null;
-            public override object GetObject(string name, System.Globalization.CultureInfo culture) => GetObject(name);
-        }
     }
 }

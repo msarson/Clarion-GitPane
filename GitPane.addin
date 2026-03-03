@@ -12,10 +12,15 @@
     <Import assembly="GitPane.dll"/>
   </Runtime>
 
+  <Path name="/Workspace/Autostart">
+    <Class id="GitPaneRegisterIcons" class="GitPane.RegisterIconsCommand"/>
+  </Path>
+
   <Path name="/SharpDevelop/Workbench/Pads">
     <Pad id="GitPane"
          category="Main"
          title="Git Pane"
+         icon="GitPane.GitPaneIcon"
          shortcut="Control|Alt|G"
          class="GitPane.GitPanePad"/>
   </Path>

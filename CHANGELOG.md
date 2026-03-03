@@ -2,6 +2,11 @@
 
 All notable changes to Clarion-GitPane will be documented in this file.
 
+## [1.0.9] - 2026-03-03
+
+### Added
+- Custom icon in the View menu (registered via `/Workspace/Autostart` before the menu is built)
+
 ## [1.0.8] - 2026-03-03
 
 ### Changed

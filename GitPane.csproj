@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="RegisterIconsCommand.cs" />
     <Compile Include="GitPanePad.cs" />
     <Compile Include="GitPanePad.Designer.cs" />
     <Compile Include="GitPanePad.BranchManagement.cs" />
