@@ -2,7 +2,7 @@
 
 All notable changes to Clarion-GitPane will be documented in this file.
 
-## [1.0.7] - Unreleased
+## [1.0.7] - 2026-03-03
 
 ### Added
 - **Merge conflict visualiser** — When a merge results in conflicts, instead of a raw error message, a `MergeConflictDialog` opens showing each conflicted file. Per-file actions: open in external diff tool (WinMerge → VS Code → Beyond Compare → Notepad fallback), and mark as resolved (`git add`). Footer buttons: Abort Merge (`git merge --abort`) and Complete Merge (`git commit --no-edit`, enabled only when all files are resolved)
