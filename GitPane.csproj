@@ -15,6 +15,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\GitPaneIcon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="GitPanePad.cs" />
     <Compile Include="GitPanePad.Designer.cs" />
     <Compile Include="GitPanePad.BranchManagement.cs" />
