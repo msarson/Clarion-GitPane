@@ -5,7 +5,7 @@
        addInManagerHidden="preinstalled">
 
   <Manifest>
-    <Identity name="GitPane"/>
+    <Identity name="GitPane" version="1.0.9"/>
   </Manifest>
 
   <Runtime>

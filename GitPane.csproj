@@ -7,6 +7,9 @@
     <RootNamespace>GitPane</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <EnableDefaultItems>false</EnableDefaultItems>
+    <!-- Single source of truth for the version. AssemblyInfo.cs must match, and the
+         CheckAddinVersion target below fails the build if the .addin manifest does not. -->
+    <Version>1.0.9</Version>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -56,6 +59,23 @@
       <SpecificVersion>false</SpecificVersion>
     </Reference>
   </ItemGroup>
+
+  <!-- The .addin manifest is hand-maintained, and it drifts. FlattenCode shipped 1.0.1, 1.0.2 and
+       1.0.3 all declaring version="1.0", which left Addin Finder offering an update that installing
+       could never clear. A stale version is not visible at build time unless something looks, so
+       this fails the Release build rather than letting another release go out wrong.
+
+       Deliberately a check and not a rewriter: a build step that edits the manifest would hide the
+       mistake instead of making someone fix it, and a bad regex would corrupt the file silently. -->
+  <Target Name="CheckAddinVersion" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <PropertyGroup>
+      <AddinManifest>$(MSBuildProjectDirectory)\GitPane.addin</AddinManifest>
+      <AddinManifestText>$([System.IO.File]::ReadAllText('$(AddinManifest)'))</AddinManifestText>
+    </PropertyGroup>
+    <Error Condition="!$(AddinManifestText.Contains('version=&quot;$(Version)&quot;'))"
+           Text="GitPane.addin does not declare version=&quot;$(Version)&quot;. Update the &lt;Identity&gt; element to match, or Addin Finder will keep offering an update that installing cannot clear." />
+    <Message Importance="high" Text="GitPane.addin declares version $(Version) - ok" />
+  </Target>
 </Project>
 
 
